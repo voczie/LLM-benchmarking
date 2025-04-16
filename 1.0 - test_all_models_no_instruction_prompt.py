@@ -82,9 +82,9 @@ questions = [
 ]
 
 models = [
-    "gemma2"
-    "qwen2.5:14b"
-    "phi4"
+    "gemma2",
+    "qwen2.5:14b",
+    "phi4",
     "deepseek-r1:14b"
 ]
 
