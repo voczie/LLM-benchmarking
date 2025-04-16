@@ -1,0 +1,7 @@
+langchain
+langchain_community
+langchain_openai
+langchain_ollama
+langchain_core
+ipykernel
+dotenv
