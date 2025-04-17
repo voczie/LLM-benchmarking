@@ -1,0 +1,16 @@
+```python
+import gffutils
+
+# Connect to the existing database
+db = gffutils.FeatureDB('your_database.db')
+
+# Count genes on chromosome 3
+gene_count = sum(1 for _ in db.features_of_type('gene', seqid='3'))
+
+# Count transcripts on chromosome 3
+transcript_count = sum(1 for _ in db.features_of_type('transcript', seqid='3'))
+
+# Output the results
+print(f"Number of genes on chromosome 3: {gene_count}")
+print(f"Number of transcripts on chromosome 3: {transcript_count}")
+```

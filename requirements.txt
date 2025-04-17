@@ -5,3 +5,5 @@ langchain_ollama
 langchain_core
 ipykernel
 dotenv
+gffutils
+sqlite3
