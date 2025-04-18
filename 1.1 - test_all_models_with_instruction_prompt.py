@@ -1,5 +1,6 @@
 import datetime
-from langchain_core.prompts import ChatPromptTemplate
+from langchain.prompts import PromptTemplate
+from langchain_core.output_parsers import StrOutputParser
 from langchain_ollama.llms import OllamaLLM
 import os
 
@@ -10,7 +11,7 @@ if os.path.exists('results/with-prompt') == False:
     os.mkdir('results/with-prompt')
 
 with open("prompt.txt", "r") as f:
-    context_str = f.read()
+    context = f.read()
 
 # The db description
 schema = '''CREATE TABLE features (
@@ -79,9 +80,6 @@ questions = [
     """Generate a scatterplot to represent the distribution of gene sizes in the X chromosome.""",
     """Generate a stacked barplot chart to represent the proportions of protein-coding, lncRNA and miRNA genes on each chromosome separately.""",
     """Generate a boxplot to represent the comparison of protein_coding, lncRNA, and miRNA transcript sizes"""
-    # """What is the size of the XIST, MALAT1, BRCA1, NFkB, Col1a2 gene locus, etc.?""",
-    # """On which chromosome is the NFkB gene located?""",
-    # """What is the biotype of the XIST, MALAT1, BRCA1, NFkB, Col1a2 genes?"""
 ]
 
 models = [
@@ -99,19 +97,36 @@ for model_name in models:
         os.mkdir(f'results/with-prompt/{model_name_path}')
 
     for ix, question in enumerate(questions):
-        TEMPLATE = f'''Context: {context_str}. Given a genome annotation in a GFF/GTF format and all of its data is stored in a sqlite3 database with the following SCHEMA: {schema},
-        guide me with a query or a walkthrough based on to answer the following question: {question}'''
+        TEMPLATE = '''
+        {context}
 
-        prompt = ChatPromptTemplate.from_template(template=TEMPLATE)
+        ### Given a genome annotation in a GFF/GTF format and all of its data is stored in a sqlite3 database with the following SCHEMA: 
+        <schema>
+        {schema}
+        </schema>
+
+        <user_question>
+        Guide me with a query or a walkthrough based on to answer the following question: {question}
+        </user_question>
+        '''
 
         # Instantiating the model
-        model = OllamaLLM(model=model_name,
-                    temperature=0.2,
+        llm = OllamaLLM(model=model_name,
+                    temperature=0.1,
                 )
 
-        chain = prompt | model
+        prompt = PromptTemplate(
+            input_variables=["context", "schema", "question"], template=TEMPLATE
+        )
+
+        chain = prompt | llm | StrOutputParser()
 
         # Running
-        res = chain.invoke({"question": question, "context": context_str, "schema": schema})
+        res = chain.invoke({
+            "context": context,
+            "schema": schema,
+            "question": questions[0]
+        })
+
         with open(f'results/with-prompt/{model_name_path}/llm_test_question_{ix}_{current_time}.txt', 'w') as f:
             f.write(res)
