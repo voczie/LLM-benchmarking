@@ -6,3 +6,4 @@ langchain_core
 ipykernel
 dotenv
 gffutils
+seaborn
