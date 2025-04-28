@@ -1,0 +1,71 @@
+To determine how many transcript isoforms the XIST gene has and to print the transcript isoform names along with their sizes, you can follow these steps using SQL queries on the SQLite database.
+
+### Step 1: Identify the XIST Gene
+First, you need to find the feature ID or attributes associated with the XIST gene. Typically, genes are represented in the `features` table with a `featuretype` of "gene".
+
+### Step 2: Find Transcript Isoforms
+Once you have the gene ID for XIST, you can look for its associated transcript isoforms. Transcript isoforms are usually represented in the `features` table with a `featuretype` of "transcript".
+
+### Step 3: Calculate Sizes
+The size of each transcript can be calculated as the difference between the `end` and `start` positions.
+
+### SQL Queries
+Here’s how you can structure your SQL queries:
+
+1. **Find the Gene ID for XIST**:
+   ```sql
+   SELECT id 
+   FROM features 
+   WHERE seqid = 'X' AND featuretype = 'gene' AND attributes LIKE '%XIST%';
+   ```
+
+2. **Find Transcript Isoforms for the XIST Gene**:
+   Assuming the gene ID you found is `xist_gene_id`, you can find the transcript isoforms:
+   ```sql
+   SELECT id, start, end 
+   FROM features 
+   WHERE featuretype = 'transcript' AND attributes LIKE '%XIST%' AND id IN (
+       SELECT child 
+       FROM relations 
+       WHERE parent = 'xist_gene_id'
+   );
+   ```
+
+3. **Calculate Sizes and Print Transcript Names**:
+   You can combine the above queries to get the transcript names and their sizes:
+   ```sql
+   SELECT id AS transcript_name, (end - start) AS size 
+   FROM features 
+   WHERE featuretype = 'transcript' AND id IN (
+       SELECT child 
+       FROM relations 
+       WHERE parent = (
+           SELECT id 
+           FROM features 
+           WHERE seqid = 'X' AND featuretype = 'gene' AND attributes LIKE '%XIST%'
+       )
+   );
+   ```
+
+### Final Query
+Here’s the complete query that you can run to get the desired output:
+```sql
+SELECT id AS transcript_name, (end - start) AS size 
+FROM features 
+WHERE featuretype = 'transcript' AND id IN (
+    SELECT child 
+    FROM relations 
+    WHERE parent = (
+        SELECT id 
+        FROM features 
+        WHERE seqid = 'X' AND featuretype = 'gene' AND attributes LIKE '%XIST%'
+    )
+);
+```
+
+### Execution
+Run the final query in your SQLite environment. This will return the transcript isoform names and their sizes for the XIST gene. 
+
+### Note
+- Ensure that the `seqid` for the XIST gene is correctly specified (in this case, 'X' is assumed).
+- The `attributes` field may vary in format, so adjust the `LIKE` clause as necessary to match the actual format in your database.

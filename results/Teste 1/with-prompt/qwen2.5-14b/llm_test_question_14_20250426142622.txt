@@ -1,0 +1,62 @@
+To determine the strand on which the HOTAIR, HOXC11, and HOXC12 genes are located, you can follow these steps:
+
+1. Query the database to find the features corresponding to these gene names.
+2. Extract the `strand` attribute for each of these genes.
+
+Here's a step-by-step guide using Python with the SQLite3 database:
+
+```python
+import sqlite3
+
+# Connect to the database
+conn = sqlite3.connect('genome_annotation.db')
+db = conn.cursor()
+
+# Function to get the strand of a gene by its name
+def get_strand_of_gene(gene_name):
+    query = f"SELECT attributes FROM features WHERE featuretype='gene' AND attributes LIKE '%{gene_name}%'"
+    db.execute(query)
+    result = db.fetchone()
+    
+    if result:
+        # Parse the attributes to extract the strand information
+        attributes = result[0]
+        for attr in attributes.split(';'):
+            if 'strand' in attr:
+                return attr.split('=')[1]
+    else:
+        return None
+
+# List of genes to check
+genes_to_check = ['HOTAIR', 'HOXC11', 'HOXC12']
+
+# Dictionary to store the strand information for each gene
+gene_strand_info = {}
+
+for gene in genes_to_check:
+    strand = get_strand_of_gene(gene)
+    if strand is not None:
+        gene_strand_info[gene] = strand
+
+# Print the results
+print("Gene\tStrand")
+for gene, strand in gene_strand_info.items():
+    print(f"{gene}\t{strand}")
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation:
+
+1. **Connect to the Database**: Establish a connection to your SQLite3 database.
+2. **Query for Gene Attributes**: Construct a query to find features of type `gene` that contain the gene names in their attributes.
+3. **Parse Attributes**: For each gene found, parse the `attributes` field to extract the strand information.
+4. **Store and Print Results**: Store the strand information in a dictionary and print it out.
+
+### Notes:
+- The query assumes that the gene name is included as part of the `attributes` field in the format `gene_id=gene_name`.
+- If your database uses a different schema or attribute naming convention, you may need to adjust the parsing logic accordingly.
+- Ensure that the connection to the database and cursor are properly closed after use.
+
+This script will output the strand information for each gene if they exist in the database.

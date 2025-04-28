@@ -1,0 +1,81 @@
+To answer the question "How many transcript isoforms does the XIST gene have?" and print the transcript isoform names along with their sizes, we need to follow these steps:
+
+1. Identify the `gene` feature for the XIST gene in the database.
+2. Find all `transcript` features that are children of this specific `XIST` gene.
+3. Calculate the size (length) of each transcript by subtracting its start position from its end position.
+
+Here's a step-by-step guide to achieve this:
+
+### Step 1: Identify the XIST Gene
+First, we need to find the ID of the XIST gene in the `features` table. Assuming that the attributes column contains information about the gene name (e.g., `gene_name="XIST"`), you can use a query like this:
+
+```sql
+SELECT id FROM features WHERE featuretype = 'gene' AND attributes LIKE '%gene_name=XIST%;'
+```
+
+### Step 2: Find All Transcript Features for XIST Gene
+Once we have the ID of the XIST gene, we need to find all `transcript` features that are children of this gene. We can use the `relations` table for this:
+
+```sql
+SELECT child FROM relations WHERE parent = 'XIST_gene_id' AND level = 1;
+```
+
+Replace `'XIST_gene_id'` with the actual ID you found in Step 1.
+
+### Step 3: Retrieve Transcript Information and Calculate Sizes
+Now, we need to retrieve information about these transcripts from the `features` table and calculate their sizes:
+
+```sql
+SELECT 
+    f.id AS transcript_id,
+    attributes AS transcript_attributes,
+    (f.end - f.start + 1) AS size
+FROM 
+    features f
+JOIN 
+    relations r ON f.id = r.child AND r.level = 1
+WHERE 
+    r.parent = 'XIST_gene_id'
+```
+
+Again, replace `'XIST_gene_id'` with the actual ID of the XIST gene.
+
+### Step 4: Extract Transcript Names from Attributes
+The `attributes` column contains information about each feature. To extract the transcript name (assuming it's stored as `transcript_name="..."`), you can use a SQL function to parse this string:
+
+```sql
+SELECT 
+    f.id AS transcript_id,
+    SUBSTR(attributes, INSTR(attributes, 'transcript_name="') + 16, INSTR(SUBSTR(attributes, INSTR(attributes, 'transcript_name="')), '"') - 1) AS transcript_name,
+    (f.end - f.start + 1) AS size
+FROM 
+    features f
+JOIN 
+    relations r ON f.id = r.child AND r.level = 1
+WHERE 
+    r.parent = 'XIST_gene_id'
+```
+
+This query extracts the `transcript_name` from the attributes and calculates the size of each transcript.
+
+### Final Query
+Combining all steps, here is a complete SQL query to get the number of transcript isoforms for XIST along with their names and sizes:
+
+```sql
+WITH xist_gene AS (
+    SELECT id FROM features WHERE featuretype = 'gene' AND attributes LIKE '%gene_name=XIST%;'
+),
+xist_transcripts AS (
+    SELECT child FROM relations WHERE parent IN (SELECT id FROM xist_gene) AND level = 1
+)
+SELECT 
+    f.id AS transcript_id,
+    SUBSTR(f.attributes, INSTR(f.attributes, 'transcript_name="') + 16, INSTR(SUBSTR(f.attributes, INSTR(f.attributes, 'transcript_name="')), '"') - 1) AS transcript_name,
+    (f.end - f.start + 1) AS size
+FROM 
+    features f
+JOIN 
+    xist_transcripts t ON f.id = t.child;
+```
+
+This query will give you the number of transcript isoforms for XIST and their names along with their sizes. You can run this in your SQLite database to get the desired information.

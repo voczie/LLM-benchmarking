@@ -1,0 +1,55 @@
+To determine how many pseudogenes are located on the X chromosome, you can use SQL queries to extract and count relevant entries from your SQLite database. Here's a step-by-step guide:
+
+1. **Identify Relevant Rows in `features` Table**: You need to find rows where `seqid` is 'X' (or whatever identifier represents the X chromosome) and `featuretype` is 'pseudogene'.
+
+2. **Count These Rows**: Once you have identified these rows, count them.
+
+Here's a SQL query that accomplishes this:
+
+```sql
+SELECT COUNT(*) AS pseudogenes_count 
+FROM features 
+WHERE seqid = 'X' AND featuretype = 'pseudogene';
+```
+
+### Explanation:
+- `seqid = 'X'`: Filters the entries to only those on the X chromosome.
+- `featuretype = 'pseudogene'`: Ensures that we are counting only pseudogenes.
+- `COUNT(*) AS pseudogenes_count`: Counts all rows matching these criteria and labels this count as `pseudogenes_count`.
+
+### Steps to Execute:
+1. **Connect to Your SQLite Database**: Use a tool like DB Browser for SQLite, or connect via Python with libraries such as sqlite3.
+
+2. **Run the Query**:
+   - Open your database connection.
+   - Run the above SQL query.
+   - Fetch and display the result which will be the number of pseudogenes on the X chromosome.
+
+### Example in Python (Optional):
+If you prefer to run this via a script, here's an example using Python:
+
+```python
+import sqlite3
+
+# Connect to your SQLite database
+conn = sqlite3.connect('your_database.db')
+cursor = conn.cursor()
+
+# Execute the query
+query = """
+SELECT COUNT(*) AS pseudogenes_count 
+FROM features 
+WHERE seqid = 'X' AND featuretype = 'pseudogene';
+"""
+
+cursor.execute(query)
+result = cursor.fetchone()
+print(f"Number of pseudogenes on X chromosome: {result[0]}")
+
+# Close the connection
+conn.close()
+```
+
+Replace `'your_database.db'` with your actual database file name.
+
+This query will give you a precise count of how many pseudogenes are present on the X chromosome in your genome annotation data.

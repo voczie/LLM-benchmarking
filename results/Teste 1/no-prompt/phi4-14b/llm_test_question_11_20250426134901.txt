@@ -1,0 +1,45 @@
+To determine on which chromosomes the genes NFKB1, NFKB2, REL, RELA, and RELB are located using your SQLite database schema, you can follow these steps:
+
+### Step-by-Step Guide
+
+1. **Understand the Schema**: 
+   - The `features` table contains genomic features with attributes such as `seqid` (chromosome), `featuretype`, and gene names stored in the `attributes` column.
+   - We need to extract information from the `attributes` column, which typically includes key-value pairs like `gene_name="NFKB1"`.
+
+2. **Extract Gene Information**:
+   - Use SQL queries to filter rows where the `featuretype` is "gene" and the `attributes` contain any of the gene names: NFKB1, NFKB2, REL, RELA, or RELB.
+   - The `attributes` column needs parsing because it's a text field containing key-value pairs.
+
+3. **Write SQL Queries**:
+   - Use SQLite's string functions to parse and filter based on the `attributes` column.
+
+Here is an example query to find the chromosomes for each gene:
+
+```sql
+SELECT DISTINCT seqid 
+FROM features 
+WHERE featuretype = 'gene' 
+AND (
+    attributes LIKE '%gene_name="NFKB1"%'
+    OR attributes LIKE '%gene_name="NFKB2"%'
+    OR attributes LIKE '%gene_name="REL"%'
+    OR attributes LIKE '%gene_name="RELA"%'
+    OR attributes LIKE '%gene_name="RELB"%'
+);
+```
+
+### Explanation
+
+- **`SELECT DISTINCT seqid`**: This selects unique chromosome identifiers where the genes are located.
+- **`FROM features`**: Specifies the table containing genomic feature data.
+- **`WHERE featuretype = 'gene'`**: Filters rows to include only those with a `featuretype` of "gene".
+- **`AND (...)`**: Ensures that only rows with attributes matching any of the specified gene names are selected.
+- **`LIKE '%gene_name="GENE_NAME"%'"`**: Searches for the specific gene name within the `attributes` column. The `%` wildcard allows for other text before or after the key-value pair.
+
+### Running the Query
+
+1. Open your SQLite database using a tool like `sqlite3`, DBeaver, or any SQL client that supports SQLite.
+2. Execute the query provided above.
+3. Review the results to see which chromosomes contain each of the specified genes.
+
+This approach will give you a list of distinct chromosome identifiers for the genes NFKB1, NFKB2, REL, RELA, and RELB.

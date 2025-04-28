@@ -1,0 +1,47 @@
+To find the chromosomes on which the genes NFKB1, NFKB2, REL, RELA, and RELB are located, you can use the `gffutils` library to query the database. Below is a Python script that demonstrates how to connect to the database, fetch the required gene features, and print their chromosome locations.
+
+### Python Script
+
+```python
+import gffutils
+
+# Connect to the existing GFF/GTF database
+db = gffutils.FeatureDB('your_database.db', keep_order=True)
+
+# List of genes to search for
+genes_of_interest = ['NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB']
+
+# Initialize a dictionary to store gene locations
+gene_locations = {}
+
+# Fetch features for each gene of interest
+for gene in genes_of_interest:
+    # Fetch the gene feature by its gene_id
+    gene_feature = db.features_of_type('gene', filter={'gene_id': gene})
+    
+    # If the gene feature exists, get its chromosome (seqid)
+    for feature in gene_feature:
+        gene_locations[gene] = feature.seqid
+
+# Print the results
+print("Gene Locations:")
+for gene, chromosome in gene_locations.items():
+    print(f"{gene}: {chromosome}")
+```
+
+### Explanation of the Script
+
+1. **Import the Library**: The script starts by importing the `gffutils` library.
+
+2. **Connect to the Database**: It connects to the SQLite database containing the genomic annotations. Replace `'your_database.db'` with the actual path to your database file.
+
+3. **Define Genes of Interest**: A list of gene names (`genes_of_interest`) is created to specify which genes we want to find.
+
+4. **Fetch Gene Features**: The script iterates over each gene name, fetching the corresponding gene feature from the database using `db.features_of_type()`. The `filter` parameter is used to specify the gene ID.
+
+5. **Store Chromosome Locations**: If a gene feature is found, its chromosome (seqid) is stored in the `gene_locations` dictionary.
+
+6. **Print Results**: Finally, the script prints out the chromosome locations for each gene.
+
+### Running the Script
+Make sure you have the `gffutils` library installed and your database file is accessible. You can run this script in a Python environment where you have access to the database. The output will show the chromosomes for each of the specified genes.

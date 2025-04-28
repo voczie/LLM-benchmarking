@@ -1,0 +1,22 @@
+```python
+import gffutils
+
+# Connect to the existing database
+db = gffutils.FeatureDB('your_database.db')
+
+# Define the gene names to search for
+gene_names = ['HOTAIR', 'HOXC11', 'HOXC12']
+
+# Initialize a dictionary to store the strand information
+strand_info = {}
+
+# Fetch the genes and their strand information
+for gene_name in gene_names:
+    genes = db.features_of_type('gene', filter=lambda f: f.attributes.get('gene_name', [None])[0] == gene_name)
+    for gene in genes:
+        strand_info[gene_name] = gene.strand
+
+# Print the strand information
+for gene, strand in strand_info.items():
+    print(f"{gene}: {strand}")
+```

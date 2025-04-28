@@ -1,0 +1,47 @@
+```python
+import sqlite3
+
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your database file
+cursor = conn.cursor()
+
+# Query to count pseudogenes on chromosome X
+cursor.execute("""
+    SELECT COUNT(*) 
+    FROM features
+    WHERE seqid = 'X' AND featuretype = 'gene' AND 'pseudogene' IN (attributes)
+""")
+
+result = cursor.fetchone()[0]  
+
+print(f"There are {result} pseudogenes on chromosome X.")
+
+conn.close()
+```
+
+**Walkthrough:**
+
+1. **Connect to the database:**
+   - Replace `'your_database.db'` with the actual name of your SQLite database file.
+   - `sqlite3.connect()` establishes a connection to the database.
+
+2. **Create a cursor object:**
+   - The `cursor` object allows you to execute SQL queries and fetch results.
+
+3. **Execute the query:**
+   - The SQL query selects the count of features that meet these criteria:
+     - `seqid = 'X'`:  The feature is located on chromosome X.
+     - `featuretype = 'gene'`: The feature is a gene.
+     - `'pseudogene' IN (attributes)`: The attribute "pseudogene" is present in the `attributes` field of the feature.
+
+4. **Fetch the result:**
+   - `cursor.fetchone()` retrieves the first row of the result set as a tuple. We take the first element of this tuple (`[0]`) which contains the count.
+
+5. **Print the result:**
+   - The `print` statement displays the number of pseudogenes found on chromosome X.
+
+6. **Close the connection:**
+   - `conn.close()` releases the database connection.
+
+
+
+Let me know if you have any other questions or need help with different genomic analysis tasks!

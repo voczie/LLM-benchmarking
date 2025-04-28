@@ -1,0 +1,40 @@
+To calculate the average exon size of the BRCA1 transcript isoforms from the provided SQLite database schema, you will need to follow these steps:
+
+1. **Identify the Exon Features**: You need to find the exon features associated with the BRCA1 transcript isoforms in the `features` table. Exons are typically identified by their `featuretype`.
+
+2. **Filter by BRCA1**: You will need to filter the results to only include those exons that belong to the BRCA1 gene.
+
+3. **Calculate the Size of Each Exon**: The size of an exon can be calculated as `end - start + 1`.
+
+4. **Calculate the Average Size**: Finally, you will compute the average size of the exons.
+
+Here is a SQL query that accomplishes these steps:
+
+```sql
+SELECT AVG(exon_size) AS average_exon_size
+FROM (
+    SELECT 
+        (end - start + 1) AS exon_size
+    FROM 
+        features
+    WHERE 
+        featuretype = 'exon' 
+        AND attributes LIKE '%BRCA1%'
+);
+```
+
+### Explanation of the Query:
+
+- **Subquery**: The inner query selects the size of each exon by calculating `(end - start + 1)` for all features where `featuretype` is 'exon' and the `attributes` contain 'BRCA1'. The `LIKE` operator is used to match the BRCA1 gene in the attributes field, which typically contains gene names and other information.
+
+- **AVG Function**: The outer query calculates the average of the exon sizes returned by the inner query.
+
+### Steps to Execute:
+
+1. Open your SQLite database using a tool like `sqlite3` command line or a database management tool that supports SQLite.
+2. Run the provided SQL query.
+3. The result will give you the average size of the exons for the BRCA1 transcript isoforms.
+
+### Note:
+- Ensure that the `attributes` field in the `features` table contains the gene name in a format that can be matched with the `LIKE` clause. If the format is different, you may need to adjust the query accordingly.
+- If there are multiple isoforms of BRCA1 and you want to distinguish between them, you may need to refine the `WHERE` clause further based on how isoforms are represented in the `attributes`.

@@ -1,0 +1,46 @@
+To count the number of lncRNA genes on chromosome 7 using the `gffutils` library, you can follow these steps:
+
+1. **Connect to the database**: Use `gffutils.FeatureDB()` to connect to your SQLite database that contains the genomic annotations.
+
+2. **Fetch lncRNA genes**: Use the `db.features_of_type()` method to retrieve features of type 'gene' and filter them based on the `gene_biotype` attribute to find lncRNA genes.
+
+3. **Count the unique lncRNA genes**: Use a set to ensure that you count each unique lncRNA gene only once.
+
+Here is a Python script that implements these steps:
+
+```python
+import gffutils
+
+# Connect to the database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# Define the chromosome of interest
+chromosome = '7'
+
+# Fetch lncRNA genes on chromosome 7
+lncRNA_genes = set()
+for gene in db.features_of_type('gene', seqid=chromosome):
+    # Check if the gene is an lncRNA
+    if 'gene_biotype' in gene.attributes and gene.attributes['gene_biotype'][0] == 'lncRNA':
+        lncRNA_genes.add(gene.id)
+
+# Count the number of unique lncRNA genes
+lncRNA_count = len(lncRNA_genes)
+
+# Output the result
+print(f'The number of lncRNA genes on chromosome {chromosome} is: {lncRNA_count}')
+```
+
+### Explanation of the Code:
+- **Database Connection**: Replace `'path_to_your_database.db'` with the actual path to your SQLite database file.
+- **Feature Retrieval**: The script retrieves all genes on chromosome 7 and checks if their `gene_biotype` is 'lncRNA'.
+- **Unique Counting**: A set is used to store unique gene IDs, ensuring that duplicates are not counted.
+- **Output**: Finally, it prints the count of lncRNA genes found on chromosome 7.
+
+Make sure you have the `gffutils` library installed in your Python environment. You can install it using pip if you haven't done so:
+
+```bash
+pip install gffutils
+```
+
+Run the script, and it will provide you with the count of lncRNA genes on chromosome 7.

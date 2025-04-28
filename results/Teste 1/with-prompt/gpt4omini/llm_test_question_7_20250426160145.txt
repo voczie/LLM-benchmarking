@@ -1,0 +1,17 @@
+```python
+import gffutils
+
+# Connect to the existing database
+db = gffutils.FeatureDB('your_database.db')
+
+# Fetch the gene feature for XIST
+xist_gene = db.features_of_type('gene', filter={'gene_id': 'XIST'}).next()
+
+# Fetch the exons associated with the XIST gene
+exons = db.children(xist_gene, featuretype='exon')
+
+# Count the number of unique exons
+exon_count = sum(1 for _ in exons)
+
+print(f'The XIST gene has {exon_count} exons.')
+```

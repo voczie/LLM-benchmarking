@@ -1,0 +1,54 @@
+To determine how many genes and transcripts are present on chromosome 3 using your SQLite database, you'll need to perform queries that count features of type "gene" and "transcript" specifically for the sequence identifier (seqid) corresponding to chromosome 3. Here's a step-by-step guide:
+
+### Step 1: Identify Chromosome Identifier
+First, ensure you know how chromosome identifiers are represented in your database. In many genome annotations, chromosomes might be labeled as "chr3", "3", or something similar. You may need to verify this by inspecting some entries in the `features` table.
+
+```sql
+SELECT DISTINCT seqid FROM features LIMIT 5;
+```
+
+This query will give you a sample of how sequence identifiers are formatted. Look for the identifier that corresponds to chromosome 3.
+
+### Step 2: Count Genes on Chromosome 3
+Once you've identified the correct identifier for chromosome 3, use it in your query to count genes:
+
+```sql
+SELECT COUNT(*) AS gene_count
+FROM features
+WHERE seqid = 'chr3' AND featuretype = 'gene';
+```
+
+Replace `'chr3'` with the appropriate identifier if necessary.
+
+### Step 3: Count Transcripts on Chromosome 3
+Similarly, use a query to count transcripts:
+
+```sql
+SELECT COUNT(*) AS transcript_count
+FROM features
+WHERE seqid = 'chr3' AND featuretype = 'transcript';
+```
+
+Again, replace `'chr3'` with the correct identifier if needed.
+
+### Step 4: Verify and Interpret Results
+Run both queries in your SQLite environment. The results will give you the number of genes and transcripts on chromosome 3:
+
+- `gene_count`: Number of gene features.
+- `transcript_count`: Number of transcript features.
+
+These counts should provide a clear picture of how many genes and their corresponding transcripts are annotated on chromosome 3 according to your database.
+
+### Additional Considerations
+- **Relations Table**: If you need more detailed hierarchical information (e.g., which transcripts belong to which genes), consider using the `relations` table. This can help verify that transcripts are correctly associated with genes.
+  
+```sql
+SELECT COUNT(DISTINCT child) AS transcript_count
+FROM relations
+JOIN features ON relations.child = features.id
+WHERE relations.level = 1 AND features.seqid = 'chr3' AND features.featuretype = 'transcript';
+```
+
+This query counts distinct transcripts related to genes on chromosome 3, ensuring that only valid gene-transcript relationships are considered.
+
+By following these steps, you should be able to accurately determine the number of genes and transcripts on chromosome 3 in your genome annotation database.

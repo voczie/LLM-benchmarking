@@ -1,0 +1,67 @@
+To find the chromosomal position of the BRCA1 gene using the provided SQLite database schema, you can follow these steps:
+
+### Step-by-Step Guide
+
+1. **Connect to the Database:**
+   First, ensure you have a connection to your SQLite database.
+
+2. **Query for the BRCA1 Gene:**
+   You need to query the `features` table to find the entry corresponding to the BRCA1 gene. The `attributes` column will contain key-value pairs where one of the keys should be `gene_name`.
+
+3. **Extract Chromosomal Position:**
+   Once you have identified the BRCA1 gene, extract its chromosomal position using the `seqid`, `start`, and `end` columns.
+
+### SQL Query
+
+Here's a sample Python script to perform these steps:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database_name.db')
+cursor = conn.cursor()
+
+# Query to find the BRCA1 gene
+query = """
+SELECT seqid, start, end 
+FROM features 
+WHERE featuretype='gene' AND attributes LIKE '%gene_name "BRCA1"%';
+"""
+
+# Execute the query
+cursor.execute(query)
+result = cursor.fetchone()
+
+# Check if a result was found
+if result:
+    chromosomal_position = {
+        'Chromosome': result[0],
+        'Start Position': result[1],
+        'End Position': result[2]
+    }
+    print(f"BRCA1 Gene Chromosomal Position: {chromosomal_position}")
+else:
+    print("BRCA1 gene not found in the database.")
+
+# Close the connection
+conn.close()
+```
+
+### Explanation
+
+- **Connection:** The script connects to the SQLite database using `sqlite3.connect()`.
+  
+- **Query Execution:** It executes an SQL query that searches for a feature of type 'gene' with an attribute containing `gene_name "BRCA1"`. This assumes the attributes are stored in a format like `key "value"`.
+
+- **Result Handling:** The script fetches the first result using `fetchone()`, which should contain the chromosomal position if BRCA1 is present.
+
+- **Output:** It prints the chromosome, start, and end positions of the BRCA1 gene.
+
+### Notes
+
+- Ensure your database file path (`your_database_name.db`) is correct.
+- The attributes column format might vary; adjust the query if necessary to match your specific attribute storage format.
+- This script assumes that `gene_name` is stored in a consistent manner within the `attributes` text field. Adjust the LIKE pattern if needed based on actual data formatting.
+
+This approach will help you determine the chromosomal position of the BRCA1 gene efficiently using SQL queries and Python.

@@ -1,0 +1,78 @@
+To solve this problem, we need to identify the positions of the gene `COL1A2` in the genome annotation data stored in your SQLite database. Then, we will find the genes that are immediately before and after it based on their start positions.
+
+Here's a step-by-step guide with SQL queries to achieve this:
+
+### Step 1: Identify the Position of `COL1A2`
+
+First, we need to find the start position of the gene `COL1A2`. We'll assume that the gene name is stored in the `attributes` column in a format like `gene_name="COL1A2"`.
+
+```sql
+SELECT id, seqid, start, end, strand
+FROM features
+WHERE featuretype = 'gene' AND attributes LIKE '%gene_name="COL1A2"%';
+```
+
+This query will return the ID and positional information of the gene `COL1A2`.
+
+### Step 2: Find the Gene Immediately Before `COL1A2`
+
+To find the gene immediately before `COL1A2`, we need to look for a gene on the same chromosome (`seqid`) with an end position just before the start position of `COL1A2`. We also need to consider the strand orientation.
+
+```sql
+WITH col1a2 AS (
+    SELECT id, seqid, start, end, strand
+    FROM features
+    WHERE featuretype = 'gene' AND attributes LIKE '%gene_name="COL1A2"%'
+)
+SELECT f.id, f.attributes
+FROM features f, col1a2 c
+WHERE f.featuretype = 'gene'
+  AND f.seqid = c.seqid
+  AND (
+      (f.end < c.start AND c.strand = '+') OR
+      (f.start > c.end AND c.strand = '-')
+    )
+ORDER BY 
+    CASE WHEN c.strand = '+' THEN f.end ELSE f.start END DESC
+LIMIT 1;
+```
+
+### Step 3: Find the Gene Immediately After `COL1A2`
+
+Similarly, to find the gene immediately after `COL1A2`, we look for a gene on the same chromosome with a start position just after the end position of `COL1A2`.
+
+```sql
+WITH col1a2 AS (
+    SELECT id, seqid, start, end, strand
+    FROM features
+    WHERE featuretype = 'gene' AND attributes LIKE '%gene_name="COL1A2"%'
+)
+SELECT f.id, f.attributes
+FROM features f, col1a2 c
+WHERE f.featuretype = 'gene'
+  AND f.seqid = c.seqid
+  AND (
+      (f.start > c.end AND c.strand = '+') OR
+      (f.end < c.start AND c.strand = '-')
+    )
+ORDER BY 
+    CASE WHEN c.strand = '+' THEN f.start ELSE f.end END ASC
+LIMIT 1;
+```
+
+### Step 4: Extract Gene Names
+
+The above queries return the `id` and `attributes` of the genes immediately before and after `COL1A2`. To extract the gene names, you can use SQLite's string functions to parse the `attributes` column.
+
+For example, if the attributes are stored as `gene_name="GENE_NAME";`, you can extract the name using:
+
+```sql
+SELECT SUBSTR(attributes, INSTR(attributes, 'gene_name=') + 10, INSTR(attributes, '"', INSTR(attributes, 'gene_name="') + 1) - (INSTR(attributes, 'gene_name=') + 10)) AS gene_name
+FROM (
+    -- Use the query from Step 2 or Step 3 here to get the attributes of the genes before and after COL1A2
+);
+```
+
+Replace the inner query with either the query from Step 2 or Step 3 to extract the names of the genes immediately before and after `COL1A2`.
+
+By following these steps, you should be able to identify the gene names located immediately before and after `COL1A2`.

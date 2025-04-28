@@ -1,0 +1,58 @@
+```python
+import sqlite3
+
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your actual database file
+cursor = conn.cursor()
+
+query = """
+SELECT attributes 
+FROM features
+WHERE featuretype = 'gene'
+  AND id IN ('HOTAIR', 'HOXC11', 'HOXC12');
+"""
+
+cursor.execute(query)
+results = cursor.fetchall()
+
+for result in results:
+    attributes = result[0]
+    strand = attributes.split(';')[0].split('=')[1]  # Assuming strand is stored as "strand=..."
+    print(f"Gene: {result[0]}, Strand: {strand}")
+
+conn.close()
+```
+
+**Walkthrough:**
+
+1. **Connect to the Database:**
+   - Replace `'your_database.db'` with the actual filename of your SQLite database.
+   - Use `sqlite3.connect()` to establish a connection.
+
+2. **Create a Cursor:**
+   - A cursor object (`cursor`) is used to execute SQL queries and fetch results.
+
+3. **Construct the Query:**
+   - The query selects the `attributes` column from the `features` table.
+   - It filters for rows where:
+     - `featuretype` is 'gene' (to get gene information).
+     - `id` matches any of the genes you're interested in ('HOTAIR', 'HOXC11', 'HOXC12').
+
+4. **Execute the Query:**
+   - Use `cursor.execute(query)` to run the query against the database.
+
+5. **Fetch Results:**
+   - `cursor.fetchall()` retrieves all matching rows as a list of tuples. Each tuple represents a row from the result set.
+
+6. **Process the Results:**
+   - Iterate through each `result` (tuple) in the `results` list.
+   - Extract the `attributes` string from the tuple.
+   - Assuming the strand information is stored as "strand=..." within the attributes, split the string and get the value after "=" to obtain the strand.
+
+7. **Print the Output:**
+   - Display the gene ID and its corresponding strand for each gene.
+
+8. **Close the Connection:**
+   - Use `conn.close()` to release the database connection when you're finished.
+
+
+

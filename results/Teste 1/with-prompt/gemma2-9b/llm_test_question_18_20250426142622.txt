@@ -1,0 +1,78 @@
+```python
+import sqlite3
+import matplotlib.pyplot as plt
+
+# Connect to your SQLite database
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your actual database file
+cursor = conn.cursor()
+
+# Query to get gene counts by feature type and chromosome
+query = """
+SELECT 
+    seqid AS chromosome,
+    SUM(CASE WHEN featuretype = 'protein_coding' THEN 1 ELSE 0 END) AS protein_coding_count,
+    SUM(CASE WHEN featuretype = 'lncRNA' THEN 1 ELSE 0 END) AS lncRNA_count,
+    SUM(CASE WHEN featuretype = 'miRNA' THEN 1 ELSE 0 END) AS miRNA_count
+FROM features
+GROUP BY seqid;
+"""
+
+# Execute the query and fetch results
+cursor.execute(query)
+data = cursor.fetchall()
+
+# Create a dictionary to store data for plotting
+chromosome_data = {}
+for row in data:
+    chromosome = row[0]
+    protein_coding = row[1]
+    lncRNA = row[2]
+    miRNA = row[3]
+    chromosome_data[chromosome] = {
+        'protein_coding': protein_coding,
+        'lncRNA': lncRNA,
+        'miRNA': miRNA
+    }
+
+# Plot the stacked bar chart
+plt.figure(figsize=(10, 6))  # Adjust figure size as needed
+for chromosome, counts in chromosome_data.items():
+    plt.bar(chromosome, [counts['protein_coding'], counts['lncRNA'], counts['miRNA']],
+            label=['Protein-coding', 'lncRNA', 'miRNA'])
+
+plt.xlabel('Chromosome')
+plt.ylabel('Gene Count')
+plt.title('Stacked Bar Chart of Gene Proportions by Chromosome')
+plt.legend()
+plt.show()
+
+# Close the database connection
+conn.close()
+```
+
+
+
+**Explanation:**
+
+1. **Database Connection:** Establish a connection to your SQLite database using `sqlite3.connect()`. Replace 'your_database.db' with the actual filename of your database.
+
+2. **SQL Query:** Craft a SQL query to retrieve gene counts for each chromosome and feature type ('protein_coding', 'lncRNA', 'miRNA'). The query uses `SUM(CASE WHEN ... THEN 1 ELSE 0 END)` to count genes based on their `featuretype`.
+
+3. **Data Fetching:** Execute the query using `cursor.execute()` and fetch the results into a list of tuples using `cursor.fetchall()`.
+
+4. **Data Processing:** Create a dictionary (`chromosome_data`) to organize the gene counts by chromosome. Each chromosome key will have a nested dictionary containing counts for each feature type.
+
+5. **Plotting:**
+   - Use `matplotlib.pyplot` to create a stacked bar chart.
+   - Iterate through the `chromosome_data` dictionary and plot bars for each chromosome, with different colors representing 'protein_coding', 'lncRNA', and 'miRNA' counts.
+   - Set labels for the x-axis ('Chromosome'), y-axis ('Gene Count'), and add a title to the chart.
+
+6. **Display:** Show the plot using `plt.show()`.
+
+7. **Database Closure:** Close the database connection using `conn.close()` when you're finished with it.
+
+
+
+**Remember:**
+- Replace 'your_database.db' with your actual database filename.
+- Adjust the figure size and other plotting parameters as needed.

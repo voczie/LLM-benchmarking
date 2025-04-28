@@ -1,0 +1,24 @@
+Here's how you can find the strands of the HOTAIR, HOXC11, and HOXC12 genes using your SQLite database:
+
+**SQL Query:**
+
+```sql
+SELECT featuretype, strand 
+FROM features
+WHERE seqid = 'your_genome_sequence_ID' -- Replace with the actual ID of your genome sequence
+  AND (featuretype = 'gene' AND (name LIKE '%HOTAIR%' OR name LIKE '%HOXC11%' OR name LIKE '%HOXC12%')) 
+```
+
+**Walkthrough:**
+
+1. **Identify Your Genome Sequence ID:** Replace `'your_genome_sequence_ID'` with the actual ID of your genome sequence in the database. This ID is usually stored in the `seqid` column of the `features` table.
+
+2. **Target Specific Genes:** The query uses the `featuretype = 'gene'` condition to focus on genes. Then, it employs `name LIKE '%HOTAIR%'`, `name LIKE '%HOXC11%'`, and `name LIKE '%HOXC12%'` conditions to find entries matching those gene names (case-insensitive).
+
+3. **Extract Strand Information:** The query selects the `featuretype` and `strand` columns from the `features` table.  The `strand` column will contain either '+' (positive strand) or '-' (negative strand) indicating the orientation of each gene.
+
+4. **Run the Query:** Execute this SQL query in your SQLite3 environment to retrieve the strand information for HOTAIR, HOXC11, and HOXC12 genes within your genome annotation.
+
+
+
+Let me know if you have any other questions about working with your GFF/GTF database!

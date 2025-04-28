@@ -1,0 +1,54 @@
+```python
+import sqlite3
+
+# Connect to your SQLite database
+conn = sqlite3.connect('your_database_name.db')
+db = conn.cursor()
+
+def count_protein_coding_genes(chromosome):
+    # Query to count protein-coding genes on a specific chromosome
+    query = """
+    SELECT COUNT(*)
+    FROM features
+    WHERE featuretype='gene'
+      AND seqid=?
+      AND attributes LIKE '%gene_biotype "protein_coding"%';
+    """
+    
+    # Execute the query with the specified chromosome
+    db.execute(query, (chromosome,))
+    result = db.fetchone()
+    
+    return result[0]
+
+# Specify the chromosome you are interested in
+chromosome_12_genes_count = count_protein_coding_genes('12')
+
+print(f"Number of protein-coding genes on chromosome 12: {chromosome_12_genes_count}")
+
+# Close the database connection
+conn.close()
+```
+
+### Walkthrough:
+
+1. **Connect to Database**: Establish a connection to your SQLite database using `sqlite3.connect()`. Replace `'your_database_name.db'` with the actual path to your database file.
+
+2. **Define Function**: Create a function `count_protein_coding_genes(chromosome)` that takes a chromosome identifier as an argument.
+
+3. **SQL Query**:
+   - Select from the `features` table where `featuretype` is `'gene'`.
+   - Filter by `seqid` to match the specified chromosome.
+   - Use `LIKE '%gene_biotype "protein_coding"%';` in the `attributes` column to ensure only protein-coding genes are counted. This assumes that the attribute string contains a key-value pair for gene biotype.
+
+4. **Execute Query**: Use `db.execute()` with the query and chromosome parameter to execute the SQL command.
+
+5. **Fetch Result**: Retrieve the result using `db.fetchone()`, which returns a tuple containing the count of protein-coding genes.
+
+6. **Return Count**: The function returns the count of protein-coding genes on the specified chromosome.
+
+7. **Print Result**: Print the number of protein-coding genes found on chromosome 12.
+
+8. **Close Connection**: Finally, close the database connection to free up resources.
+
+This script will output the number of protein-coding genes located on chromosome 12 in your genome annotation database. Adjust the database path and ensure that the attribute format matches what is stored in your database for accurate results.

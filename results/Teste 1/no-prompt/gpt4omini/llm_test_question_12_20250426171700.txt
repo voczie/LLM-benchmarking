@@ -1,0 +1,57 @@
+To find the names of the two genes located immediately before and after the gene COL1A2 in a GFF/GTF format stored in a SQLite database, you can follow these steps:
+
+1. **Identify the Location of COL1A2**: First, you need to find the start and end positions of the gene COL1A2.
+
+2. **Find Neighboring Genes**: Next, you will query the database to find genes that are located immediately before and after COL1A2 based on their start and end positions.
+
+Here’s how you can construct the SQL queries to achieve this:
+
+### Step 1: Find the Position of COL1A2
+
+You can use the following SQL query to get the start and end positions of the gene COL1A2:
+
+```sql
+SELECT start, end 
+FROM features 
+WHERE featuretype = 'gene' AND attributes LIKE '%COL1A2%';
+```
+
+### Step 2: Find the Genes Immediately Before and After COL1A2
+
+Assuming you have the start and end positions from the previous query, you can use those values to find the neighboring genes. Let's say the start position is `start_pos` and the end position is `end_pos`. You can use the following queries:
+
+#### Find the Gene Immediately Before COL1A2
+
+```sql
+SELECT id 
+FROM features 
+WHERE featuretype = 'gene' 
+AND seqid = (SELECT seqid FROM features WHERE featuretype = 'gene' AND attributes LIKE '%COL1A2%')
+AND end < (SELECT start FROM features WHERE featuretype = 'gene' AND attributes LIKE '%COL1A2%')
+ORDER BY end DESC 
+LIMIT 1;
+```
+
+#### Find the Gene Immediately After COL1A2
+
+```sql
+SELECT id 
+FROM features 
+WHERE featuretype = 'gene' 
+AND seqid = (SELECT seqid FROM features WHERE featuretype = 'gene' AND attributes LIKE '%COL1A2%')
+AND start > (SELECT end FROM features WHERE featuretype = 'gene' AND attributes LIKE '%COL1A2%')
+ORDER BY start ASC 
+LIMIT 1;
+```
+
+### Step 3: Combine the Results
+
+You can run the above two queries separately to get the names of the genes immediately before and after COL1A2. If you want to combine the results into a single output, you can use a UNION or run them in your application logic.
+
+### Example of Combined Query
+
+If you want to get both results in one go, you can use a Common Table Expression (CTE) or subqueries, but it might be more straightforward to run them separately due to the nature of the queries.
+
+### Final Note
+
+Make sure to replace `id` in the SELECT statements with the appropriate column that contains the gene names if they are stored differently in your database. The `attributes` field typically contains gene names in GFF/GTF files, so you might need to parse it accordingly.

@@ -1,0 +1,83 @@
+To generate a stacked barplot chart representing the proportions of protein-coding, lncRNA, and miRNA genes on each chromosome, you will need to follow these steps:
+
+1. **Query the Database**: First, you need to extract the relevant data from the SQLite database. You will query the `features` table to count the number of each type of gene (protein-coding, lncRNA, and miRNA) for each chromosome.
+
+2. **Prepare the Data**: Once you have the data, you will need to format it appropriately for plotting.
+
+3. **Create the Stacked Barplot**: Finally, you will use a plotting library (like Matplotlib or Seaborn in Python) to create the stacked barplot.
+
+### Step 1: Query the Database
+
+You can use the following SQL query to get the counts of each gene type per chromosome:
+
+```sql
+SELECT seqid, 
+       featuretype, 
+       COUNT(*) AS count
+FROM features
+WHERE featuretype IN ('protein_coding', 'lncRNA', 'miRNA')
+GROUP BY seqid, featuretype;
+```
+
+### Step 2: Prepare the Data
+
+Assuming you are using Python with libraries like `sqlite3` and `pandas`, you can execute the query and prepare the data as follows:
+
+```python
+import sqlite3
+import pandas as pd
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')
+
+# Execute the query
+query = """
+SELECT seqid, 
+       featuretype, 
+       COUNT(*) AS count
+FROM features
+WHERE featuretype IN ('protein_coding', 'lncRNA', 'miRNA')
+GROUP BY seqid, featuretype;
+"""
+data = pd.read_sql_query(query, conn)
+
+# Close the connection
+conn.close()
+
+# Pivot the data to get counts for each feature type per chromosome
+pivot_data = data.pivot(index='seqid', columns='featuretype', values='count').fillna(0)
+pivot_data = pivot_data.reset_index()
+```
+
+### Step 3: Create the Stacked Barplot
+
+Now that you have the data in the right format, you can create the stacked barplot using Matplotlib:
+
+```python
+import matplotlib.pyplot as plt
+
+# Set the index to seqid for plotting
+pivot_data.set_index('seqid', inplace=True)
+
+# Plotting
+ax = pivot_data.plot(kind='bar', stacked=True, figsize=(10, 6))
+
+# Adding labels and title
+plt.xlabel('Chromosome')
+plt.ylabel('Number of Genes')
+plt.title('Proportions of Protein-coding, lncRNA, and miRNA Genes per Chromosome')
+plt.legend(title='Gene Type')
+plt.xticks(rotation=45)
+plt.tight_layout()
+
+# Show the plot
+plt.show()
+```
+
+### Summary
+
+1. **Query the database** to get the counts of each gene type per chromosome.
+2. **Prepare the data** using pandas to create a pivot table.
+3. **Create a stacked barplot** using Matplotlib to visualize the proportions of gene types on each chromosome.
+
+Make sure to adjust the database connection string and the feature types in the SQL query according to your actual data.

@@ -1,0 +1,41 @@
+To calculate the average exon size of the BRCA1 transcript isoforms from the provided SQLite database schema, you can follow these steps:
+
+1. **Identify the relevant features**: You need to find the exon features associated with the BRCA1 transcript isoforms. In the GFF/GTF format, exons are typically labeled with the feature type "exon".
+
+2. **Filter by BRCA1**: You will need to filter the features to only include those that are part of the BRCA1 gene. This can be done by checking the `attributes` field for the gene name or ID corresponding to BRCA1.
+
+3. **Calculate exon sizes**: For each exon, the size can be calculated as `end - start + 1`.
+
+4. **Compute the average size**: Finally, you will compute the average size of the exons.
+
+Here is a SQL query that accomplishes these steps:
+
+```sql
+WITH exon_sizes AS (
+    SELECT 
+        (end - start + 1) AS exon_size
+    FROM 
+        features
+    WHERE 
+        featuretype = 'exon' AND
+        attributes LIKE '%BRCA1%'
+)
+SELECT 
+    AVG(exon_size) AS average_exon_size
+FROM 
+    exon_sizes;
+```
+
+### Explanation of the Query:
+
+1. **Common Table Expression (CTE)**: The `WITH exon_sizes AS (...)` part creates a temporary result set that calculates the size of each exon for BRCA1. It selects the `end` and `start` positions of exons and computes their sizes.
+
+2. **Filtering**: The `WHERE` clause filters the features to include only those with `featuretype = 'exon'` and where the `attributes` field contains 'BRCA1'. You may need to adjust the `LIKE` condition based on the exact format of the `attributes` field.
+
+3. **Average Calculation**: The outer `SELECT` statement computes the average of the exon sizes obtained from the CTE.
+
+### Running the Query:
+You can run this query in your SQLite database environment where the schema is set up. Make sure to adjust the `LIKE` condition if the `attributes` field has a different format for identifying BRCA1. 
+
+### Note:
+If there are multiple isoforms of BRCA1 and they are distinguished in the `attributes` field, you may need to refine the `LIKE` condition further to ensure you are only including the relevant isoforms.

@@ -1,0 +1,58 @@
+To calculate the sizes of each specified gene locus (XIST, MALAT1, BRCA1, COL1A2, NFKB1, NFKB2, REL, RELA, and RELB) from a genome annotation stored in a SQLite3 database with the given schema, you can follow these steps:
+
+### Step-by-Step Guide
+
+1. **Understand the Schema:**
+   - The `features` table contains genomic features such as genes.
+   - Each feature has attributes that include gene identifiers.
+
+2. **Identify Gene Features:**
+   - In GFF/GTF formats, gene features are typically labeled with `featuretype = 'gene'`.
+
+3. **Extract Attributes:**
+   - The `attributes` column in the `features` table contains key-value pairs separated by semicolons (`;`). For example, `gene_id "XIST"; transcript_id "ENST00000422869"`.
+
+4. **Query to Calculate Sizes:**
+   - You need to extract the gene ID from the `attributes` field and calculate the size of each gene locus as `(end - start + 1)`.
+
+5. **SQL Query:**
+
+```sql
+SELECT 
+    attributes,
+    (end - start + 1) AS size
+FROM 
+    features
+WHERE 
+    featuretype = 'gene' AND
+    (
+        attributes LIKE '%gene_id "XIST";%' OR
+        attributes LIKE '%gene_id "MALAT1";%' OR
+        attributes LIKE '%gene_id "BRCA1";%' OR
+        attributes LIKE '%gene_id "COL1A2";%' OR
+        attributes LIKE '%gene_id "NFKB1";%' OR
+        attributes LIKE '%gene_id "NFKB2";%' OR
+        attributes LIKE '%gene_id "REL";%' OR
+        attributes LIKE '%gene_id "RELA";%' OR
+        attributes LIKE '%gene_id "RELB";%'
+    );
+```
+
+### Explanation:
+
+- **WHERE Clause:**
+  - Filters rows where `featuretype` is `'gene'`.
+  - Uses the `LIKE` operator to match specific gene IDs within the `attributes` column.
+
+- **Size Calculation:**
+  - `(end - start + 1)` computes the size of each gene locus, accounting for inclusive coordinates.
+
+### Additional Considerations:
+
+- **Attributes Parsing:**
+  - If you need more precise parsing or manipulation of attributes, consider using a programming language like Python with libraries such as `sqlite3` and `re` (regular expressions) to handle complex attribute extraction.
+
+- **Database Indexing:**
+  - Ensure that the database is indexed appropriately for performance, especially if dealing with large datasets.
+
+This query will return the size of each specified gene locus based on their start and end positions in the genome. Adjust the query as needed if your attributes format differs slightly.

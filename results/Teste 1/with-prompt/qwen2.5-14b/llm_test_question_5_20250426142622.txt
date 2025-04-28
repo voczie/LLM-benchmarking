@@ -1,0 +1,76 @@
+To calculate the sizes of each gene locus for the specified genes (XIST, MALAT1, BRCA1, COL1A2, NFKB1, NFKB2, REL, RELA, and RELB) using the SQLite database schema provided, you can follow these steps:
+
+### Step 1: Extract Gene Information
+First, extract the gene information for each specified gene from the `features` table.
+
+### Step 2: Calculate Locus Size
+For each gene, calculate the locus size by finding the difference between the maximum and minimum coordinates of all features (including exons, introns, etc.) associated with that gene.
+
+Here is a Python script using SQLite to achieve this:
+
+```python
+import sqlite3
+
+# Connect to the database
+conn = sqlite3.connect('your_database.db')
+cursor = conn.cursor()
+
+# List of genes to calculate locus sizes for
+genes_of_interest = ['XIST', 'MALAT1', 'BRCA1', 'COL1A2', 'NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB']
+
+def get_gene_locus_size(gene_id):
+    # Query to find the gene and its associated features
+    cursor.execute("""
+        SELECT f.seqid, MIN(f.start) AS min_start, MAX(f.end) AS max_end
+        FROM features AS f
+        WHERE f.id = ?
+    """, (gene_id,))
+    
+    result = cursor.fetchone()
+    if not result:
+        return None
+    
+    seqid, min_start, max_end = result
+    locus_size = max_end - min_start + 1
+    return seqid, min_start, max_end, locus_size
+
+# Calculate locus sizes for each gene of interest
+locus_sizes = {}
+for gene in genes_of_interest:
+    size_info = get_gene_locus_size(gene)
+    if size_info is not None:
+        seqid, min_start, max_end, locus_size = size_info
+        locus_sizes[gene] = {
+            'seqid': seqid,
+            'min_start': min_start,
+            'max_end': max_end,
+            'locus_size': locus_size
+        }
+
+# Print the results
+for gene, info in locus_sizes.items():
+    print(f"Gene: {gene}")
+    print(f"Chromosome: {info['seqid']}")
+    print(f"Locus Start: {info['min_start']}")
+    print(f"Locus End: {info['max_end']}")
+    print(f"Locus Size: {info['locus_size']}")
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation:
+1. **Database Connection**: Connect to your SQLite database.
+2. **Gene List**: Define a list of genes for which you want to calculate locus sizes.
+3. **Function `get_gene_locus_size`**:
+   - Query the database to find the gene and its associated features.
+   - Calculate the locus size by finding the minimum start and maximum end coordinates across all features.
+4. **Calculate Locus Sizes**: Iterate over each gene in the list, calculate the locus size using the function, and store the results in a dictionary.
+5. **Print Results**: Print the chromosome, start position, end position, and locus size for each gene.
+
+### Notes:
+- Ensure that your database file path (`your_database.db`) is correct.
+- The `features` table should have the necessary columns to retrieve the gene information and its associated features.
+- This script assumes that the gene ID in the `features` table matches exactly with the names provided in `genes_of_interest`.
+
+This approach will give you the locus sizes for each specified gene, providing a comprehensive view of their genomic locations.

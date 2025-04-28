@@ -1,0 +1,28 @@
+To find the number of genes for miRNA in chromosome 10 using the provided SQLite database schema, you will need to query the `features` table. The `featuretype` column will help you identify the miRNA genes, and the `seqid` column will allow you to filter for chromosome 10.
+
+Here’s a step-by-step guide to construct the SQL query:
+
+1. **Identify the relevant columns**: You need to focus on the `seqid` and `featuretype` columns in the `features` table.
+
+2. **Filter for chromosome 10**: You will filter the `seqid` to match "10" (assuming the chromosome is represented as "10" in the database).
+
+3. **Filter for miRNA genes**: You will filter the `featuretype` to match "miRNA".
+
+4. **Count the results**: Use the `COUNT` function to get the total number of miRNA genes.
+
+Here’s the SQL query that accomplishes this:
+
+```sql
+SELECT COUNT(*) AS miRNA_gene_count
+FROM features
+WHERE seqid = '10' AND featuretype = 'miRNA';
+```
+
+### Explanation of the Query:
+- `SELECT COUNT(*) AS miRNA_gene_count`: This part counts the number of rows that match the criteria and labels the result as `miRNA_gene_count`.
+- `FROM features`: This specifies that we are querying the `features` table.
+- `WHERE seqid = '10'`: This filters the results to only include entries where the `seqid` is "10".
+- `AND featuretype = 'miRNA'`: This further filters the results to only include entries where the `featuretype` is "miRNA".
+
+### Execution:
+You can execute this query using a SQLite client or any interface that allows you to interact with your SQLite database. After running the query, you will receive the count of miRNA genes present in chromosome 10.

@@ -1,0 +1,72 @@
+<think>
+Okay, so I need to figure out which strand the HOTAIR, HOXC11, and HOXC12 genes are located on. The database is set up with a features table that includes 'start' and 'end' integers, along with 'strand' text. 
+
+First, I should check if these genes exist in the database. If they don't, maybe there's an error or they're not present. But assuming they do exist, I'll need to retrieve their start and end positions.
+
+Once I have those positions, I can determine the strand by looking at whether the end position is greater than the start. In genomic data, typically, a positive strand (forward) has increasing coordinates from 5' to 3', so end > start. A negative strand (reverse) has decreasing coordinates, so end < start.
+
+So, for each gene, I'll get their start and end positions. If end is greater than start, they're on the plus strand (+). If end is less than start, they're on the minus strand (-).
+
+I should write a Python function that queries the database for each gene, checks their strand, and returns the results in a clear format, maybe a dictionary with gene names as keys and their strands as values.
+
+Also, I need to handle any potential errors, like if a gene isn't found. Maybe add some error handling or just let it raise exceptions naturally since the user is expecting these specific genes to exist.
+
+Putting it all together, the function will loop through each gene, query their details, determine the strand, and compile the results.
+</think>
+
+To determine the strand of the HOTAIR, HOXC11, and HOXC12 genes in your SQLite database, you can use a SQL query that retrieves their genomic coordinates. Here's how to approach it:
+
+### Step-by-Step Explanation:
+1. **Check Gene Existence**: First, ensure these genes exist in your database by querying the `features` table.
+2. **Retrieve Coordinates**: For each gene, get their start and end positions along with the strand information.
+3. **Determine Strand**: Genomic data typically uses a coordinate system where positive strands have increasing coordinates (end > start) and negative strands have decreasing coordinates (end < start).
+
+### Solution Code:
+```python
+import sqlite3
+
+# Connect to your database
+conn = sqlite3.connect('your_database.db')
+
+def get_strand_of_genes(gene_names):
+    strand_info = {}
+    for gene in gene_names:
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT start, end, strand FROM features WHERE id = '{gene}'")
+        result = cursor.fetchone()
+        if not result:
+            raise ValueError(f"Gene {gene} not found in the database.")
+        start, end, strand = result
+        strand_info[gene] = strand
+        conn.close()  # Not recommended to leave open; better practice is to close after use.
+    return strand_info
+
+# List of genes to check
+genes_to_check = ['HOTAIR', 'HOXC11', 'HOXC12']
+
+try:
+    strand_info = get_strand_of_genes(genes_to_check)
+    print("Gene Strand Information:")
+    for gene, strand in strand_info.items():
+        print(f"{gene}: {strand}")
+except Exception as e:
+    print(f"Error: {e}")
+
+conn.close()
+```
+
+### Explanation of the Code:
+1. **Database Connection**: Connect to your SQLite database.
+2. **Function Definition**: `get_strand_of_genes` takes a list of gene names and returns a dictionary with each gene's strand information.
+3. **Query Execution**: For each gene, execute an SQL query to fetch its start, end positions, and strand.
+4. **Error Handling**: If a gene isn't found, it raises a `ValueError`.
+5. **Output**: Prints the strand for each gene.
+
+### Example Output:
+```
+HOTAIR: +
+HOXC11: -
+HOXC12: -
+```
+
+This code will help you determine whether these genes are located on the positive (forward) or negative (reverse) strand in your genome annotation.

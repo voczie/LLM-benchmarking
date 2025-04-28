@@ -1,0 +1,72 @@
+To find the biotype of the specified genes (XIST, MALAT1, BRCA1, NFKB1, NFKB2, REL, RELA, RELB, and COL1A2) from the SQLite database with the provided schema, you will need to query the `features` table. The biotype of a gene is typically stored in the `attributes` column of the `features` table, which may contain various attributes in a key-value format.
+
+Here’s a step-by-step guide on how to construct the SQL query:
+
+1. **Identify the Feature Type**: First, you need to ensure that you are querying the correct feature type for genes. In many GFF/GTF files, genes are often labeled with a feature type such as "gene".
+
+2. **Extract the Biotype**: The biotype is usually included in the `attributes` column, often in a format like `biotype=<biotype_value>`. You will need to extract this information from the `attributes` column.
+
+3. **Construct the SQL Query**: You can use a SQL query to select the relevant genes and their biotypes. You will likely need to use the `LIKE` operator to filter for the specific gene names.
+
+Here’s an example SQL query that accomplishes this:
+
+```sql
+SELECT 
+    seqid, 
+    featuretype, 
+    attributes 
+FROM 
+    features 
+WHERE 
+    featuretype = 'gene' 
+    AND seqid IN ('XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB', 'COL1A2');
+```
+
+4. **Extracting Biotype from Attributes**: After running the above query, you will need to parse the `attributes` column to extract the biotype information. This can be done programmatically in your application code (e.g., Python, R) after fetching the results.
+
+### Example of Parsing in Python
+
+If you are using Python with SQLite, you might do something like this:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')
+cursor = conn.cursor()
+
+# Execute the SQL query
+query = """
+SELECT 
+    seqid, 
+    attributes 
+FROM 
+    features 
+WHERE 
+    featuretype = 'gene' 
+    AND seqid IN ('XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB', 'COL1A2');
+"""
+cursor.execute(query)
+
+# Fetch results
+results = cursor.fetchall()
+
+# Parse the attributes to extract biotype
+biotypes = {}
+for seqid, attributes in results:
+    # Assuming attributes are in the format 'key1=value1; key2=value2; ...'
+    attrs = dict(item.split('=') for item in attributes.split(';') if '=' in item)
+    biotypes[seqid] = attrs.get('biotype', 'Unknown')
+
+# Print the biotypes
+for gene, biotype in biotypes.items():
+    print(f"{gene}: {biotype}")
+
+# Close the connection
+conn.close()
+```
+
+### Summary
+- Use the SQL query to retrieve the genes and their attributes.
+- Parse the `attributes` column to extract the biotype information.
+- The final output will give you the biotype for each of the specified genes.

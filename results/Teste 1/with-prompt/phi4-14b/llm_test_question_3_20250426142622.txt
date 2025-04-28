@@ -1,0 +1,45 @@
+To determine how many pseudogenes are located on the X chromosome using the provided SQLite database schema, you can follow these steps:
+
+1. **Connect to the Database**: Use a Python script with `sqlite3` to connect to your database.
+
+2. **Query for Pseudogenes on Chromosome X**:
+   - You need to query the `features` table to find entries where the `featuretype` is 'pseudogene' and the `seqid` (chromosome identifier) is 'X'.
+
+Here's a Python script that performs this task:
+
+```python
+import sqlite3
+
+# Connect to your SQLite database
+conn = sqlite3.connect('your_database_file.db')
+cursor = conn.cursor()
+
+# Query to count pseudogenes on chromosome X
+query = """
+SELECT COUNT(*) 
+FROM features 
+WHERE featuretype = 'pseudogene' AND seqid = 'X';
+"""
+
+# Execute the query
+cursor.execute(query)
+
+# Fetch the result
+result = cursor.fetchone()
+print(f"Number of pseudogenes on chromosome X: {result[0]}")
+
+# Close the connection
+conn.close()
+```
+
+### Explanation:
+
+- **Connection**: The script connects to your SQLite database using `sqlite3.connect()`.
+  
+- **Query Execution**: It executes a SQL query that counts all entries in the `features` table where the `featuretype` is 'pseudogene' and the `seqid` is 'X'.
+
+- **Result Fetching**: The result of the query, which is the count of pseudogenes on chromosome X, is fetched using `cursor.fetchone()`.
+
+- **Output**: Finally, it prints out the number of pseudogenes found on chromosome X.
+
+Make sure to replace `'your_database_file.db'` with the actual path to your SQLite database file. This script will give you the exact count of pseudogenes located on the X chromosome based on the data stored in your database.

@@ -1,0 +1,87 @@
+To find which genes are located between the `HOXC11` and `HOXC12` genes on both the positive (`+`) and negative (`-`) strands, you can follow these steps:
+
+1. **Identify the positions of HOXC11 and HOXC12 genes**.
+2. **Retrieve all genes that lie within this range for each strand**.
+
+Here's a step-by-step guide to achieve this using Python with SQLite3 database operations:
+
+### Step 1: Identify Positions of HOXC11 and HOXC12 Genes
+
+First, you need to find the start and end positions of `HOXC11` and `HOXC12`.
+
+```python
+import sqlite3
+
+# Connect to the database
+conn = sqlite3.connect('genome_annotation.db')
+db = conn.cursor()
+
+def get_gene_positions(gene_name):
+    db.execute("SELECT seqid, strand, start, end FROM features WHERE id = ?", (gene_name,))
+    return db.fetchone()
+
+hoxc11_pos = get_gene_positions('HOXC11')
+hoxc12_pos = get_gene_positions('HOXC12')
+
+print(f"HOXC11: {hoxc11_pos}")
+print(f"HOXC12: {hoxc12_pos}")
+
+conn.close()
+```
+
+### Step 2: Retrieve Genes Between HOXC11 and HOXC12
+
+Now, you need to retrieve all genes that lie between `HOXC11` and `HOXC12` on both strands.
+
+```python
+def get_genes_between(hoxc11_pos, hoxc12_pos):
+    seqid = hoxc11_pos[0]
+    
+    # Ensure HOXC11 is the start gene for comparison
+    if hoxc11_pos[3] < hoxc12_pos[3]:
+        start_gene = hoxc11_pos
+        end_gene = hoxc12_pos
+    else:
+        start_gene = hoxc12_pos
+        end_gene = hoxc11_pos
+    
+    # Query genes between the two positions on both strands
+    db.execute("SELECT id, seqid, strand, start, end FROM features WHERE featuretype = 'gene' AND seqid = ? AND (strand = '+' AND start BETWEEN ? AND ?) OR (strand = '-' AND end BETWEEN ? AND ?)", 
+               (seqid, start_gene[2], end_gene[3], start_gene[2], end_gene[3]))
+    
+    genes_between = db.fetchall()
+    
+    return genes_between
+
+# Reconnect to the database
+conn = sqlite3.connect('genome_annotation.db')
+db = conn.cursor()
+
+genes_between_pos_strand = get_genes_between(hoxc11_pos, hoxc12_pos)
+genes_between_neg_strand = []
+
+if hoxc11_pos[1] == '-' and hoxc12_pos[1] == '-':
+    genes_between_neg_strand = get_genes_between(hoxc12_pos, hoxc11_pos)
+
+print("Genes between HOXC11 and HOXC12 on + strand:")
+for gene in genes_between_pos_strand:
+    print(gene)
+    
+if genes_between_neg_strand:
+    print("\nGenes between HOXC11 and HOXC12 on - strand:")
+    for gene in genes_between_neg_strand:
+        print(gene)
+
+conn.close()
+```
+
+### Explanation
+
+- **Step 1**: The `get_gene_positions` function fetches the positions of `HOXC11` and `HOXC12`.
+- **Step 2**: The `get_genes_between` function queries all genes between the two given genes on both strands. It ensures that the start gene is always before the end gene for comparison.
+  
+### Output
+
+The output will list all genes located between `HOXC11` and `HOXC12` on both positive (`+`) and negative (`-`) strands.
+
+This approach ensures you accurately retrieve the required information from your genome annotation database.

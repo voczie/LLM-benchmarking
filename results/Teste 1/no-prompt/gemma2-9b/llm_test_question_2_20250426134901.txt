@@ -1,0 +1,24 @@
+Here's how you can find the number of lncRNA genes on chromosome 7 using your SQLite3 database schema:
+
+```sql
+SELECT COUNT(*)
+FROM features
+WHERE seqid = 'chr7' AND featuretype = 'gene' AND attributes LIKE '%lncRNA%';
+```
+
+**Explanation:**
+
+1. **`SELECT COUNT(*)`**: This counts all rows that meet the specified criteria.
+2. **`FROM features`**:  We're querying the `features` table where gene annotation data is stored.
+3. **`WHERE seqid = 'chr7'`**:  This filters for features located on chromosome 7. Remember to adjust this if your database uses a different naming convention for chromosomes.
+4. **`AND featuretype = 'gene'`**: This further narrows down the results to only gene features.
+5. **`AND attributes LIKE '%lncRNA%'`**: This is the key part. We're using `LIKE` with the wildcard '%' to search for any feature where the `attributes` field contains the string "lncRNA".  This assumes that lncRNA information is stored within the `attributes` field of your gene annotations.
+
+**Important Notes:**
+
+* **Attribute Format:** The exact format of the `attributes` field will determine how you search for lncRNA information. If it's a structured format (e.g., key-value pairs), you might need to use more specific SQL queries.
+* **Database Conventions:**  Double-check your database schema and naming conventions for chromosomes, feature types, and attribute fields.
+
+
+
+Let me know if you have any other questions or need help with specific aspects of the query!

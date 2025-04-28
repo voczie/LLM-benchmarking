@@ -1,0 +1,101 @@
+To find the genes located between the HOXC11 and HOXC12 genes on both the + and - strands, you can follow these steps:
+
+1. **Identify the locations of HOXC11 and HOXC12**: First, you need to retrieve the start and end positions of the HOXC11 and HOXC12 genes from the `features` table.
+
+2. **Query for genes between the two**: Once you have the positions of HOXC11 and HOXC12, you can query for genes that are located between these two positions on both strands.
+
+Here’s how you can do this step-by-step:
+
+### Step 1: Retrieve the positions of HOXC11 and HOXC12
+
+You can use the following SQL query to get the start and end positions of both genes:
+
+```sql
+SELECT 
+    seqid, 
+    featuretype, 
+    start, 
+    end, 
+    strand 
+FROM 
+    features 
+WHERE 
+    attributes LIKE '%HOXC11%' OR attributes LIKE '%HOXC12%';
+```
+
+### Step 2: Extract the positions
+
+Assuming the above query returns the following results:
+
+- For HOXC11: `seqid`, `start` = 1000, `end` = 1200, `strand` = '+'
+- For HOXC12: `seqid`, `start` = 1500, `end` = 1700, `strand` = '+'
+
+### Step 3: Query for genes between HOXC11 and HOXC12
+
+Now, you can use the start and end positions to find genes located between these two genes on the same strand. Here’s the SQL query for that:
+
+```sql
+SELECT 
+    seqid, 
+    featuretype, 
+    start, 
+    end, 
+    attributes 
+FROM 
+    features 
+WHERE 
+    seqid = 'your_seqid' AND  -- Replace with the actual seqid from the previous query
+    featuretype = 'gene' AND 
+    start > 1200 AND 
+    start < 1500 AND 
+    strand = '+';  -- Change to '-' for the negative strand
+```
+
+### Step 4: Repeat for the negative strand
+
+If you also want to find genes on the negative strand, you would need to adjust the query accordingly. For example, if HOXC11 and HOXC12 are on the negative strand, you would need to reverse the logic for the start and end positions.
+
+### Final Query for Both Strands
+
+You can combine both queries using a UNION if you want to get results for both strands in one go:
+
+```sql
+SELECT 
+    seqid, 
+    featuretype, 
+    start, 
+    end, 
+    attributes 
+FROM 
+    features 
+WHERE 
+    seqid = 'your_seqid' AND 
+    featuretype = 'gene' AND 
+    start > 1200 AND 
+    start < 1500 AND 
+    strand = '+'
+
+UNION
+
+SELECT 
+    seqid, 
+    featuretype, 
+    start, 
+    end, 
+    attributes 
+FROM 
+    features 
+WHERE 
+    seqid = 'your_seqid' AND 
+    featuretype = 'gene' AND 
+    start < 1200 AND 
+    end > 1500 AND 
+    strand = '-';
+```
+
+### Note:
+- Replace `'your_seqid'` with the actual sequence ID you retrieved in Step 1.
+- Adjust the start and end positions based on the actual values you get from the first query.
+- Ensure that the `featuretype` is set to 'gene' to filter only gene features.
+
+This should give you the genes located between HOXC11 and HOXC12 on both strands.

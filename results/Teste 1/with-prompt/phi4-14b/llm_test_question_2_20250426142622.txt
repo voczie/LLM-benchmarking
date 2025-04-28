@@ -1,0 +1,60 @@
+To determine how many long non-coding RNA (lncRNA) genes are located on chromosome 7 using the provided SQLite database schema, you can follow these steps:
+
+1. **Understand the Database Schema**: The `features` table contains all genomic features, including genes. Each feature has attributes stored in a text format.
+
+2. **Identify Relevant Features**:
+   - We need to filter for features of type `'gene'`.
+   - Within these gene features, we are interested in those with a `gene_biotype` attribute that includes `'lncRNA'`.
+
+3. **Filter by Chromosome**: 
+   - We want only genes located on chromosome 7, which corresponds to the `seqid` field.
+
+4. **SQL Query**:
+   - Use an SQL query to extract and count these specific features from the database.
+
+Here's how you can construct the SQL query:
+
+```sql
+SELECT COUNT(*) AS lncRNA_count
+FROM features
+WHERE featuretype = 'gene'
+  AND seqid = '7'
+  AND attributes LIKE '%gene_biotype%lncRNA%'
+```
+
+### Explanation of the Query:
+- `SELECT COUNT(*) AS lncRNA_count`: This part counts all rows that match the criteria and labels the result as `lncRNA_count`.
+- `FROM features`: Specifies the table to query.
+- `WHERE featuretype = 'gene'`: Filters for gene features.
+- `AND seqid = '7'`: Ensures we are only looking at genes on chromosome 7.
+- `AND attributes LIKE '%gene_biotype%lncRNA%'`: Checks if the `attributes` field contains `'gene_biotype lncRNA'`. The `%` symbols allow for any characters before or after this substring, accommodating different attribute formats.
+
+### Running the Query:
+To execute this query, you would typically use a Python script with an SQLite connection. Here's a simple example using Python:
+
+```python
+import sqlite3
+
+# Connect to the database
+conn = sqlite3.connect('path_to_your_database.db')
+cursor = conn.cursor()
+
+# Execute the query
+query = """
+SELECT COUNT(*) AS lncRNA_count
+FROM features
+WHERE featuretype = 'gene'
+  AND seqid = '7'
+  AND attributes LIKE '%gene_biotype%lncRNA%'
+"""
+cursor.execute(query)
+
+# Fetch and print the result
+result = cursor.fetchone()
+print(f"Number of lncRNA genes on chromosome 7: {result[0]}")
+
+# Close the connection
+conn.close()
+```
+
+Replace `'path_to_your_database.db'` with the actual path to your SQLite database file. This script will output the number of lncRNA genes located on chromosome 7.

@@ -1,0 +1,45 @@
+To determine how many protein-coding genes are located on chromosome 12 using your SQLite database, you'll need to perform a SQL query that filters and counts entries in the `features` table. Here's a step-by-step guide:
+
+### Step 1: Understand the Schema
+
+- **features Table**: This table contains information about genomic features such as genes.
+  - `seqid`: Represents the chromosome or scaffold ID.
+  - `featuretype`: Describes the type of feature (e.g., gene, mRNA).
+  - `attributes`: Contains additional details in a key-value format.
+
+### Step 2: Identify Protein-Coding Genes
+
+Protein-coding genes are typically represented by specific feature types such as "gene" or "mRNA". Additionally, within the `attributes` column, you might find information indicating that a gene is protein-coding. This often includes tags like `gene_type="protein_coding"`.
+
+### Step 3: Construct the SQL Query
+
+You need to filter for entries where:
+- The `seqid` corresponds to chromosome 12.
+- The `featuretype` indicates a gene or mRNA.
+- The `attributes` column contains information indicating that the feature is protein-coding.
+
+Here's an example query:
+
+```sql
+SELECT COUNT(DISTINCT f.id) AS protein_coding_genes_count
+FROM features f
+WHERE f.seqid = '12'  -- Assuming '12' is the identifier for chromosome 12
+AND (
+    (f.featuretype = 'gene' AND f.attributes LIKE '%gene_type="protein_coding"%') OR
+    (f.featuretype = 'mRNA' AND f.attributes LIKE '%gene_biotype="protein_coding"%')
+);
+```
+
+### Explanation of the Query
+
+- **`SELECT COUNT(DISTINCT f.id)`**: Counts unique gene IDs to ensure each gene is counted only once.
+- **`WHERE f.seqid = '12'`**: Filters for features on chromosome 12.
+- **Feature Type and Attributes**:
+  - Checks if `featuretype` is "gene" and the `attributes` column contains `gene_type="protein_coding"`.
+  - Alternatively, checks if `featuretype` is "mRNA" and the `attributes` column contains `gene_biotype="protein_coding"`.
+
+### Step 4: Execute the Query
+
+Run this query in your SQLite environment to get the count of protein-coding genes on chromosome 12. Adjust the attribute conditions based on how your data specifically marks protein-coding genes, as these can vary slightly between datasets.
+
+This approach should give you an accurate count of protein-coding genes on chromosome 12 using your database schema.

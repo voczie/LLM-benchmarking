@@ -1,0 +1,158 @@
+<think>
+Okay, so I need to help the user generate a stacked bar plot that shows the proportions of protein-coding, lncRNA, and miRNA genes on each chromosome. Let me think about how to approach this.
+
+First, I remember from the example provided earlier that they used a function called real_gene_length which iterates over genes, checks if they're on a specific chromosome and are protein-coding, then calculates their length based on exons. But now, instead of just calculating lengths, we need to categorize each gene into one of three categories: protein-coding, lncRNA, or miRNA.
+
+I should start by figuring out how to determine the type of each gene. Looking at the schema, I see that features have an 'attribute' field which is a text containing various attributes. For genes, there's usually an 'gene_biotype' attribute that indicates their type. So for each gene feature, I'll check if its biotype includes any of these categories: 'protein_coding', 'lncRNA', or 'miRNA'.
+
+Wait, but what about the order? The user wants a stacked bar plot with protein-coding first, then lncRNA, and miRNA last. So when categorizing, I should prioritize them in that order to ensure correct stacking.
+
+Next, for each chromosome (like 1, X), I need to count how many genes fall into each category. Then calculate the proportions by dividing each count by the total number of genes on that chromosome.
+
+I'll probably use a function similar to real_gene_length but modified to categorize and count instead of summing lengths. Let's call it something like get_gene_type_counts. This function will take a list of chromosomes, iterate over each gene, determine its type, and tally counts per category per chromosome.
+
+Once I have the counts, I'll compute the proportions for each category on each chromosome. Then, prepare the data in a format suitable for plotting—like a list of tuples where each tuple contains the chromosome name and the three proportion values.
+
+For the visualization part, using matplotlib makes sense. I'll create a figure, set up subplots if needed (though since it's per chromosome, maybe one bar plot per chromosome), but wait, no—the user wants proportions on each chromosome separately, so perhaps one stacked bar chart for all chromosomes together? Or separate charts for each?
+
+Looking at the example given earlier, they plotted averages per chromosome. So I think the user wants a single stacked bar chart where each bar represents a chromosome and is divided into three sections: protein-coding, lncRNA, miRNA.
+
+So, after preparing the data, I'll set up the plot with labels for each category, stack them, and add appropriate titles and labels.
+
+I should also handle cases where there are no genes of a certain type on a chromosome to avoid division by zero or negative proportions. Maybe adding a check before calculating proportions.
+
+Putting it all together, the steps are:
+
+1. Iterate over each gene in the database.
+2. For each gene, determine its type (protein_coding, lncRNA, miRNA) based on 'gene_biotype'.
+3. Tally counts for each category per chromosome.
+4. Calculate total genes per chromosome and then proportions.
+5. Prepare data structure for plotting.
+6. Create stacked bar chart with appropriate labels and formatting.
+
+I think that's the plan. Now, I'll translate this into code using the given schema and SQLite database setup.
+</think>
+
+To generate a stacked bar plot showing the proportions of protein-coding, lncRNA, and miRNA genes on each chromosome separately, follow these steps:
+
+1. **Categorize Genes by Type**: For each gene feature, determine its type based on the 'gene_biotype' attribute.
+
+2. **Count Genes per Chromosome and Type**: Tally the number of genes in each category (protein-coding, lncRNA, miRNA) for each chromosome.
+
+3. **Calculate Proportions**: For each chromosome, calculate the proportion of each gene type relative to the total number of genes on that chromosome.
+
+4. **Prepare Data for Plotting**: Structure the data so that each bar in the stacked bar plot represents a chromosome and contains three segments representing the proportions of each gene type.
+
+5. **Create the Stacked Bar Plot**: Use matplotlib to visualize the proportions, ensuring proper labeling and formatting.
+
+Here's the code:
+
+```python
+import sqlite3
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def get_gene_type_counts(db, chromosomes):
+    counts = {chrom: {'protein_coding': 0, 'lncRNA': 0, 'miRNA': 0} for chrom in chromosomes}
+    
+    for gene_id, seqid, source, featuretype, start, end, score, strand, frame, attributes in db.cursor.execute(
+        """
+        SELECT * FROM features WHERE featuretype='gene'
+        """:
+    ):
+        
+        # Determine the type of the gene
+        biotype = next((x[0] for x in attributes.split(',') if x.strip() == 'gene_biotype'), None)
+        if not biotype:
+            continue  # Skip genes without a biotype
+        
+        gene_biotypes = [x[0] for x in attributes.split(',') if x.strip().startswith('gene_')]
+        
+        # Categorize the gene
+        category = None
+        if 'protein_coding' in gene_biotypes:
+            category = 'protein_coding'
+        elif 'lncRNA' in gene_biotypes:
+            category = 'lncRNA'
+        elif 'miRNA' in gene_biotypes:
+            category = 'miRNA'
+        
+        # Update counts for the chromosome
+        if seqid in counts:
+            counts[seqid][category] += 1
+    
+    return counts
+
+def calculate_proportions(counts):
+    proportions = {}
+    
+    for chrom, cat_counts in counts.items():
+        total_genes = sum(cat_counts.values())
+        if total_genes == 0:
+            continue
+        
+        prop = {
+            'protein_coding': cat_counts['protein_coding'] / total_genes,
+            'lncRNA': cat_counts['lncRNA'] / total_genes,
+            'miRNA': cat_counts['miRNA'] / total_genes
+        }
+        
+        proportions[chrom] = prop
+    
+    return proportions
+
+def create_stacked_bar_plot(proportions):
+    # Prepare data for plotting
+    data = []
+    for chrom, prop in proportions.items():
+        data.append([prop['protein_coding'], prop['lncRNA'], prop['miRNA']], chrom)
+
+    # Create the plot
+    plt.figure(figsize=(10, 6))
+    
+    # Create a bar chart with three bars per chromosome
+    bars = []
+    for i, (chrom, values) in enumerate(data):
+        bar = plt.bar(i, values[0], label='protein_coding')
+        bars.append(bar)
+        
+        plt.bar(i, values[1], bottom=values[0], label='lncRNA')
+        bars.append(plt.bar(i, values[2], bottom=sum(values[:2]), label='miRNA'))
+    
+    # Add labels and legend
+    plt.xlabel('Chromosome')
+    plt.ylabel('Proportion of Genes')
+    plt.title('Proportions of Gene Types by Chromosome')
+    plt.xticks(range(len(data)), [item[0] for item in data])
+    plt.legend()
+    
+    plt.show()
+
+# Example usage:
+# Connect to your database
+db = sqlite3.connect('your_database.db')
+
+# Define the chromosomes of interest (e.g., '1', 'X')
+chromosomes_of_interest = ['1', 'X']
+
+# Get gene type counts
+gene_counts = get_gene_type_counts(db, chromosomes_of_interest)
+
+# Calculate proportions
+proportions = calculate_proportions(gene_counts)
+
+# Create and show the stacked bar plot
+create_stacked_bar_plot(proportions)
+```
+
+This code will:
+
+1. **Categorize Genes**: Each gene is categorized into 'protein_coding', 'lncRNA', or 'miRNA' based on its `gene_biotype`.
+
+2. **Count per Chromosome**: Tally the number of genes in each category for specified chromosomes.
+
+3. **Calculate Proportions**: For each chromosome, calculate the proportion of each gene type relative to the total number of genes.
+
+4. **Plot Stacked Bar Chart**: Creates a stacked bar chart showing the proportions of protein-coding, lncRNA, and miRNA genes on each chromosome.
+
+Make sure to replace `'your_database.db'` with your actual database file path when running the code.

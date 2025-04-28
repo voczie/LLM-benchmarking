@@ -1,0 +1,50 @@
+```python
+import sqlite3
+
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your actual database file
+cursor = conn.cursor()
+
+query = """
+SELECT COUNT(*) 
+FROM features
+WHERE seqid = '10' AND featuretype = 'gene' AND 'miRNA' IN (attributes)
+"""
+
+cursor.execute(query)
+result = cursor.fetchone()[0]  
+
+print(f"Number of miRNA genes on chromosome 10: {result}")
+
+conn.close()
+```
+
+**Walkthrough:**
+
+1. **Connect to the Database:**
+   - Replace `'your_database.db'` with the actual filename of your SQLite database.
+   - `sqlite3.connect()` establishes a connection to the database.
+
+2. **Create a Cursor:**
+   - `conn.cursor()` creates a cursor object, which is used to execute SQL queries and fetch results.
+
+3. **Construct the SQL Query:**
+   - `SELECT COUNT(*)`: Counts all rows that match the specified criteria.
+   - `FROM features`: Specifies the table to query (assuming your gene annotations are stored in a table named 'features').
+   - `WHERE seqid = '10'`: Filters for genes located on chromosome 10.
+   - `AND featuretype = 'gene'`: Further filters for entries classified as 'gene'.
+   - `AND 'miRNA' IN (attributes)`: Checks if the 'attributes' column contains the string 'miRNA', indicating a miRNA gene.
+
+4. **Execute the Query:**
+   - `cursor.execute(query)` runs the SQL query against the database.
+
+5. **Fetch the Result:**
+   - `cursor.fetchone()[0]`: Retrieves the first (and only) row returned by the query and extracts the count value from the first column.
+
+6. **Print the Output:**
+   - The result is printed to the console, indicating the number of miRNA genes found on chromosome 10.
+
+7. **Close the Connection:**
+   - `conn.close()` releases the database connection.
+
+
+

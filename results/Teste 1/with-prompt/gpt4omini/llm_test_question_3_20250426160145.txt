@@ -1,0 +1,11 @@
+```python
+import gffutils
+
+# Connect to the existing database
+db = gffutils.FeatureDB('your_database.db')
+
+# Count pseudogenes on the X chromosome
+pseudogene_count = sum(1 for gene in db.features_of_type('gene') if gene.seqid == 'X' and 'pseudogene' in gene.attributes.get('gene_biotype', []))
+
+print(f'The number of pseudogenes on the X chromosome: {pseudogene_count}')
+```

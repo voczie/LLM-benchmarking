@@ -1,0 +1,104 @@
+To generate a stacked bar plot representing the proportions of protein-coding, lncRNA, and miRNA genes on each chromosome, you'll need to follow these steps:
+
+### Step 1: Query the Database
+
+First, we need to extract the necessary data from your SQLite database. We will focus on the `features` table since it contains information about gene types (e.g., protein-coding, lncRNA, miRNA) in its attributes column.
+
+#### SQL Query
+
+```sql
+SELECT 
+    seqid AS chromosome,
+    featuretype,
+    COUNT(*) AS count
+FROM 
+    features
+WHERE 
+    feature IN ('gene') AND
+    (
+        attributes LIKE '%biotype=protein_coding%' OR
+        attributes LIKE '%biotype=lincRNA%' OR
+        attributes LIKE '%biotype=miRNA%'
+    )
+GROUP BY 
+    seqid, featuretype;
+```
+
+### Explanation
+
+- **`seqid AS chromosome`:** This selects the chromosome identifier.
+- **`featuretype`:** We are interested in genes, so we filter by `feature = 'gene'`.
+- **`attributes LIKE '%biotype=...'`:** Filters for specific biotypes: protein-coding, lncRNA (long non-coding RNA), and miRNA.
+- **`GROUP BY seqid, featuretype`:** Groups the results by chromosome and gene type to get counts.
+
+### Step 2: Process the Data
+
+After running the query, you'll have a table with columns `chromosome`, `featuretype`, and `count`. You need to pivot this data so that each row represents a chromosome and each column represents a gene type (protein-coding, lncRNA, miRNA).
+
+### Step 3: Generate the Stacked Bar Plot
+
+You can use Python with libraries like Pandas for data manipulation and Matplotlib or Seaborn for plotting.
+
+#### Python Code Example
+
+```python
+import sqlite3
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')
+
+# Execute the query
+query = """
+SELECT 
+    seqid AS chromosome,
+    CASE 
+        WHEN attributes LIKE '%biotype=protein_coding%' THEN 'Protein-coding'
+        WHEN attributes LIKE '%biotype=lincRNA%' THEN 'lncRNA'
+        WHEN attributes LIKE '%biotype=miRNA%' THEN 'miRNA'
+    END AS featuretype,
+    COUNT(*) AS count
+FROM 
+    features
+WHERE 
+    feature = 'gene' AND
+    (
+        attributes LIKE '%biotype=protein_coding%' OR
+        attributes LIKE '%biotype=lincRNA%' OR
+        attributes LIKE '%biotype=miRNA%'
+    )
+GROUP BY 
+    seqid, featuretype;
+"""
+
+# Load the data into a DataFrame
+df = pd.read_sql_query(query, conn)
+
+# Close the connection
+conn.close()
+
+# Pivot the data for plotting
+pivot_df = df.pivot(index='chromosome', columns='featuretype', values='count').fillna(0)
+
+# Plotting
+plt.figure(figsize=(12, 8))
+sns.barplot(data=pivot_df, palette="viridis", edgecolor=".2")
+plt.title('Proportions of Gene Types on Each Chromosome')
+plt.xlabel('Chromosome')
+plt.ylabel('Count')
+plt.legend(title='Gene Type', loc='upper right')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+```
+
+### Explanation
+
+- **SQLite Connection:** Connect to your database and execute the query.
+- **Pandas DataFrame:** Load the results into a DataFrame for easy manipulation.
+- **Data Pivoting:** Use `pivot` to reshape the data so each chromosome has counts for each gene type.
+- **Plotting with Seaborn/Matplotlib:** Create a stacked bar plot using Seaborn's `barplot`.
+
+This will give you a visual representation of the proportions of protein-coding, lncRNA, and miRNA genes on each chromosome. Adjust the aesthetics as needed to fit your preferences or data presentation requirements.

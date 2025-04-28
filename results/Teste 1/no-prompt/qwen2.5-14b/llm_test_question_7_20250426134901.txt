@@ -1,0 +1,61 @@
+To determine how many exons the XIST gene has, you need to perform a few steps:
+
+1. Identify the ID of the XIST gene in the `features` table.
+2. Find all exons that are related to this gene using the `relations` table.
+
+Here's a step-by-step guide on how to achieve this:
+
+### Step 1: Identify the Gene ID
+First, you need to find the ID of the XIST gene. You can do this by querying the `features` table for entries where `featuretype` is 'gene' and `attributes` contain information about the gene name.
+
+```sql
+SELECT id 
+FROM features 
+WHERE featuretype = 'gene' AND attributes LIKE '%Name="XIST"%';
+```
+
+Let's assume that the query returns a single ID, say `XIST_ID`.
+
+### Step 2: Find Exons Related to XIST Gene
+Now you need to find all exons related to this gene. You can do this by querying the `relations` table for entries where `parent` is the ID of the XIST gene and `level` indicates that these are exons.
+
+```sql
+SELECT child 
+FROM relations 
+WHERE parent = 'XIST_ID' AND level = 1;
+```
+
+The `level` value might vary depending on how your data is structured, but typically a level of 1 would indicate direct children (exons in this case).
+
+### Step 3: Count the Number of Exons
+Finally, you can count the number of exons by counting the rows returned from the previous query.
+
+```sql
+SELECT COUNT(child) 
+FROM relations 
+WHERE parent = 'XIST_ID' AND level = 1;
+```
+
+This will give you the total number of exons associated with the XIST gene.
+
+### Putting It All Together
+
+Here is a complete SQL script that combines all these steps:
+
+```sql
+-- Step 1: Find the ID of the XIST gene
+WITH xist_gene AS (
+    SELECT id 
+    FROM features 
+    WHERE featuretype = 'gene' AND attributes LIKE '%Name="XIST"%'
+)
+
+-- Step 2 & 3: Count the number of exons related to this gene
+SELECT COUNT(child) 
+FROM relations, xist_gene 
+WHERE parent = xist_gene.id AND level = 1;
+```
+
+This script first finds the ID of the XIST gene and then counts how many exons are associated with it. Make sure that your `attributes` field is correctly formatted to include the gene name in a way that allows this query to work.
+
+If you have multiple genes named "XIST" or if there's any ambiguity, you might need to refine the search criteria further based on additional attributes like chromosome location (`seqid`) or other unique identifiers.

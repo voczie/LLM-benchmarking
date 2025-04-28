@@ -1,0 +1,62 @@
+To determine how many transcript isoforms the XIST gene has and to print the transcript isoform names along with their sizes, you can follow these steps using SQL queries on the SQLite database that contains the genome annotation data.
+
+### Step 1: Identify the XIST Gene
+
+First, you need to find the feature ID or attributes associated with the XIST gene. Typically, genes are represented in the GFF/GTF format with a feature type of "gene". You can query the `features` table to find the ID of the XIST gene.
+
+```sql
+SELECT id, attributes 
+FROM features 
+WHERE featuretype = 'gene' AND attributes LIKE '%XIST%';
+```
+
+### Step 2: Find Transcript Isoforms
+
+Once you have the ID of the XIST gene, you can find its associated transcript isoforms. Transcript isoforms are usually represented with a feature type of "transcript". You will need to use the `relations` table to find the relationship between the gene and its transcripts.
+
+Assuming the ID of the XIST gene is `xist_gene_id`, you can run the following query:
+
+```sql
+SELECT f.id AS transcript_id, f.attributes 
+FROM features f
+JOIN relations r ON f.id = r.child 
+WHERE r.parent = 'xist_gene_id' AND r.level = 1 AND f.featuretype = 'transcript';
+```
+
+### Step 3: Calculate Sizes of Each Transcript Isoform
+
+To calculate the size of each transcript isoform, you can use the `start` and `end` columns from the `features` table. The size can be calculated as `end - start + 1`.
+
+You can modify the previous query to include the size calculation:
+
+```sql
+SELECT f.id AS transcript_id, f.attributes, (f.end - f.start + 1) AS size 
+FROM features f
+JOIN relations r ON f.id = r.child 
+WHERE r.parent = 'xist_gene_id' AND r.level = 1 AND f.featuretype = 'transcript';
+```
+
+### Step 4: Execute the Query
+
+Run the final query in your SQLite database to get the transcript isoform names and their sizes. The `attributes` field typically contains the transcript name, which you can extract from it.
+
+### Example of Final Query
+
+Here’s a complete example of the SQL query you might use:
+
+```sql
+SELECT f.id AS transcript_id, 
+       f.attributes, 
+       (f.end - f.start + 1) AS size 
+FROM features f
+JOIN relations r ON f.id = r.child 
+WHERE r.parent = (SELECT id 
+                  FROM features 
+                  WHERE featuretype = 'gene' AND attributes LIKE '%XIST%') 
+      AND r.level = 1 
+      AND f.featuretype = 'transcript';
+```
+
+### Conclusion
+
+After executing the above query, you will receive a list of transcript isoform IDs, their names (from the `attributes` field), and their sizes. You can then count the number of rows returned to determine how many transcript isoforms the XIST gene has.

@@ -1,0 +1,67 @@
+To generate a stacked barplot chart representing the proportions of protein-coding, lncRNA, and miRNA genes on each chromosome separately, you can follow these steps:
+
+1. **Connect to the SQLite database** containing the genomic annotations.
+2. **Query the database** to count the number of each gene type (protein-coding, lncRNA, and miRNA) for each chromosome.
+3. **Prepare the data** for plotting.
+4. **Create the stacked barplot** using a plotting library like Matplotlib or Seaborn.
+
+Here's a Python script that accomplishes this:
+
+```python
+import sqlite3
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Step 1: Connect to the SQLite database
+db_path = 'path_to_your_database.db'  # Replace with your database path
+conn = sqlite3.connect(db_path)
+
+# Step 2: Query the database to count gene types on each chromosome
+query = """
+SELECT seqid, 
+       SUM(CASE WHEN attributes LIKE '%gene_biotype "protein_coding"%' THEN 1 ELSE 0 END) AS protein_coding,
+       SUM(CASE WHEN attributes LIKE '%gene_biotype "lncRNA"%' THEN 1 ELSE 0 END) AS lncRNA,
+       SUM(CASE WHEN attributes LIKE '%gene_biotype "miRNA"%' THEN 1 ELSE 0 END) AS miRNA
+FROM features
+WHERE featuretype = 'gene'
+GROUP BY seqid
+"""
+
+# Execute the query and load the results into a DataFrame
+df = pd.read_sql_query(query, conn)
+
+# Step 3: Prepare the data for plotting
+# Set the index to 'seqid' for easier plotting
+df.set_index('seqid', inplace=True)
+
+# Step 4: Create the stacked barplot
+df.plot(kind='bar', stacked=True, figsize=(10, 6))
+plt.title('Proportions of Gene Types on Each Chromosome')
+plt.xlabel('Chromosome')
+plt.ylabel('Number of Genes')
+plt.legend(title='Gene Biotype')
+plt.xticks(rotation=45)
+plt.tight_layout()
+
+# Show the plot
+plt.show()
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation of the Code:
+
+1. **Database Connection**: The script connects to the SQLite database using `sqlite3.connect()`.
+2. **SQL Query**: The SQL query counts the number of genes for each biotype (protein-coding, lncRNA, and miRNA) grouped by chromosome (`seqid`). It uses conditional aggregation to sum counts based on the `gene_biotype` attribute.
+3. **Data Preparation**: The results are loaded into a Pandas DataFrame, and the index is set to `seqid` for easier plotting.
+4. **Plotting**: The DataFrame is plotted as a stacked bar chart using Matplotlib. The chart is customized with titles and labels for clarity.
+5. **Display**: Finally, the plot is displayed, and the database connection is closed.
+
+### Note:
+- Make sure to replace `'path_to_your_database.db'` with the actual path to your SQLite database file.
+- Ensure that you have the required libraries installed (`pandas`, `matplotlib`). You can install them using pip if necessary:
+
+```bash
+pip install pandas matplotlib
+```

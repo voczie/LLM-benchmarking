@@ -1,0 +1,52 @@
+To find out on which chromosomes the genes `NFKB1`, `NFKB2`, `REL`, `RELA`, and `RELB` are located using a SQLite database with the provided schema, you can use SQL queries to extract this information from the `features` table. Here's how you can do it:
+
+### Step-by-Step Walkthrough
+
+1. **Identify Gene IDs**: First, we need to identify which rows in the `features` table correspond to these genes based on their attributes.
+
+2. **Extract Chromosome Information**: Once we have identified the relevant gene entries, we will extract the chromosome (seqid) information from those rows.
+
+### SQL Query
+
+The `attributes` column in the `features` table likely contains additional metadata about each feature, including the gene ID if it's a gene feature. The attributes are typically stored as key-value pairs separated by semicolons and spaces.
+
+Here is an example query to find the chromosomes where these genes are located:
+
+```sql
+SELECT seqid 
+FROM features 
+WHERE featuretype = 'gene' AND 
+      (attributes LIKE '%ID=NFKB1%' OR 
+       attributes LIKE '%ID=NFKB2%' OR 
+       attributes LIKE '%ID=REL%' OR 
+       attributes LIKE '%ID=RELA%' OR 
+       attributes LIKE '%ID=RELB%');
+```
+
+### Explanation
+
+- **featuretype = 'gene'**: This filters the rows to only include those that are genes.
+  
+- **attributes LIKE '%ID=NFKB1%'** and similar conditions: These conditions check if the `attributes` column contains the specific gene ID. The `%` symbol is a wildcard in SQL, meaning it matches any sequence of characters.
+
+### Example Output
+
+The output will be a list of chromosomes (seqid) where each of these genes are located:
+
+```
+seqid
+-----
+chr1
+chr2
+...
+```
+
+If you have more complex attribute structures or if the gene IDs are stored differently in your `attributes` column, you might need to adjust the query accordingly. For example, if gene IDs are stored under a different key like `Name`, you would modify the conditions to match that.
+
+### Additional Considerations
+
+- **Normalization**: If the database is normalized and gene information is stored separately (e.g., in another table), you may need to join tables or adjust your query accordingly.
+  
+- **Performance**: For large databases, consider indexing columns used in WHERE clauses (`seqid`, `featuretype`, `attributes`) for faster querying.
+
+This should give you a good starting point to find the chromosomes where these specific genes are located.

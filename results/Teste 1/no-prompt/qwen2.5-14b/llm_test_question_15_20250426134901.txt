@@ -1,0 +1,82 @@
+To find which genes are located between `HOXC11` and `HOXC12` on both the positive (`+`) and negative (`-`) strands, you can follow these steps:
+
+### Step 1: Identify the positions of HOXC11 and HOXC12
+
+First, we need to identify the start and end coordinates for `HOXC11` and `HOXC12`. We will query the database to get their positions.
+
+```sql
+SELECT seqid, strand, MIN(start) AS min_start, MAX(end) AS max_end 
+FROM features 
+WHERE featuretype = 'gene' AND (attributes LIKE '%ID=HOXC11%' OR attributes LIKE '%ID=HOXC12%')
+GROUP BY seqid, strand;
+```
+
+This query will give you the positions of `HOXC11` and `HOXC12` on each chromosome and strand.
+
+### Step 2: Find genes between HOXC11 and HOXC12
+
+Once we have the coordinates for `HOXC11` and `HOXC12`, we can use them to find other genes located between these two genes. We will need to do this separately for the positive (`+`) and negative (`-`) strands.
+
+#### For Positive Strand (+):
+
+```sql
+WITH hoxc_positions AS (
+    SELECT seqid, strand, MIN(start) AS min_start, MAX(end) AS max_end 
+    FROM features 
+    WHERE featuretype = 'gene' AND (attributes LIKE '%ID=HOXC11%' OR attributes LIKE '%ID=HOXC12%')
+    GROUP BY seqid, strand
+)
+SELECT f.id, f.seqid, f.start, f.end, f.strand, f.featuretype, f.attributes 
+FROM features AS f
+JOIN hoxc_positions AS hp ON f.seqid = hp.seqid AND f.strand = hp.strand
+WHERE f.featuretype = 'gene' AND f.strand = '+' AND 
+      (f.start > hp.min_start AND f.end < hp.max_end) AND 
+      NOT (attributes LIKE '%ID=HOXC11%' OR attributes LIKE '%ID=HOXC12%');
+```
+
+#### For Negative Strand (-):
+
+```sql
+WITH hoxc_positions AS (
+    SELECT seqid, strand, MIN(start) AS min_start, MAX(end) AS max_end 
+    FROM features 
+    WHERE featuretype = 'gene' AND (attributes LIKE '%ID=HOXC11%' OR attributes LIKE '%ID=HOXC12%')
+    GROUP BY seqid, strand
+)
+SELECT f.id, f.seqid, f.start, f.end, f.strand, f.featuretype, f.attributes 
+FROM features AS f
+JOIN hoxc_positions AS hp ON f.seqid = hp.seqid AND f.strand = hp.strand
+WHERE f.featuretype = 'gene' AND f.strand = '-' AND 
+      (f.start > hp.min_start AND f.end < hp.max_end) AND 
+      NOT (attributes LIKE '%ID=HOXC11%' OR attributes LIKE '%ID=HOXC12%');
+```
+
+### Explanation:
+
+- **hoxc_positions CTE**: This common table expression (CTE) finds the positions of `HOXC11` and `HOXC12`.
+- **Main Query**:
+  - Joins the features with the hoxc_positions to filter genes on the same chromosome and strand.
+  - Filters for genes that are between the start and end coordinates of `HOXC11` and `HOXC12`.
+  - Excludes `HOXC11` and `HOXC12` themselves from the results.
+
+### Step 3: Combine Results
+
+You can combine the results from both queries to get a complete list of genes between `HOXC11` and `HOXC12` on both strands:
+
+```sql
+WITH hoxc_positions AS (
+    SELECT seqid, strand, MIN(start) AS min_start, MAX(end) AS max_end 
+    FROM features 
+    WHERE featuretype = 'gene' AND (attributes LIKE '%ID=HOXC11%' OR attributes LIKE '%ID=HOXC12%')
+    GROUP BY seqid, strand
+)
+SELECT f.id, f.seqid, f.start, f.end, f.strand, f.featuretype, f.attributes 
+FROM features AS f
+JOIN hoxc_positions AS hp ON f.seqid = hp.seqid AND f.strand = hp.strand
+WHERE f.featuretype = 'gene' AND 
+      (f.strand = '+' OR f.strand = '-') AND 
+      (f.start > hp.min_start AND f.end < hp.max_end) AND 
+      NOT (attributes LIKE '%ID=HOXC11%' OR attributes LIKE '%ID=HOXC12%');
+```
+
+This combined query will give you the genes located between `HOXC11` and `HOXC12` on both strands.

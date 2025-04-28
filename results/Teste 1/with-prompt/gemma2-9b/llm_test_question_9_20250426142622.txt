@@ -1,0 +1,51 @@
+```python
+import sqlite3
+
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your actual database file
+cursor = conn.cursor()
+
+# Query to get all BRCA1 transcript isoforms and their exons
+query = """
+SELECT f.id, f.attributes 
+FROM features AS f
+JOIN relations AS r ON f.id = r.parent
+WHERE f.featuretype = 'transcript' AND f.seqid = 'chr17'  -- Assuming BRCA1 is on chromosome 17
+AND f.attributes LIKE '%"gene_name":"BRCA1"%' -- Adjust this based on your attribute naming convention
+ORDER BY f.id;
+"""
+
+cursor.execute(query)
+transcript_data = cursor.fetchall()
+
+# Calculate average exon size for each transcript isoform
+for transcript in transcript_data:
+    transcript_id = transcript[0]
+    attributes = json.loads(transcript[1])  # Assuming attributes are stored as JSON
+
+    exon_sizes = []
+    for child_feature in cursor.execute("SELECT * FROM features WHERE id IN (SELECT child FROM relations WHERE parent=?)", (transcript_id,)):
+        if child_feature[2] == 'exon':
+            exon_size = child_feature[4] - child_feature[3] + 1  # Calculate exon size
+            exon_sizes.append(exon_size)
+
+    average_exon_size = sum(exon_sizes) / len(exon_sizes) if exon_sizes else 0
+    print(f"Average exon size for transcript {transcript_id}: {average_exon_size}")
+
+conn.close()
+```
+
+**Explanation:**
+
+1. **Connect to the database:** Replace `'your_database.db'` with your actual database file name.
+2. **Query for BRCA1 transcripts:** The SQL query selects transcript features (featuretype = 'transcript') on chromosome 17 and filters by the gene name "BRCA1" in the attributes. You might need to adjust the attribute key based on your database schema.
+3. **Iterate through transcripts:** The code loops through each BRCA1 transcript found.
+4. **Extract exon information:** For each transcript, it queries for its child features (exons) using the `relations` table and calculates the size of each exon.
+5. **Calculate average exon size:** It sums up all exon sizes and divides by the number of exons to get the average size for that transcript.
+
+**Important Notes:**
+
+- This code assumes your database schema and attribute naming conventions are as described in the provided schema. Adjust accordingly if they differ.
+- The `attributes` field is assumed to be stored as JSON. If it's in a different format, you'll need to parse it appropriately.
+
+
+

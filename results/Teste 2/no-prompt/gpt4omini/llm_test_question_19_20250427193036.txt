@@ -1,0 +1,79 @@
+To generate a boxplot comparing the sizes of protein-coding, lncRNA, and miRNA transcripts from your SQLite database, you will need to follow these steps:
+
+1. **Extract the Data**: You need to write a SQL query to extract the relevant data from the `features` table. Specifically, you want to filter for the feature types that correspond to protein-coding, lncRNA, and miRNA transcripts, and then calculate their sizes.
+
+2. **Calculate Transcript Sizes**: The size of each transcript can be calculated as the difference between the `end` and `start` columns.
+
+3. **Load the Data into a DataFrame**: Use a programming language like Python with libraries such as `pandas` and `matplotlib` or `seaborn` to create the boxplot.
+
+### Step 1: SQL Query
+
+Here’s a SQL query that will extract the necessary data:
+
+```sql
+SELECT 
+    featuretype,
+    (end - start) AS size
+FROM 
+    features
+WHERE 
+    featuretype IN ('protein_coding', 'lncRNA', 'miRNA');
+```
+
+### Step 2: Execute the Query and Load Data
+
+You can use Python to execute this query and load the data into a DataFrame. Here’s how you can do it:
+
+```python
+import sqlite3
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')
+
+# Execute the SQL query
+query = """
+SELECT 
+    featuretype,
+    (end - start) AS size
+FROM 
+    features
+WHERE 
+    featuretype IN ('protein_coding', 'lncRNA', 'miRNA');
+"""
+df = pd.read_sql_query(query, conn)
+
+# Close the database connection
+conn.close()
+```
+
+### Step 3: Generate the Boxplot
+
+Now that you have the data in a DataFrame, you can create a boxplot using seaborn or matplotlib:
+
+```python
+# Set the aesthetic style of the plots
+sns.set(style="whitegrid")
+
+# Create the boxplot
+plt.figure(figsize=(10, 6))
+sns.boxplot(x='featuretype', y='size', data=df)
+
+# Add titles and labels
+plt.title('Comparison of Transcript Sizes')
+plt.xlabel('Transcript Type')
+plt.ylabel('Transcript Size (bp)')
+
+# Show the plot
+plt.show()
+```
+
+### Summary
+
+1. You wrote a SQL query to extract the sizes of the specified transcript types.
+2. You executed the query and loaded the results into a pandas DataFrame.
+3. You used seaborn to create a boxplot comparing the sizes of protein-coding, lncRNA, and miRNA transcripts.
+
+Make sure to replace `'your_database.db'` with the actual path to your SQLite database file. This process will give you a visual representation of the size distributions for the different transcript types.

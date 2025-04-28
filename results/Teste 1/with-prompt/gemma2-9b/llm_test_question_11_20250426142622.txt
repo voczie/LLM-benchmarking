@@ -1,0 +1,55 @@
+```python
+import sqlite3
+
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your actual database file
+cursor = conn.cursor()
+
+genes = ['NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB']
+
+chromosome_locations = {}
+
+for gene in genes:
+    query = f"SELECT seqid FROM features WHERE featuretype='gene' AND attributes LIKE '%{gene}%'" 
+    cursor.execute(query)
+    result = cursor.fetchone()
+    if result:
+        chromosome_locations[gene] = result[0]
+
+for gene, chromosome in chromosome_locations.items():
+    print(f"{gene} is located on chromosome {chromosome}")
+
+conn.close()
+```
+
+**Explanation:**
+
+1. **Connect to the Database:**
+   - Replace `'your_database.db'` with the actual filename of your SQLite database.
+   - The code establishes a connection to the database using `sqlite3.connect()`.
+
+2. **Define Gene List:**
+   - Create a list `genes` containing the names of the genes you want to find (NFKB1, NFKB2, REL, RELA, RELB).
+
+3. **Create Dictionary for Results:**
+   - Initialize an empty dictionary `chromosome_locations` to store the chromosome information for each gene.
+
+4. **Iterate Through Genes:**
+   - The code loops through each gene in the `genes` list.
+
+5. **Construct SQL Query:**
+   - For each gene, it builds a query that selects the `seqid` (chromosome) from the `features` table. 
+   - The query uses `LIKE` to search for the gene name within the `attributes` column of the features table. This assumes your annotation data includes gene names as attributes.
+
+6. **Execute Query and Fetch Result:**
+   - The `cursor.execute(query)` line runs the SQL query.
+   - `cursor.fetchone()` retrieves the first (and hopefully only) result from the query, which is a tuple containing the chromosome ID.
+
+7. **Store Chromosome Information:**
+   - If a result is found, the gene name and its corresponding chromosome are stored in the `chromosome_locations` dictionary.
+
+8. **Print Results:**
+   - After processing all genes, the code iterates through the `chromosome_locations` dictionary and prints the chromosome location for each gene.
+
+
+
+Let me know if you have any other questions or need further assistance!

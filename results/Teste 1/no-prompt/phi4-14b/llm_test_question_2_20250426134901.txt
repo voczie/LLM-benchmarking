@@ -1,0 +1,36 @@
+To determine how many long non-coding RNA (lncRNA) genes are located on chromosome 7 using your SQLite database, you can follow these steps:
+
+### Step-by-Step Guide
+
+1. **Understand the Schema**: 
+   - The `features` table contains genomic features with attributes such as `seqid` for chromosome identifier, `featuretype` for type of feature (e.g., gene), and `attributes` which likely includes additional information like gene biotype.
+
+2. **Identify lncRNA Features**:
+   - Typically, lncRNAs are identified by their `featuretype` being "gene" and a specific attribute in the `attributes` column indicating they are of type "lncRNA". The exact format can vary, but it often looks like `biotype "lncRNA"`.
+
+3. **Query Construction**:
+   - You need to filter records where `seqid` is '7' (indicating chromosome 7), `featuretype` is 'gene', and the `attributes` column contains information indicating the gene is an lncRNA.
+
+4. **SQL Query**:
+   ```sql
+   SELECT COUNT(*) AS num_lncRNAs
+   FROM features
+   WHERE seqid = '7'
+     AND featuretype = 'gene'
+     AND attributes LIKE '%biotype "lncRNA"%';
+   ```
+
+### Explanation of the Query
+
+- `SELECT COUNT(*) AS num_lncRNAs`: This counts all rows that match the criteria and labels the result as `num_lncRNAs`.
+- `FROM features`: Specifies the table to query.
+- `WHERE seqid = '7'`: Filters for entries on chromosome 7.
+- `AND featuretype = 'gene'`: Ensures only gene features are considered.
+- `AND attributes LIKE '%biotype "lncRNA"%';`: Looks for genes with an attribute indicating they are lncRNAs. The `%` symbols allow for any characters before and after the specified text, accommodating variations in formatting.
+
+### Additional Considerations
+
+- **Attribute Format**: Ensure that the format of the `attributes` column matches what you expect (`biotype "lncRNA"`). If your data uses a different format (e.g., `gene_biotype=lncRNA`), adjust the query accordingly.
+- **Case Sensitivity**: SQLite is case-sensitive by default. Adjust the query if your data has variations in capitalization.
+
+By running this query, you will get the count of lncRNA genes on chromosome 7 stored in your database.

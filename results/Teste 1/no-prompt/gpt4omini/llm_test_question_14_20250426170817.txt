@@ -1,0 +1,58 @@
+To find out the strand information for the HOTAIR, HOXC11, and HOXC12 genes from the SQLite database with the provided schema, you can use a SQL query to retrieve the relevant data from the `features` table. The `features` table contains the necessary information about the genes, including their strand.
+
+Here’s a step-by-step guide on how to construct the SQL query:
+
+1. **Identify the relevant columns**: You need the `featuretype`, `strand`, and `attributes` columns from the `features` table. The `attributes` column typically contains gene names and other metadata.
+
+2. **Construct the SQL query**: You will want to filter the results to include only the rows where the gene names match HOTAIR, HOXC11, and HOXC12. The gene names are usually found in the `attributes` column, so you will need to use a `LIKE` clause or a specific parsing method depending on how the attributes are formatted.
+
+3. **Execute the query**: Run the query against your SQLite database to get the results.
+
+Here’s an example SQL query that you can use:
+
+```sql
+SELECT seqid, featuretype, strand, attributes
+FROM features
+WHERE (attributes LIKE '%HOTAIR%' OR attributes LIKE '%HOXC11%' OR attributes LIKE '%HOXC12%')
+AND featuretype = 'gene';
+```
+
+### Explanation of the Query:
+- `SELECT seqid, featuretype, strand, attributes`: This selects the sequence ID, feature type, strand, and attributes for the genes.
+- `FROM features`: This specifies that we are querying the `features` table.
+- `WHERE (attributes LIKE '%HOTAIR%' OR attributes LIKE '%HOXC11%' OR attributes LIKE '%HOXC12%')`: This filters the results to include only those rows where the `attributes` column contains the names of the genes we are interested in.
+- `AND featuretype = 'gene'`: This ensures that we are only looking at rows that represent genes.
+
+### Running the Query:
+You can run this query using a SQLite client or through a programming language that supports SQLite (like Python with the `sqlite3` module).
+
+### Example in Python:
+If you are using Python, here’s how you might execute the query:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')
+cursor = conn.cursor()
+
+# Execute the query
+query = """
+SELECT seqid, featuretype, strand, attributes
+FROM features
+WHERE (attributes LIKE '%HOTAIR%' OR attributes LIKE '%HOXC11%' OR attributes LIKE '%HOXC12%')
+AND featuretype = 'gene';
+"""
+cursor.execute(query)
+
+# Fetch and print the results
+results = cursor.fetchall()
+for row in results:
+    print(row)
+
+# Close the connection
+conn.close()
+```
+
+### Output:
+The output will show the sequence ID, feature type, strand, and attributes for each of the specified genes, allowing you to determine the strand they are located on.

@@ -1,0 +1,53 @@
+To answer the question of how many genes and transcripts are present on chromosome 3 using the provided SQLite database schema, you will need to query the `features` table. In GFF/GTF format, genes and transcripts are typically represented by specific feature types. 
+
+Here’s a step-by-step guide on how to construct the SQL queries:
+
+### Step 1: Identify Feature Types
+In the GFF/GTF format:
+- Genes are usually represented by the feature type "gene".
+- Transcripts are usually represented by the feature type "transcript".
+
+### Step 2: Write SQL Queries
+You will need to write two separate queries: one to count the number of genes and another to count the number of transcripts on chromosome 3.
+
+#### Query to Count Genes
+```sql
+SELECT COUNT(*) AS gene_count
+FROM features
+WHERE seqid = 'chr3' AND featuretype = 'gene';
+```
+
+#### Query to Count Transcripts
+```sql
+SELECT COUNT(*) AS transcript_count
+FROM features
+WHERE seqid = 'chr3' AND featuretype = 'transcript';
+```
+
+### Step 3: Execute the Queries
+You can execute these queries using a SQLite client or a programming language that supports SQLite (like Python with the `sqlite3` module).
+
+### Step 4: Combine Results
+If you want to combine the results into a single output, you can use a single query with a `UNION` or run both queries separately and then combine the results in your application logic.
+
+#### Combined Query Example
+```sql
+SELECT 'gene' AS feature_type, COUNT(*) AS count
+FROM features
+WHERE seqid = 'chr3' AND featuretype = 'gene'
+GROUP BY feature_type
+
+UNION ALL
+
+SELECT 'transcript' AS feature_type, COUNT(*) AS count
+FROM features
+WHERE seqid = 'chr3' AND featuretype = 'transcript'
+GROUP BY feature_type;
+```
+
+### Summary
+1. Identify the feature types for genes and transcripts.
+2. Write and execute SQL queries to count each feature type on chromosome 3.
+3. Optionally, combine the results for a consolidated view.
+
+This approach will give you the number of genes and transcripts on chromosome 3 from your SQLite database.

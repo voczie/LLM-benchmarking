@@ -1,0 +1,45 @@
+To determine how many miRNA genes exist on chromosome 10 using your SQLite database, you'll need to perform a SQL query that filters and counts relevant entries from the `features` table. Here's a step-by-step guide:
+
+### Step 1: Understand the Schema
+
+- **features**: This table contains genomic features with attributes such as `seqid` (chromosome identifier), `featuretype`, and others.
+- **relations**: This table might be useful if you need to explore hierarchical relationships between features, but for counting miRNA genes directly, it may not be necessary unless there are specific parent-child relationships to consider.
+
+### Step 2: Identify Relevant Columns
+
+For your query:
+- **seqid**: Should match "10" for chromosome 10.
+- **featuretype**: Should include entries that represent miRNA. Commonly, miRNAs might be annotated as `miRNA` or similar terms depending on the annotation source.
+
+### Step 3: Construct the SQL Query
+
+You will need to:
+1. Filter by `seqid = '10'`.
+2. Identify rows where `featuretype` indicates a miRNA.
+3. Count these entries.
+
+Here's how you can construct the query:
+
+```sql
+SELECT COUNT(*) AS miRNA_count
+FROM features
+WHERE seqid = '10'
+  AND featuretype LIKE '%miRNA%';
+```
+
+### Explanation of the Query
+
+- **COUNT(*)**: This function counts all rows that match the criteria.
+- **seqid = '10'**: Filters entries to only those on chromosome 10.
+- **featuretype LIKE '%miRNA%'**: Uses a wildcard search to find any `featuretype` containing "miRNA". Adjust this pattern if your database uses different terminology for miRNAs.
+
+### Step 4: Execute the Query
+
+Run this query in your SQLite environment. It will return the number of miRNA genes on chromosome 10.
+
+### Additional Considerations
+
+- **Attributes Column**: If `featuretype` does not directly contain "miRNA", you might need to inspect the `attributes` column for more detailed information.
+- **Database Specifics**: Ensure that the terminology used in your database matches what is expected in the query. Adjust the `LIKE` pattern if necessary.
+
+By following these steps, you should be able to determine how many miRNA genes are present on chromosome 10 in your dataset.

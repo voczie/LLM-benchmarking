@@ -1,0 +1,41 @@
+Here's how you can find the number of transcript isoforms for the XIST gene and their sizes using a SQLite3 query:
+
+```sql
+SELECT 
+    attributes, -- This will contain the transcript_name attribute
+    (end - start + 1) AS size  -- Calculate the size of each transcript isoform
+FROM features
+WHERE 
+    seqid = 'your_genome_sequence_ID' -- Replace with the actual ID for your genome sequence
+    AND featuretype = 'transcript' -- Filter for transcripts
+    AND attributes LIKE '%gene%XIST%' --  Filter for XIST gene transcripts
+ORDER BY 
+    attributes; -- Order by transcript name for readability
+```
+
+**Explanation:**
+
+1. **`SELECT attributes, (end - start + 1) AS size`**: This selects two columns:
+   - `attributes`: This column stores the various attributes associated with each feature, including the transcript name. We'll use this to identify the isoforms.
+   - `(end - start + 1) AS size`: This calculates the size of each transcript isoform by subtracting the starting position (`start`) from the ending position (`end`) and adding 1.
+
+2. **`FROM features`**:  This specifies that we're querying the `features` table, which contains your genome annotation data.
+
+3. **`WHERE seqid = 'your_genome_sequence_ID'`**: Replace `'your_genome_sequence_ID'` with the actual ID for your genome sequence in the database.
+
+4. **`AND featuretype = 'transcript'`**: This filters the results to include only features of type "transcript".
+
+5. **`AND attributes LIKE '%gene%XIST%'`**: This filters further to select transcripts that have the attribute `gene=XIST`.  The `LIKE` operator with the wildcard `%` allows for variations in how the gene name is stored within the `attributes` column.
+
+6. **`ORDER BY attributes`**: This sorts the results alphabetically by the `attributes` column, making it easier to see the different transcript isoforms.
+
+
+
+**Important Notes:**
+
+*  Make sure you've replaced `'your_genome_sequence_ID'` with the correct ID for your genome sequence in the database.
+* The exact format of the `attributes` column and how the gene name is stored within it might vary depending on your annotation source. You may need to adjust the `LIKE` condition accordingly.
+
+
+
+Let me know if you have any other questions!

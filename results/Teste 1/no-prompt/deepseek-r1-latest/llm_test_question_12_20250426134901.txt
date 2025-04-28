@@ -1,0 +1,66 @@
+<think>
+Okay, so I need to figure out how to print the names of the two genes right before and after COL1A2 in a GFF/GTF database using SQLite. Let me break this down step by step.
+
+First, I know that the data is stored in an SQLite database with specific tables: features, relations, meta, directives, autoincrements, and duplicates. The main table here is 'features' because it contains all the genomic information like genes, their start and end positions, etc.
+
+The user wants to find the immediate neighbors of COL1A2. So, I need to identify where COL1A2 is located in the features table. Each gene has a 'start' and 'end' position, right? The gene before it would be the one with an 'end' just before COL1A2's start, and the next gene would have a 'start' immediately after COL1A2's end.
+
+I should probably use a SELECT statement to get the start and end of COL1A2 first. Once I have those values, say COL1A2 starts at position 500 and ends at 600, then I need to query for genes where 'start' is 601 or 'end' is 499.
+
+But wait, how do I handle this in SQL? Maybe using a subquery to get the start and end of COL1A2. Then use those values in another SELECT statement with conditions on start > end_of_COL1A2 -1 or start < start_of_COL1A2 +1.
+
+I also need to make sure that the table is correctly referenced as 'features' without any aliases, so I'll have to write the SQL query accordingly.
+
+Putting it all together, first get COL1A2's details, then find genes with start just after end or end just before start. Finally, extract their names and print them.
+</think>
+
+To find the immediate neighboring genes of COL1A2 in your SQLite database, follow these steps:
+
+### Step 1: Identify COL1A2's Position
+First, determine the start and end positions of COL1A2.
+
+```sql
+SELECT start as col_start, end as col_end FROM features WHERE id = 'COL1A2';
+```
+
+This will give you `col_start` and `col_end`, which are essential for finding neighboring genes.
+
+### Step 2: Find Immediate Neighbors
+
+#### Gene Before COL1A2:
+Find the gene that ends just before COL1A2 starts.
+
+```sql
+SELECT name FROM features WHERE end = col_start - 1;
+```
+
+#### Gene After COL1A2:
+Find the gene that starts immediately after COL1A2 ends.
+
+```sql
+SELECT name FROM features WHERE start = col_end + 1;
+```
+
+### Step 3: Combine Queries
+
+To get both neighbors in one query, use parameters to avoid typing them twice:
+
+```sql
+-- Save the positions as parameters
+CREATE TABLE temp (id text);
+INSERT INTO temp VALUES ('COL1A2');
+SELECT start as col_start, end as col_end FROM temp WHERE id = 'COL1A2';
+
+-- Find neighboring genes
+SELECT 
+    (SELECT name FROM features WHERE end = col_start - 1) AS prev_gene,
+    (SELECT name FROM features WHERE start = col_end + 1) AS next_gene
+FROM temp;
+```
+
+### Explanation
+
+- **Step 1** locates COL1A2's exact position in the genome.
+- **Steps 2a and 2b** query for genes that are immediately adjacent to COL1A2, ensuring you get both predecessors and successors.
+
+This approach efficiently retrieves the required information using SQL queries tailored to your database structure.

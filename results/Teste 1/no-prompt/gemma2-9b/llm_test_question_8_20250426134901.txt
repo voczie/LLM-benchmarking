@@ -1,0 +1,40 @@
+Here's how you can query your SQLite database to find the number of exons per transcript isoform of the BRCA1 gene:
+
+```sql
+SELECT 
+    f.attributes, -- This will contain the transcript name
+    COUNT(DISTINCT f2.id) AS exon_count
+FROM features f
+JOIN features f2 ON f.id = f2.parent AND f2.featuretype = 'exon'
+WHERE f.featuretype = 'transcript' 
+  AND f.seqid = 'BRCA1' -- Assuming BRCA1 is stored in a specific seqid
+GROUP BY f.attributes;
+```
+
+**Explanation:**
+
+1. **`SELECT f.attributes, COUNT(DISTINCT f2.id) AS exon_count`**: This selects the transcript name (stored within the `attributes` field of the main feature) and calculates the number of distinct exons for each transcript.
+
+2. **`FROM features f JOIN features f2 ON f.id = f2.parent AND f2.featuretype = 'exon'`**: This joins the `features` table with itself to link transcripts (main features) to their corresponding exons. The join condition ensures that:
+   -  `f.id` (transcript ID) matches `f2.parent` (exon's parent feature).
+   -  `f2.featuretype` is 'exon', indicating we are dealing with exon features.
+
+3. **`WHERE f.featuretype = 'transcript' AND f.seqid = 'BRCA1'`**: This filters the results to include only:
+   - Features of type 'transcript'.
+   - Features belonging to the `BRCA1` sequence (adjust this if your BRCA1 gene is stored under a different seqid).
+
+4. **`GROUP BY f.attributes`**: This groups the results by the transcript name (`f.attributes`), allowing us to count exons for each unique transcript.
+
+
+
+**Output:**
+
+The query will output a table with two columns:
+
+- `transcript_name`: The name of each BRCA1 transcript isoform.
+- `exon_count`: The number of exons associated with each transcript isoform.
+
+
+
+
+Let me know if you have any other questions or need further assistance!

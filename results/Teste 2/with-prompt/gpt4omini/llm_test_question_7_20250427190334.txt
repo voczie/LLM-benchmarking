@@ -1,0 +1,42 @@
+To determine how many exons the XIST gene has using the `gffutils` library, you can follow these steps:
+
+1. **Connect to the database**: Use `gffutils.FeatureDB()` to connect to your existing database that contains the genomic annotations.
+
+2. **Fetch the gene**: Retrieve the XIST gene using its gene ID or gene name.
+
+3. **Fetch the exons**: Use the `db.children()` method to get all the exons associated with the XIST gene.
+
+4. **Count the exons**: Count the number of unique exons retrieved.
+
+Here’s a Python script that implements these steps:
+
+```python
+import gffutils
+
+# Connect to the database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# Fetch the XIST gene
+xist_gene = db.features_of_type('gene', filter={'gene_id': 'XIST'}).next()
+
+# Fetch all exons associated with the XIST gene
+exons = list(db.children(xist_gene.id, featuretype='exon'))
+
+# Count the number of unique exons
+num_exons = len(exons)
+
+# Output the result
+print(f'The XIST gene has {num_exons} exons.')
+```
+
+### Explanation of the Code:
+- **Line 1**: Import the `gffutils` library.
+- **Line 4**: Connect to the SQLite database containing the GFF/GTF annotations.
+- **Line 7**: Retrieve the XIST gene using its gene ID. Adjust the filter if your database uses a different attribute name.
+- **Line 10**: Fetch all exons associated with the XIST gene using the `db.children()` method.
+- **Line 13**: Count the number of exons retrieved.
+- **Line 16**: Print the result.
+
+### Note:
+- Make sure to replace `'path_to_your_database.db'` with the actual path to your SQLite database file.
+- If the gene ID for XIST is different in your database, adjust the filter accordingly. You may also need to check the attribute names if they differ from the standard.

@@ -1,0 +1,46 @@
+To find the names of the two genes located immediately before and after the gene COL1A2, we can follow these steps using the `gffutils` library:
+
+1. **Connect to the database**: Use `gffutils.FeatureDB()` to connect to the SQLite database containing the genomic annotations.
+2. **Fetch the target gene**: Retrieve the gene feature for COL1A2 to get its start and end coordinates.
+3. **Find neighboring genes**: Query for genes that are located immediately before and after COL1A2 based on their coordinates.
+
+Here's a Python script that implements this logic:
+
+```python
+import gffutils
+
+# Connect to the database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# Fetch the gene feature for COL1A2
+target_gene = db.features_of_type('gene', filter={'gene_id': 'COL1A2'}).next()
+
+# Get the start and end coordinates of the target gene
+target_start = target_gene.start
+target_end = target_gene.end
+target_seqid = target_gene.seqid
+
+# Find genes immediately before and after COL1A2
+# We will look for genes that are on the same chromosome and have coordinates that are adjacent to COL1A2
+genes_before = list(db.features_of_type('gene', seqid=target_seqid, start=target_start - 1, end=target_start))
+genes_after = list(db.features_of_type('gene', seqid=target_seqid, start=target_end + 1, end=target_end + 1000))
+
+# Get the names of the genes
+before_genes = [gene.attributes['gene_id'][0] for gene in genes_before]
+after_genes = [gene.attributes['gene_id'][0] for gene in genes_after]
+
+# Print the results
+print("Gene immediately before COL1A2:", before_genes[-1] if before_genes else "None")
+print("Gene immediately after COL1A2:", after_genes[0] if after_genes else "None")
+```
+
+### Explanation of the Code:
+- **Database Connection**: Replace `'path_to_your_database.db'` with the actual path to your SQLite database.
+- **Fetch Target Gene**: We retrieve the gene feature for COL1A2 using its `gene_id`.
+- **Coordinate Retrieval**: We extract the start and end coordinates of COL1A2.
+- **Neighboring Genes Search**: We look for genes that are located immediately before and after COL1A2 by querying the database for genes with appropriate start and end coordinates.
+- **Output**: The script prints the names of the genes located immediately before and after COL1A2.
+
+### Note:
+- Ensure that the `gene_id` used in the filter matches the attribute name in your GFF/GTF file.
+- The script assumes that the gene IDs are stored in the `gene_id` attribute. Adjust the attribute name if necessary based on your specific annotation format.

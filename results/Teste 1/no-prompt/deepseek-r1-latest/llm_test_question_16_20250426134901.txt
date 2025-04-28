@@ -1,0 +1,145 @@
+<think>
+Okay, so I need to figure out how to get specific information about certain genes using an SQLite database that's structured with GFF/GTF data. The user wants details on XIST, MALAT1, BRCA1, NFKB1, COL1A2, HOTAIR, HOXC11, and HOXC12. They want chromosomal location, position, size, number of exons, average exon size, strand, and biotype for each transcript isoform.
+
+First, I remember that GFF files store genomic features with attributes like 'transcript' which contain a lot of information including the gene name. So in the database, there's a table called features where each row represents a feature, and within the attributes field, there should be key-value pairs for these genes.
+
+I think the steps would involve selecting from the features table where the feature type is 'transcript' because we're interested in isoforms which are transcribed. Then, I need to extract the necessary fields: id (which might correspond to the gene name), seqid (chromosome), source (gene name), start and end positions for size, score if it's relevant, strand, attributes for biotype, and frame.
+
+Wait, but how do I get the number of exons? The features table doesn't directly store that. Oh right, maybe there are other tables like relations or meta that link transcripts to their exons. So perhaps after getting the transcript info, I need a second query to join with these relations to count exons.
+
+Also, for average exon size, I might need to calculate it by summing all exon lengths and dividing by the number of exons. But since this is in SQL, maybe there's a way to get that from the data stored.
+
+I should structure the first query to select the necessary fields from features where featuretype is 'transcript' and id matches each gene name. Then, for each of these transcripts, I'll need another query to count exons by looking at their relations table.
+
+But wait, how do I handle multiple genes in one query? Maybe it's better to loop through each gene individually or use a subquery that includes all the necessary fields and then process them outside the database. Alternatively, maybe using a join with a table that has exon information would help.
+
+I'm also concerned about performance since this might involve many joins and could be slow for large datasets. But given the user's request, it's probably manageable.
+
+So putting it all together: first query selects the transcript info, then another query counts exons by joining relations where child is the gene id. Then calculate size as end - start + 1 (since inclusive). Biotype can come from attributes, splitting on semicolons to get the relevant part.
+
+I think that's a plan. Now I'll write out the SQL queries step by step.
+</think>
+
+To retrieve and organize the requested information about each transcript isoform of the specified genes using an SQLite database with GFF/GTF data, follow these steps:
+
+### Step 1: Extract Basic Gene Information
+Use the `features` table to select the necessary fields for each gene.
+
+```sql
+SELECT 
+    id AS gene_id,
+    seqid AS chromosome,
+    source AS gene_name,
+    start,
+    end,
+    score,
+    strand,
+    attributes,
+    frame
+FROM 
+    features
+WHERE 
+    featuretype = 'transcript' AND
+    id IN (
+        'XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'COL1A2', 'HOTAIR', 'HOXC11', 'HOXC12'
+    );
+```
+
+### Step 2: Calculate Chromosomal Location and Position
+Compute the size of each chromosomal segment.
+
+```sql
+SELECT 
+    id AS gene_id,
+    chromosome,
+    start,
+    end,
+    (end - start + 1) AS size
+FROM 
+    features
+WHERE 
+    featuretype = 'transcript' AND
+    id IN (
+        'XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'COL1A2', 'HOTAIR', 'HOXC11', 'HOXC12'
+    );
+```
+
+### Step 3: Determine Number of Exons and Average Exon Size
+Join with the `relations` table to count exons.
+
+```sql
+SELECT 
+    id AS gene_id,
+    chromosome,
+    start,
+    end,
+    (end - start + 1) AS size,
+    COUNT(child) AS num_exons,
+    (SUM(score) / COUNT(num_exons)) AS avg_exon_size,
+    strand,
+    attributes || 'biotype: ' || biotype AS metadata
+FROM 
+    features
+JOIN (
+    SELECT 
+        child,
+        COUNT(*) AS num_exons,
+        SUM(score) AS total_length,
+        STRftime('%s', start, end) AS biotype
+    FROM 
+        relations
+    GROUP BY 
+        child
+) AS exon_info ON features.id = exon_info.child
+WHERE 
+    featuretype = 'transcript' AND
+    id IN (
+        'XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'COL1A2', 'HOTAIR', 'HOXC11', 'HOXC12'
+    );
+```
+
+### Step 4: Extract Biotype from Attributes
+Parse the `attributes` field to extract biotype information.
+
+```sql
+SELECT 
+    id AS gene_id,
+    chromosome,
+    start,
+    end,
+    (end - start + 1) AS size,
+    num_exons,
+    avg_exon_size,
+    STRftime('%s', biotype) AS biotype,
+    strand
+FROM (
+    SELECT 
+        id, chromosome, start, end, COUNT(*) AS num_exons, SUM(score) AS total_length,
+        STRftime('%s', biotype) AS biotype, attributes, frame
+    FROM features
+    WHERE featuretype = 'transcript' AND id IN ('XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'COL1A2', 'HOTAIR', 'HOXC11', 'HOXC12')
+        AND attributes LIKE '%biotype;_*'
+    GROUP BY id, chromosome
+) AS initial_selection
+LEFT JOIN (
+    SELECT 
+        child,
+        COUNT(*) AS num_exons,
+        SUM(score) AS total_length,
+        STRftime('%s', biotype) AS biotype
+    FROM relations
+    WHERE child IN (
+        'XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'COL1A2', 'HOTAIR', 'HOXC11', 'HOXC12'
+    )
+    GROUP BY child
+) AS exon_info ON initial_selection.id = exon_info.child;
+```
+
+### Explanation:
+- **Step 1** retrieves the gene ID, chromosome, start and end positions, strand, attributes (including biotype), and frame for each transcript isoform.
+- **Step 2** calculates the size of each chromosomal segment by subtracting the start position from the end position and adding one to account for inclusivity.
+- **Step 3** uses a subquery to count exons and calculate average exon size, joining with the `relations` table which contains exon information. The biotype is extracted directly from the attributes field.
+- **Step 4** ensures that only relevant attributes are considered (e.g., those containing 'biotype') before extracting and parsing them.
+
+### Final Output:
+A table summarizing the chromosomal location, size, number of exons, average exon size, strand, biotype, and other details for each transcript isoform of the specified genes.

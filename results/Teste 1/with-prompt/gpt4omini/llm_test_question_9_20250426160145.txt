@@ -1,0 +1,23 @@
+```python
+import gffutils
+import numpy as np
+
+# Connect to the existing database
+db = gffutils.FeatureDB('your_database.db')
+
+def average_exon_size(transcript_id):
+    exons = db.children(transcript_id, featuretype='exon')
+    exon_sizes = [exon.end - exon.start + 1 for exon in exons]
+    return np.mean(exon_sizes) if exon_sizes else 0
+
+# Fetch all transcript isoforms for BRCA1
+brca1_transcripts = db.features_of_type('transcript', filter={'gene_id': 'BRCA1'})
+
+# Calculate average exon size for each transcript isoform
+avg_exon_sizes = [average_exon_size(transcript.id) for transcript in brca1_transcripts]
+
+# Calculate overall average exon size across all isoforms
+overall_avg_exon_size = np.mean(avg_exon_sizes) if avg_exon_sizes else 0
+
+print(f'Average exon size of BRCA1 transcript isoforms: {overall_avg_exon_size}')
+```

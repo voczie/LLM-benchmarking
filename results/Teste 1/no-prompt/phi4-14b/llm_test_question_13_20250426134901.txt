@@ -1,0 +1,57 @@
+To determine the biotype of specific genes (XIST, MALAT1, BRCA1, NFKB1, NFKB2, REL, RELA, RELB, and COL1A2) from a genome annotation stored in a SQLite3 database with the given schema, you can follow these steps:
+
+### Step-by-Step Guide
+
+1. **Understand the Schema:**
+   - The `features` table contains genomic features such as genes.
+   - Each feature has attributes stored in a text field named `attributes`, which typically includes information like gene name and biotype.
+
+2. **Extract Gene Information:**
+   - You need to query the `features` table to find entries corresponding to the specified genes.
+   - The `attributes` column will contain key-value pairs, including the gene name (`gene_name`) and biotype (`biotype`).
+
+3. **Query Construction:**
+   - Use SQL to extract the relevant information from the `attributes` field.
+   - You can use SQLite's string functions to parse the `attributes` text.
+
+4. **SQL Query Example:**
+
+```sql
+SELECT 
+    id,
+    attributes,
+    SUBSTR(attributes, INSTR(attributes, 'gene_name=') + 10) AS gene_name,
+    SUBSTR(
+        attributes, 
+        INSTR(attributes, 'biotype="') + 9, 
+        INSTR(attributes, '"', INSTR(attributes, 'biotype="') + 9) - (INSTR(attributes, 'biotype="') + 9)
+    ) AS biotype
+FROM 
+    features
+WHERE 
+    SUBSTR(attributes, INSTR(attributes, 'gene_name=') + 10) IN ('XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB', 'COL1A2');
+```
+
+### Explanation:
+
+- **SELECT Clause:**
+  - `id`: The unique identifier for each feature.
+  - `attributes`: The full attributes string for inspection if needed.
+  - `gene_name`: Extracted using `SUBSTR` and `INSTR` to find the substring starting after `gene_name=` up to the next delimiter (usually a semicolon or space).
+  - `biotype`: Similarly extracted by finding the substring between `biotype="` and the closing `"`.
+  
+- **WHERE Clause:**
+  - Filters features where the gene name matches one of the specified genes.
+
+### Notes:
+
+- Ensure that the `attributes` field is formatted consistently. The query assumes a specific format for extracting values.
+- If the attributes are not in a consistent format, you might need to adjust the string parsing logic.
+- This query assumes that each feature has both `gene_name` and `biotype` specified in its attributes.
+
+### Running the Query:
+
+- Use an SQLite3 client or command-line tool to execute this query against your database.
+- Review the results to confirm the biotypes for each gene.
+
+This approach should help you retrieve the biotype information for the specified genes from your genome annotation database.

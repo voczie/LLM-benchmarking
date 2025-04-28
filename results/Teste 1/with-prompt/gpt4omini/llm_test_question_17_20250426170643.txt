@@ -1,0 +1,36 @@
+```python
+import gffutils
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Connect to the database
+db = gffutils.FeatureDB('your_database.db')
+
+def get_gene_sizes(chromosome):
+    gene_sizes = []
+    genes = db.features_of_type('gene', limit=None)
+    for gene in genes:
+        if gene.seqid == chromosome:
+            exons = db.children(gene, featuretype='exon')
+            unique_exons = set()
+            exon_lengths = []
+            for exon in exons:
+                if exon.id not in unique_exons:
+                    exon_length = exon.end - exon.start + 1
+                    exon_lengths.append(exon_length)
+                    unique_exons.add(exon.id)
+            gene_sizes.append(np.sum(exon_lengths))
+    return gene_sizes
+
+# Get gene sizes for chromosome X
+chromosome = 'X'
+gene_sizes = get_gene_sizes(chromosome)
+
+# Create scatterplot
+plt.scatter(range(len(gene_sizes)), gene_sizes, alpha=0.5)
+plt.xlabel('Gene Index')
+plt.ylabel('Gene Size (bp)')
+plt.title('Distribution of Gene Sizes on Chromosome X')
+plt.grid()
+plt.show()
+```

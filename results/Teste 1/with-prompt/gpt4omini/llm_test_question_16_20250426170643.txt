@@ -1,0 +1,48 @@
+```python
+import gffutils
+import pandas as pd
+
+# Connect to the existing database
+db = gffutils.FeatureDB('your_database.db')
+
+# List of genes to analyze
+genes_of_interest = ['XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'COL1A2', 'HOTAIR', 'HOXC11', 'HOXC12']
+
+# Prepare a list to store the results
+results = []
+
+for gene_name in genes_of_interest:
+    # Fetch the gene feature
+    gene = db.features_of_type('gene', filter={'gene_name': gene_name})
+    for g in gene:
+        # Get the transcripts associated with the gene
+        transcripts = db.children(g.id, featuretype='transcript')
+        
+        for transcript in transcripts:
+            # Get exons associated with the transcript
+            exons = list(db.children(transcript.id, featuretype='exon'))
+            num_exons = len(exons)
+            exon_sizes = [exon.end - exon.start + 1 for exon in exons]
+            avg_exon_size = sum(exon_sizes) / num_exons if num_exons > 0 else 0
+            
+            # Collect the required information
+            results.append({
+                'Gene': gene_name,
+                'Chromosomal Location': g.seqid,
+                'Position': f"{g.start}-{g.end}",
+                'Size': sum(exon_sizes),
+                'Number of Exons': num_exons,
+                'Average Exon Size': avg_exon_size,
+                'Strand': transcript.strand,
+                'Biotype': transcript.attributes.get('transcript_biotype', [''])[0]
+            })
+
+# Create a DataFrame from the results
+results_df = pd.DataFrame(results)
+
+# Save the results to a CSV file
+results_df.to_csv('transcript_info.csv', index=False)
+
+# Display the DataFrame
+print(results_df)
+```

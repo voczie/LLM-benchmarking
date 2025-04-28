@@ -1,0 +1,102 @@
+To retrieve the requested information about the transcript isoforms of the specified genes from the SQLite database, you can follow these steps:
+
+1. **Identify the relevant features**: You need to find the transcript features for the genes of interest (XIST, MALAT1, BRCA1, NFKB1, COL1A2, HOTAIR, HOXC11, and HOXC12). Typically, transcript features are labeled as "transcript" in the `featuretype` column.
+
+2. **Gather exon information**: For each transcript, you will also need to gather information about its exons, which are usually labeled as "exon" in the `featuretype` column.
+
+3. **Calculate required metrics**: For each transcript, you will need to calculate:
+   - Chromosomal location and position (seqid, start, end)
+   - Size (end - start + 1)
+   - Number of exons
+   - Average exon size
+   - Strand
+   - Biotype (which can be found in the `attributes` column)
+
+4. **Construct the SQL query**: You can use a SQL query to join the transcript and exon information, perform the necessary calculations, and filter for the specified genes.
+
+Here’s a SQL query that accomplishes this:
+
+```sql
+WITH transcript_info AS (
+    SELECT 
+        f.seqid,
+        f.start,
+        f.end,
+        f.strand,
+        f.attributes,
+        f.id AS transcript_id,
+        (f.end - f.start + 1) AS size
+    FROM 
+        features f
+    WHERE 
+        f.featuretype = 'transcript' 
+        AND f.attributes LIKE '%gene_name "XIST"%' OR
+        f.attributes LIKE '%gene_name "MALAT1"%' OR
+        f.attributes LIKE '%gene_name "BRCA1"%' OR
+        f.attributes LIKE '%gene_name "NFKB1"%' OR
+        f.attributes LIKE '%gene_name "COL1A2"%' OR
+        f.attributes LIKE '%gene_name "HOTAIR"%' OR
+        f.attributes LIKE '%gene_name "HOXC11"%' OR
+        f.attributes LIKE '%gene_name "HOXC12"%'
+),
+exon_info AS (
+    SELECT 
+        f.id AS transcript_id,
+        COUNT(*) AS num_exons,
+        SUM(f.end - f.start + 1) AS total_exon_size
+    FROM 
+        features f
+    WHERE 
+        f.featuretype = 'exon'
+    GROUP BY 
+        f.id
+)
+SELECT 
+    t.seqid,
+    t.start,
+    t.end,
+    t.size,
+    e.num_exons,
+    CASE 
+        WHEN e.num_exons > 0 THEN e.total_exon_size / e.num_exons 
+        ELSE 0 
+    END AS avg_exon_size,
+    t.strand,
+    t.attributes
+FROM 
+    transcript_info t
+LEFT JOIN 
+    exon_info e ON t.transcript_id = e.transcript_id;
+```
+
+### Explanation of the Query:
+- **Common Table Expressions (CTEs)**: 
+  - `transcript_info`: This CTE selects the relevant information for each transcript, including its chromosomal location, size, strand, and attributes.
+  - `exon_info`: This CTE counts the number of exons and calculates the total size of exons for each transcript.
+  
+- **Final SELECT**: The final query selects the required fields from the `transcript_info` and joins it with `exon_info` to get the number of exons and average exon size.
+
+### Saving the Results:
+To save the results into a new table, you can modify the final `SELECT` statement to create a new table:
+
+```sql
+CREATE TABLE transcript_summary AS
+SELECT 
+    t.seqid,
+    t.start,
+    t.end,
+    t.size,
+    e.num_exons,
+    CASE 
+        WHEN e.num_exons > 0 THEN e.total_exon_size / e.num_exons 
+        ELSE 0 
+    END AS avg_exon_size,
+    t.strand,
+    t.attributes
+FROM 
+    transcript_info t
+LEFT JOIN 
+    exon_info e ON t.transcript_id = e.transcript_id;
+```
+
+This will create a new table named `transcript_summary` containing all the requested information. Make sure to execute this query in your SQLite environment where the database is hosted.

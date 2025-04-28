@@ -1,5 +1,5 @@
 .venv
 .env
-results/
 evaluations/
-annotation.db
+databases/
+run_scripts_test.sh

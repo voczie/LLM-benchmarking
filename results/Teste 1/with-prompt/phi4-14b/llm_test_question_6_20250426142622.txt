@@ -1,0 +1,57 @@
+To determine how many transcript isoforms the `XIST` gene has, along with their names and sizes, you can use the following Python script. This script utilizes the `gffutils` library to interact with the SQLite database containing your genome annotation data.
+
+```python
+import gffutils
+
+# Connect to the SQLite database
+db = gffutils.FeatureDB('path_to_your_database.db')
+
+def get_transcript_isoforms(gene_name):
+    # Find the XIST gene by its name in the attributes
+    xist_gene = next((gene for gene in db.features_of_type('gene') 
+                      if 'gene_name' in gene.attributes and gene.attributes['gene_name'][0] == gene_name), None)
+    
+    if not xist_gene:
+        print(f"Gene {gene_name} not found.")
+        return
+
+    # Get all transcript isoforms associated with the XIST gene
+    transcripts = db.children(xist_gene, featuretype='transcript', order_by='start')
+
+    # Collect transcript names and sizes
+    transcript_info = []
+    for transcript in transcripts:
+        transcript_id = transcript.id
+        transcript_name = transcript.attributes.get('transcript_name', [''])[0]
+        
+        # Calculate the size of each transcript isoform
+        exons = db.children(transcript, featuretype='exon')
+        exon_lengths = [(exon.end - exon.start + 1) for exon in exons]
+        transcript_size = sum(exon_lengths)
+        
+        transcript_info.append((transcript_name, transcript_size))
+    
+    return transcript_info
+
+# Get the transcript isoforms for the XIST gene
+xist_transcripts = get_transcript_isoforms('XIST')
+
+if xist_transcripts:
+    print(f"Number of transcript isoforms: {len(xist_transcripts)}")
+    for name, size in xist_transcripts:
+        print(f"Transcript Name: {name}, Size: {size}")
+```
+
+### Explanation:
+
+1. **Database Connection**: The script connects to the SQLite database using `gffutils.FeatureDB`.
+
+2. **Gene Identification**: It searches for the `XIST` gene by iterating over all genes and matching the `gene_name` attribute.
+
+3. **Transcript Retrieval**: Once the `XIST` gene is found, it retrieves all associated transcript isoforms using `db.children()` with `featuretype='transcript'`.
+
+4. **Size Calculation**: For each transcript, it calculates the size by summing the lengths of its exons. The exon length is calculated as `(exon.end - exon.start + 1)` to account for inclusive indexing.
+
+5. **Output**: It prints the number of transcript isoforms and their names along with sizes.
+
+Make sure to replace `'path_to_your_database.db'` with the actual path to your SQLite database file.

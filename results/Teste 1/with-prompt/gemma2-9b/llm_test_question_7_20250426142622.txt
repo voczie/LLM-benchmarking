@@ -1,0 +1,37 @@
+```python
+import sqlite3
+
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your database file
+cursor = conn.cursor()
+
+# Query to find the number of exons for the XIST gene
+query = """
+SELECT COUNT(*) 
+FROM features
+WHERE seqid = 'X' AND featuretype = 'exon'
+  AND parent IN (SELECT id FROM features WHERE seqid = 'X' AND featuretype = 'gene' AND name = 'XIST');
+"""
+
+cursor.execute(query)
+result = cursor.fetchone()
+
+print(f"The XIST gene has {result[0]} exons.")
+
+conn.close()
+```
+
+**Walkthrough:**
+
+1. **Connect to the database:** Replace `'your_database.db'` with the actual name of your SQLite database file.
+2. **Execute the query:** The SQL query does the following:
+   - Selects the count of all rows (`COUNT(*)`).
+   - Filters for features on chromosome 'X'.
+   - Further filters for features of type 'exon'.
+   - Ensures that these exons are children (direct descendants) of a gene with the name 'XIST' on chromosome 'X'.
+
+3. **Fetch and print the result:** The `fetchone()` method retrieves the single result (a tuple containing the exon count). We then print this count in a user-friendly format.
+4. **Close the connection:** It's good practice to close the database connection when you're finished with it.
+
+
+
+Let me know if you have any other questions or need help with different genomic analysis tasks!

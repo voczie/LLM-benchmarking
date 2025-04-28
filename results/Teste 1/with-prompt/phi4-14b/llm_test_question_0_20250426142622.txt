@@ -1,0 +1,54 @@
+```python
+import sqlite3
+
+# Connect to the database
+conn = sqlite3.connect('genome_annotation.db')
+db = conn.cursor()
+
+# Query to count genes on chromosome 3
+gene_query = """
+SELECT COUNT(*) FROM features 
+WHERE featuretype='gene' AND seqid='3'
+"""
+
+# Execute the query and fetch the result for genes
+db.execute(gene_query)
+num_genes_chromosome_3 = db.fetchone()[0]
+
+# Query to count transcripts on chromosome 3
+transcript_query = """
+SELECT COUNT(DISTINCT child) FROM relations 
+JOIN features ON relations.child=features.id 
+WHERE featuretype='gene' AND seqid='3'
+"""
+
+# Execute the query and fetch the result for transcripts
+db.execute(transcript_query)
+num_transcripts_chromosome_3 = db.fetchone()[0]
+
+# Close the connection
+conn.close()
+
+# Output results
+print(f"Number of genes on chromosome 3: {num_genes_chromosome_3}")
+print(f"Number of transcripts on chromosome 3: {num_transcripts_chromosome_3}")
+```
+
+### Walkthrough:
+
+1. **Connect to Database**: Establish a connection to the SQLite database containing the genome annotation data.
+
+2. **Count Genes**:
+   - Use an SQL query to count all entries in the `features` table where the `featuretype` is 'gene' and the `seqid` (chromosome identifier) is '3'.
+   - Execute this query using the cursor object and fetch the result, which gives the total number of genes on chromosome 3.
+
+3. **Count Transcripts**:
+   - Use an SQL query to count distinct transcripts associated with genes on chromosome 3.
+   - This involves joining the `relations` table (which links parents and children features) with the `features` table to ensure that only those transcripts linked to genes are counted.
+   - Execute this query and fetch the result, which gives the total number of transcripts on chromosome 3.
+
+4. **Close Connection**: Close the database connection after fetching the required data.
+
+5. **Output Results**: Print the results showing the number of genes and transcripts on chromosome 3.
+
+This approach efficiently uses SQL queries to extract the necessary information directly from the database, leveraging its relational structure for accurate counting.

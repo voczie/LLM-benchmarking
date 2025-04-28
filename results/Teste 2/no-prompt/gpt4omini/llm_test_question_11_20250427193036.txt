@@ -1,0 +1,36 @@
+To find the chromosomes on which the genes NFKB1, NFKB2, REL, RELA, and RELB are located, you can execute a SQL query that retrieves the `seqid` (which represents the chromosome or scaffold) for the specified genes from the `features` table. 
+
+Here’s a step-by-step guide to construct and execute the query:
+
+1. **Identify the Feature Type**: First, ensure that you are looking for the correct feature type. Typically, genes are represented with a feature type of "gene" in GFF/GTF files.
+
+2. **Construct the SQL Query**: You will want to select the `seqid` for the genes of interest. The SQL query will look something like this:
+
+```sql
+SELECT DISTINCT seqid
+FROM features
+WHERE featuretype = 'gene'
+AND attributes LIKE '%NFKB1%'
+   OR attributes LIKE '%NFKB2%'
+   OR attributes LIKE '%REL%'
+   OR attributes LIKE '%RELA%'
+   OR attributes LIKE '%RELB%';
+```
+
+3. **Explanation of the Query**:
+   - `SELECT DISTINCT seqid`: This selects unique chromosome identifiers.
+   - `FROM features`: This specifies the table from which to retrieve the data.
+   - `WHERE featuretype = 'gene'`: This filters the results to only include rows where the feature type is 'gene'.
+   - `AND attributes LIKE '%<gene_name>%'`: This checks if the `attributes` column contains the gene names you are interested in. The `%` wildcard allows for matching any characters before or after the gene name.
+
+4. **Execute the Query**: Run the above SQL query in your SQLite database environment.
+
+5. **Review the Results**: The output will provide you with a list of chromosomes (seqid) where the specified genes are located.
+
+### Example Execution
+
+If you are using a command-line interface or a database management tool, you would enter the SQL query directly into the interface and execute it. The results will show you the chromosomes associated with the genes NFKB1, NFKB2, REL, RELA, and RELB.
+
+### Note
+- Ensure that the gene names in the `attributes` column are formatted correctly (case-sensitive) as they appear in your database.
+- If the genes are represented differently in the `attributes` field (e.g., with additional information or different naming conventions), you may need to adjust the `LIKE` conditions accordingly.

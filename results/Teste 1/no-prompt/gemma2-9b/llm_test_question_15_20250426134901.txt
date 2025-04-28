@@ -1,0 +1,42 @@
+Here's how you can find genes located between HOXC11 and HOXC12 on both positive (+) and negative (-) strands using SQL queries against your GFF/GTF database:
+
+**Understanding the Problem**
+
+We need to identify features (likely genes) that fall within a specific genomic region defined by HOXC11 and HOXC12.  The key is to consider both strands (+ and -) since gene orientation can vary.
+
+**SQL Queries**
+
+```sql
+-- Find genes between HOXC11 and HOXC12 on the + strand
+SELECT * 
+FROM features
+WHERE seqid = 'your_genome_sequence_id' -- Replace with your actual genome ID
+  AND featuretype = 'gene' -- Adjust if you have a different feature type for genes
+  AND start BETWEEN (SELECT end FROM features WHERE id = 'HOXC11') AND (SELECT end FROM features WHERE id = 'HOXC12')
+  AND strand = '+'
+
+-- Find genes between HOXC11 and HOXC12 on the - strand
+SELECT * 
+FROM features
+WHERE seqid = 'your_genome_sequence_id' -- Replace with your actual genome ID
+  AND featuretype = 'gene' -- Adjust if you have a different feature type for genes
+  AND end BETWEEN (SELECT start FROM features WHERE id = 'HOXC11') AND (SELECT start FROM features WHERE id = 'HOXC12')
+  AND strand = '-';
+
+```
+
+**Explanation:**
+
+* **`seqid`**: Replace `'your_genome_sequence_id'` with the actual ID of your genome sequence in the database.
+* **`featuretype`**: Adjust `'gene'` if your database uses a different term for genes (e.g., 'CDS', 'transcript').
+* **`start` and `end`**: We use subqueries to find the exact start and end positions of HOXC11 and HOXC12 in the `features` table. Then, we compare the `start` and `end` values of other features within these ranges.
+* **`strand`**:  We filter for either `'+'` (positive strand) or `'-'` (negative strand) to get the desired orientation.
+
+**Important Notes:**
+
+* **Database Structure**: Make sure your database schema matches the one you provided. Adjust table and column names accordingly if necessary.
+* **Genome ID**: Replace `'your_genome_sequence_id'` with the correct ID for your genome in the database.
+
+
+
+Let me know if you have any other questions or need further assistance!

@@ -1,0 +1,50 @@
+To answer the question about how many exons each transcript isoform of the BRCA1 gene has, we can use the `gffutils` library to interact with the SQLite database containing the genomic annotations. Below is a Python script that performs the required analysis:
+
+```python
+import gffutils
+
+# Connect to the existing GFF/GTF database
+db = gffutils.FeatureDB('your_database.db', keep_order=True)
+
+# Define the gene of interest
+gene_name = 'BRCA1'
+
+# Fetch the gene feature for BRCA1
+gene = db.features_of_type('gene', filter={'gene_id': gene_name})
+
+# Initialize a dictionary to store transcript isoforms and their exon counts
+transcript_exon_counts = {}
+
+# Iterate through the gene features
+for g in gene:
+    # Fetch all transcript features associated with the gene
+    transcripts = db.children(g.id, featuretype='transcript', order_by='start')
+    
+    for transcript in transcripts:
+        # Count the number of exons for each transcript
+        exons = list(db.children(transcript.id, featuretype='exon'))
+        exon_count = len(exons)
+        
+        # Store the transcript name and its exon count
+        transcript_exon_counts[transcript.attributes['transcript_id'][0]] = exon_count
+
+# Print the results
+print("Transcript Isoform Name | Number of Exons")
+for transcript_id, exon_count in transcript_exon_counts.items():
+    print(f"{transcript_id} | {exon_count}")
+```
+
+### Explanation of the Code:
+1. **Database Connection**: The script connects to the SQLite database using `gffutils.FeatureDB()`. Make sure to replace `'your_database.db'` with the actual path to your database file.
+
+2. **Gene Retrieval**: It retrieves the gene feature for BRCA1 using `db.features_of_type()` with a filter for the `gene_id`.
+
+3. **Transcript and Exon Counting**: For each transcript associated with the BRCA1 gene, it counts the number of exons by fetching all exon features that are children of the transcript.
+
+4. **Storing Results**: The results are stored in a dictionary where the keys are transcript IDs and the values are the corresponding exon counts.
+
+5. **Output**: Finally, it prints the transcript isoform names along with their respective number of exons in a formatted table.
+
+### Note:
+- Ensure that the `gene_id` used in the filter matches the attribute name in your GFF/GTF file. If the attribute name is different (e.g., `gene_name`), adjust the filter accordingly.
+- If you need to run this code, make sure you have the `gffutils` library installed and your database properly set up.

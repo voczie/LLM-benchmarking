@@ -1,0 +1,66 @@
+```python
+import sqlite3
+import numpy as np
+
+# Connect to the SQLite database
+conn = sqlite3.connect('genome_annotation.db')
+db = conn.cursor()
+
+def avg_exon_size_of_transcript(transcript_id):
+    # Query to get all exons related to the specified transcript
+    db.execute("""
+        SELECT e.start, e.end 
+        FROM features AS e
+        JOIN relations AS r ON e.id = r.child
+        WHERE r.parent = ? AND e.featuretype = 'exon'
+    """, (transcript_id,))
+    
+    # Fetch all exon start and end positions
+    exons = db.fetchall()
+    
+    # Calculate exon lengths
+    exon_lengths = [end - start + 1 for start, end in exons]
+    
+    # Return the average exon length if there are any exons
+    return np.mean(exon_lengths) if exon_lengths else 0
+
+# Get all transcript isoforms of BRCA1 gene
+db.execute("""
+    SELECT id 
+    FROM features 
+    WHERE featuretype = 'transcript' AND attributes LIKE '%gene_id "BRCA1";%'
+""")
+brca1_transcripts = [row[0] for row in db.fetchall()]
+
+# Calculate average exon size for each transcript isoform of BRCA1
+avg_exon_sizes = [avg_exon_size_of_transcript(transcript) for transcript in brca1_transcripts]
+
+# Calculate the overall average exon size across all BRCA1 transcripts
+overall_avg_exon_size = np.mean(avg_exon_sizes)
+
+print(f"Average exon size of BRCA1 transcript isoforms: {overall_avg_exon_size}")
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation:
+
+1. **Database Connection**: Connect to the SQLite database containing genome annotation data.
+
+2. **Function `avg_exon_size_of_transcript`**:
+   - This function calculates the average exon size for a given transcript.
+   - It queries all exons related to the specified transcript using SQL joins between the `features` and `relations` tables.
+   - Exon lengths are calculated by subtracting the start position from the end position (inclusive).
+   - The average of these lengths is computed.
+
+3. **Retrieve BRCA1 Transcripts**:
+   - A query retrieves all transcript isoforms associated with the BRCA1 gene using a LIKE condition on the `attributes` field to match the gene ID.
+
+4. **Calculate Average Exon Sizes**:
+   - For each BRCA1 transcript, calculate its average exon size.
+   - Compute the overall average exon size across all transcripts.
+
+5. **Output**: Print the calculated average exon size for BRCA1 transcript isoforms.
+
+6. **Close Connection**: Ensure the database connection is closed after operations are complete.

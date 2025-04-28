@@ -1,0 +1,117 @@
+To find which genes are located between the `HOXC11` and `HOXC12` genes on both the positive (+) and negative (-) strands, you can follow these steps using SQL queries. Here's a walkthrough:
+
+### Step 1: Identify the Positions of HOXC11 and HOXC12
+
+First, we need to determine the start and end positions for `HOXC11` and `HOXC12`. Assuming that the gene names are stored in the `attributes` column in a format like `gene_name="HOXC11"`, you can extract these positions.
+
+```sql
+-- Find the positions of HOXC11
+SELECT id, seqid, start, end, strand
+FROM features
+WHERE attributes LIKE '%gene_name="HOXC11"%';
+
+-- Find the positions of HOXC12
+SELECT id, seqid, start, end, strand
+FROM features
+WHERE attributes LIKE '%gene_name="HOXC12"%';
+```
+
+### Step 2: Determine the Range for Each Strand
+
+For each strand (+ and -), determine which gene is upstream (lower position) and which is downstream (higher position).
+
+#### Positive Strand (+)
+
+- **Upstream Gene**: The gene with the lower end position.
+- **Downstream Gene**: The gene with the higher start position.
+
+```sql
+-- Determine positions for positive strand
+SELECT 
+    (SELECT end FROM features WHERE attributes LIKE '%gene_name="HOXC11"%') AS HOXC11_end,
+    (SELECT start FROM features WHERE attributes LIKE '%gene_name="HOXC12"%') AS HOXC12_start
+FROM features
+WHERE id IN (
+    SELECT id FROM features WHERE attributes LIKE '%gene_name="HOXC11"%'
+    INTERSECT
+    SELECT id FROM features WHERE attributes LIKE '%gene_name="HOXC12"%'
+) AND strand = '+';
+```
+
+#### Negative Strand (-)
+
+- **Upstream Gene**: The gene with the higher start position.
+- **Downstream Gene**: The gene with the lower end position.
+
+```sql
+-- Determine positions for negative strand
+SELECT 
+    (SELECT start FROM features WHERE attributes LIKE '%gene_name="HOXC11"%') AS HOXC11_start,
+    (SELECT end FROM features WHERE attributes LIKE '%gene_name="HOXC12"%') AS HOXC12_end
+FROM features
+WHERE id IN (
+    SELECT id FROM features WHERE attributes LIKE '%gene_name="HOXC11"%'
+    INTERSECT
+    SELECT id FROM features WHERE attributes LIKE '%gene_name="HOXC12"%'
+) AND strand = '-';
+```
+
+### Step 3: Query for Genes Between HOXC11 and HOXC12
+
+Now, use the determined positions to find genes located between `HOXC11` and `HOXC12`.
+
+#### Positive Strand (+)
+
+```sql
+-- Find genes between HOXC11 and HOXC12 on positive strand
+SELECT id, seqid, featuretype, start, end, strand
+FROM features
+WHERE strand = '+'
+AND (
+    (start > (SELECT end FROM features WHERE attributes LIKE '%gene_name="HOXC11"%') AND 
+     end < (SELECT start FROM features WHERE attributes LIKE '%gene_name="HOXC12"%'))
+);
+```
+
+#### Negative Strand (-)
+
+```sql
+-- Find genes between HOXC11 and HOXC12 on negative strand
+SELECT id, seqid, featuretype, start, end, strand
+FROM features
+WHERE strand = '-'
+AND (
+    (start > (SELECT start FROM features WHERE attributes LIKE '%gene_name="HOXC11"%') AND 
+     end < (SELECT end FROM features WHERE attributes LIKE '%gene_name="HOXC12"%'))
+);
+```
+
+### Step 4: Extract Gene Names
+
+Finally, extract the gene names from the `attributes` column for the genes found in the previous step.
+
+```sql
+-- Extract gene names for positive strand
+SELECT id, seqid, featuretype, start, end, strand,
+       SUBSTR(attributes, INSTR(attributes, 'gene_name="') + 10) AS gene_name
+FROM features
+WHERE strand = '+'
+AND (
+    (start > (SELECT end FROM features WHERE attributes LIKE '%gene_name="HOXC11"%') AND 
+     end < (SELECT start FROM features WHERE attributes LIKE '%gene_name="HOXC12"%'))
+)
+AND featuretype = 'gene';
+
+-- Extract gene names for negative strand
+SELECT id, seqid, featuretype, start, end, strand,
+       SUBSTR(attributes, INSTR(attributes, 'gene_name="') + 10) AS gene_name
+FROM features
+WHERE strand = '-'
+AND (
+    (start > (SELECT start FROM features WHERE attributes LIKE '%gene_name="HOXC11"%') AND 
+     end < (SELECT end FROM features WHERE attributes LIKE '%gene_name="HOXC12"%'))
+)
+AND featuretype = 'gene';
+```
+
+These queries will help you identify the genes located between `HOXC11` and `HOXC12` on both strands. Adjust the substring extraction logic if your attribute format differs.

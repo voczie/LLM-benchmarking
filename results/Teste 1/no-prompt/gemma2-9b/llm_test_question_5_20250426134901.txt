@@ -1,0 +1,37 @@
+```sql
+SELECT 
+    featuretype,
+    end - start + 1 AS gene_size
+FROM features
+WHERE featuretype = 'gene'
+  AND (
+    -- Check for each gene individually
+    (seqid = 'XIST') OR 
+    (seqid = 'MALAT1') OR 
+    (seqid = 'BRCA1') OR 
+    (seqid = 'COL1A2') OR 
+    (seqid = 'NFKB1') OR 
+    (seqid = 'NFKB2') OR 
+    (seqid = 'REL') OR 
+    (seqid = 'RELA') OR 
+    (seqid = 'RELB')
+  )
+ORDER BY featuretype;
+```
+
+**Explanation:**
+
+1. **`SELECT featuretype, end - start + 1 AS gene_size`**: This selects the `featuretype` (which should be 'gene' for our target features) and calculates the size of each feature as `end - start + 1`.
+2. **`FROM features`**:  Specifies that we are querying the `features` table.
+3. **`WHERE featuretype = 'gene'`**: Filters the results to include only rows where the `featuretype` is 'gene'.
+4. **`AND ( ... )`**: This clause uses OR conditions to check for each gene individually:
+   - Replace `'XIST'`, `'MALAT1'`, etc., with the actual sequence IDs of your genes in the database.
+
+**Important Notes:**
+
+* **Sequence IDs:** Make sure the `seqid` values in your query match the actual sequence IDs used in your database for each gene.
+* **Database Structure:** This query assumes that your `features` table has columns named `start`, `end`, and `featuretype`. Adjust column names if they are different in your schema.
+
+
+
+Let me know if you have any other questions or need further assistance!

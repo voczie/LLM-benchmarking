@@ -1,0 +1,74 @@
+To find the biotype of specific genes using a GFF/GTF database stored in SQLite3 format, you can follow these steps:
+
+### Step-by-Step Guide
+
+1. **Connect to the Database:**
+   First, establish a connection to your SQLite3 database.
+
+2. **Query for Gene Information:**
+   Use SQL queries to extract gene information based on their IDs or names from the `features` table.
+
+3. **Extract Biotype Attribute:**
+   The biotype is stored in the `attributes` column as part of a semicolon-separated list. You'll need to parse this string to find the biotype for each gene.
+
+### SQL Query
+
+Here's how you can construct and execute the query:
+
+```python
+import sqlite3
+
+# Connect to your SQLite database
+conn = sqlite3.connect('your_database_file.db')
+cursor = conn.cursor()
+
+# List of genes to search for
+genes_of_interest = ['XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'NFKB2', 'RELA', 'RELB', 'COL1A2']
+
+# Prepare the SQL query
+query = """
+SELECT id, attributes 
+FROM features 
+WHERE featuretype='gene' AND id IN ({})
+""".format(','.join('?' * len(genes_of_interest)))
+
+# Execute the query with the list of genes
+cursor.execute(query, genes_of_interest)
+
+# Fetch all results
+results = cursor.fetchall()
+
+# Parse and print biotype for each gene
+for gene_id, attributes in results:
+    # Split the attributes string into key-value pairs
+    attr_pairs = [attr.strip() for attr in attributes.split(';') if attr]
+    
+    # Create a dictionary from attribute pairs
+    attr_dict = {key: value.strip('"') for pair in attr_pairs for key, value in [pair.split(' ', 1)]}
+    
+    # Extract the biotype
+    biotype = attr_dict.get('gene_biotype', 'Unknown')
+    
+    print(f"Gene ID: {gene_id}, Biotype: {biotype}")
+
+# Close the connection
+conn.close()
+```
+
+### Explanation
+
+- **Connection:** Establish a connection to your SQLite database using `sqlite3.connect()`.
+  
+- **Query Construction:** Use parameterized queries (`?`) to safely insert gene IDs into the SQL query. This prevents SQL injection.
+
+- **Attribute Parsing:** The `attributes` column contains key-value pairs separated by semicolons. Split these pairs and create a dictionary for easy access to specific attributes like `gene_biotype`.
+
+- **Result Handling:** Iterate over the results, parse the biotype from each gene's attributes, and print them.
+
+### Notes
+
+- Ensure your database file path is correct when connecting.
+- The query assumes that gene IDs are unique in the `features` table. If they are not, you might need to adjust the query or parsing logic accordingly.
+- This script will output the biotype for each specified gene if it exists in the database.
+
+This approach should help you efficiently retrieve and display the biotypes of the genes listed.

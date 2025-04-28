@@ -1,0 +1,34 @@
+```python
+import gffutils
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Connect to the existing gffutils database
+db = gffutils.FeatureDB('your_database.db')
+
+# Function to calculate transcript sizes based on exon lengths
+def get_transcript_sizes(transcript_type):
+    transcript_sizes = []
+    transcripts = db.features_of_type('transcript')
+    for transcript in transcripts:
+        if transcript.attributes.get('transcript_biotype', [])[0] == transcript_type:
+            exons = db.children(transcript, featuretype='exon')
+            exon_lengths = [exon.end - exon.start + 1 for exon in exons]
+            transcript_sizes.append(np.sum(exon_lengths))
+    return transcript_sizes
+
+# Get sizes for each transcript type
+protein_coding_sizes = get_transcript_sizes('protein_coding')
+lncRNA_sizes = get_transcript_sizes('lncRNA')
+miRNA_sizes = get_transcript_sizes('miRNA')
+
+# Prepare data for boxplot
+data = [protein_coding_sizes, lncRNA_sizes, miRNA_sizes]
+labels = ['Protein Coding', 'lncRNA', 'miRNA']
+
+# Create boxplot
+plt.boxplot(data, labels=labels)
+plt.ylabel('Transcript Size (bp)')
+plt.title('Comparison of Transcript Sizes for Different Biotypes')
+plt.show()
+```

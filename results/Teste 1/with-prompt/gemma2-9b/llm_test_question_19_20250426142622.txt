@@ -1,0 +1,58 @@
+```python
+import sqlite3
+import matplotlib.pyplot as plt
+
+# Connect to your SQLite database
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your actual database file
+cursor = conn.cursor()
+
+# Query to fetch transcript sizes based on feature type
+cursor.execute("""
+    SELECT 
+        featuretype,
+        SUM(end - start + 1) AS transcript_size
+    FROM features
+    WHERE featuretype IN ('protein_coding', 'lncRNA', 'miRNA')
+    GROUP BY featuretype
+""")
+
+# Fetch the results
+transcript_sizes = cursor.fetchall()
+
+# Extract data for plotting
+feature_types = [row[0] for row in transcript_sizes]
+sizes = [row[1] for row in transcript_sizes]
+
+# Create the boxplot
+plt.figure(figsize=(8, 6))  # Adjust figure size as needed
+plt.boxplot([sizes], labels=feature_types)
+plt.title('Comparison of Transcript Sizes by Feature Type')
+plt.xlabel('Feature Type')
+plt.ylabel('Transcript Size (bp)')
+plt.show()
+
+# Close the database connection
+conn.close()
+```
+
+**Explanation:**
+
+1. **Database Connection:** Establish a connection to your SQLite database using `sqlite3.connect()`. Replace 'your_database.db' with the actual filename of your database.
+
+2. **SQL Query:** Construct an SQL query to retrieve transcript sizes grouped by feature type (`protein_coding`, `lncRNA`, `miRNA`). The query selects the `featuretype` and calculates the sum of `end - start + 1` (representing transcript length) for each group.
+
+3. **Data Fetching:** Execute the query using `cursor.execute()` and fetch the results into a list of tuples using `cursor.fetchall()`.
+
+4. **Data Extraction:** Extract the feature types and corresponding transcript sizes from the fetched data.
+
+5. **Boxplot Creation:** Use `matplotlib.pyplot` to create a boxplot:
+   - Set figure size using `plt.figure(figsize=(8, 6))`.
+   - Create the boxplot with `plt.boxplot([sizes], labels=feature_types)`.
+   - Add title and axis labels for clarity.
+
+6. **Display Plot:** Show the plot using `plt.show()`.
+
+7. **Database Closure:** Close the database connection using `conn.close()` to release resources.
+
+
+

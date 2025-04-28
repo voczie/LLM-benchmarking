@@ -1,0 +1,60 @@
+To generate a scatterplot representing the distribution of gene sizes on the X chromosome, we need to follow these steps:
+
+1. Retrieve all genes located on the X chromosome from the database.
+2. Calculate the size (length) of each gene.
+3. Collect the lengths in a list.
+4. Use matplotlib to create a scatter plot.
+
+Here's how you can achieve this step-by-step using Python and the `sqlite3` library:
+
+```python
+import sqlite3
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Connect to the database
+conn = sqlite3.connect('genome_annotation.db')
+db = conn.cursor()
+
+def get_gene_lengths(chromosome):
+    # Query all genes on the specified chromosome
+    db.execute("SELECT id, start, end FROM features WHERE seqid=? AND featuretype='gene'", (chromosome,))
+    
+    gene_lengths = []
+    for row in db.fetchall():
+        gene_id, start, end = row
+        length = end - start + 1  # Calculate the length of the gene
+        gene_lengths.append(length)
+        
+    return gene_lengths
+
+# Get gene lengths on chromosome X
+gene_lengths_x = get_gene_lengths('X')
+
+# Create a scatter plot to visualize the distribution of gene sizes
+plt.figure(figsize=(10, 6))
+plt.scatter(range(len(gene_lengths_x)), gene_lengths_x, alpha=0.5)
+plt.title("Distribution of Gene Sizes on Chromosome X")
+plt.xlabel("Gene Index")
+plt.ylabel("Gene Length (bp)")
+plt.grid(True)
+
+# Show the plot
+plt.show()
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation:
+
+1. **Database Connection**: Establish a connection to your SQLite database.
+2. **Query Genes on Chromosome X**:
+   - Use an SQL query to fetch all genes located on chromosome 'X'.
+3. **Calculate Gene Lengths**:
+   - For each gene, calculate the length by subtracting the start position from the end position and adding 1 (since both positions are inclusive).
+4. **Scatter Plot**:
+   - Create a scatter plot using `matplotlib` to visualize the distribution of gene sizes.
+   - The x-axis represents the index of genes in the list, while the y-axis shows the length of each gene.
+
+This script will generate a scatterplot that visualizes how gene lengths are distributed across chromosome X. Adjustments can be made based on specific requirements or additional analysis needs.

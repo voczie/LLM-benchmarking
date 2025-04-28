@@ -1,0 +1,107 @@
+To answer your question, we need to extract detailed information about each transcript isoform for the specified genes (XIST, MALAT1, BRCA1, NFKB1, COL1A2, HOTAIR, HOXC11, and HOXC12) from the genome annotation database. We will gather the chromosomal location, position, size, number of exons, average exon size, strand, and biotype for each transcript.
+
+Here's a step-by-step guide to achieve this:
+
+### Step 1: Define Helper Functions
+First, we need helper functions to parse attributes and calculate sizes.
+
+```python
+import sqlite3
+
+def get_attributes(feature):
+    return dict(item.split('=', 1) for item in feature.attributes.strip().split(';'))
+
+def get_exons(transcript_id, db):
+    exons = list(db.children(id=transcript_id, featuretype='exon'))
+    exon_lengths = [exon.end - exon.start + 1 for exon in exons]
+    return exons, exon_lengths
+
+def calculate_average_exon_size(exon_lengths):
+    if not exon_lengths:
+        return 0
+    return sum(exon_lengths) / len(exon_lengths)
+```
+
+### Step 2: Connect to the Database and Fetch Gene Information
+Connect to the SQLite database and fetch gene information for the specified genes.
+
+```python
+db = sqlite3.connect('genome_annotation.db')
+cursor = db.cursor()
+
+genes_of_interest = ['XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'COL1A2', 'HOTAIR', 'HOXC11', 'HOXC12']
+gene_info = {}
+
+for gene in genes_of_interest:
+    cursor.execute("SELECT * FROM features WHERE featuretype='gene' AND attributes LIKE ?", ('%' + gene + '%',))
+    gene_features = cursor.fetchall()
+    
+    for gene_feature in gene_features:
+        gene_attributes = get_attributes(gene_feature)
+        gene_id = gene_attributes.get('ID')
+        
+        if not gene_id:
+            continue
+        
+        transcript_ids = set()
+        cursor.execute("SELECT child FROM relations WHERE parent=?", (gene_id,))
+        transcripts = cursor.fetchall()
+        
+        for transcript in transcripts:
+            transcript_id = transcript[0]
+            
+            exons, exon_lengths = get_exons(transcript_id, db)
+            average_exon_size = calculate_average_exon_size(exon_lengths)
+            
+            transcript_attributes = get_attributes(db.execute("SELECT * FROM features WHERE id=?", (transcript_id,)).fetchone())
+            biotype = transcript_attributes.get('biotype', 'unknown')
+            
+            gene_info.setdefault(gene, []).append({
+                'chromosome': gene_feature.seqid,
+                'start': gene_feature.start,
+                'end': gene_feature.end,
+                'strand': gene_feature.strand,
+                'transcript_id': transcript_id,
+                'size': sum(exon_lengths),
+                'num_exons': len(exons),
+                'average_exon_size': average_exon_size,
+                'biotype': biotype
+            })
+```
+
+### Step 3: Organize and Save the Information in a Table
+
+Now, we will organize the information into a table format and save it to a CSV file.
+
+```python
+import pandas as pd
+
+# Create DataFrame for each gene
+gene_dataframes = {}
+for gene, transcripts in gene_info.items():
+    df = pd.DataFrame(transcripts)
+    gene_dataframes[gene] = df
+
+# Save each DataFrame to a separate CSV file
+for gene, df in gene_dataframes.items():
+    df.to_csv(f'{gene}_transcript_info.csv', index=False)
+
+print("Transcript information saved successfully.")
+```
+
+### Explanation:
+1. **Helper Functions**:
+   - `get_attributes`: Parses the attributes string into a dictionary.
+   - `get_exons`: Retrieves exons for a given transcript and calculates their lengths.
+   - `calculate_average_exon_size`: Calculates the average exon size.
+
+2. **Database Connection**:
+   - Connects to the SQLite database and fetches gene information using SQL queries.
+   
+3. **Data Collection**:
+   - Iterates over each gene of interest, retrieves its transcripts, and collects detailed transcript information including chromosomal location, position, size, number of exons, average exon size, strand, and biotype.
+
+4. **Saving Data**:
+   - Organizes the collected data into Pandas DataFrames and saves them to CSV files for each gene.
+
+This approach ensures that you have a comprehensive table with all required information for each transcript isoform of the specified genes.

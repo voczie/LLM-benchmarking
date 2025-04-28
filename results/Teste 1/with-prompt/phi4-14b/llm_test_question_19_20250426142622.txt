@@ -1,0 +1,68 @@
+```python
+import sqlite3
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Connect to the SQLite database
+conn = sqlite3.connect('genome_annotation.db')
+db = conn.cursor()
+
+def get_transcript_sizes(transcript_type):
+    # Query to fetch transcripts of a specific type and their sizes
+    query = f"""
+    SELECT t.start, t.end 
+    FROM features AS t
+    JOIN relations AS r ON t.id = r.child
+    WHERE r.parent IN (
+        SELECT id FROM features WHERE featuretype='gene' AND gene_biotype='{transcript_type}'
+    ) AND t.featuretype='transcript'
+    """
+    
+    db.execute(query)
+    transcripts = db.fetchall()
+    
+    # Calculate sizes of the transcripts
+    transcript_sizes = [end - start + 1 for start, end in transcripts]
+    return transcript_sizes
+
+# Get transcript sizes for different types
+protein_coding_sizes = get_transcript_sizes('protein_coding')
+lncRNA_sizes = get_transcript_sizes('lincRNA')  # Assuming 'lincRNA' is used for lncRNAs
+miRNA_sizes = get_transcript_sizes('microRNA')
+
+# Plotting the boxplot
+plt.figure(figsize=(10, 6))
+data_to_plot = [protein_coding_sizes, lncRNA_sizes, miRNA_sizes]
+labels = ['Protein-coding', 'lncRNA', 'miRNA']
+
+plt.boxplot(data_to_plot, labels=labels)
+plt.ylabel('Transcript Size')
+plt.title('Comparison of Transcript Sizes: Protein-coding vs. lncRNA vs. miRNA')
+plt.grid(True)
+plt.show()
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation:
+
+1. **Database Connection**: Connect to the SQLite database containing genome annotation data.
+
+2. **Function `get_transcript_sizes`**:
+   - This function takes a transcript type (e.g., 'protein_coding', 'lincRNA', 'microRNA') as input.
+   - It constructs an SQL query to fetch transcripts associated with genes of that type.
+   - The query joins the `features` table with the `relations` table to find transcripts related to specific gene types.
+   - It calculates transcript sizes by subtracting the start position from the end position and adding 1 (to account for inclusive indexing).
+
+3. **Fetching Transcript Sizes**:
+   - Call `get_transcript_sizes` for 'protein_coding', 'lincRNA' (assuming this is used for lncRNAs), and 'microRNA'.
+   - Store the sizes in separate lists.
+
+4. **Plotting**:
+   - Use Matplotlib to create a boxplot comparing the transcript sizes of protein-coding, lncRNA, and miRNA.
+   - Set appropriate labels and title for clarity.
+
+5. **Close Connection**: Ensure the database connection is closed after operations are complete.
+
+This script will generate a boxplot that visually compares the distribution of transcript sizes across the specified categories. Adjust the transcript type names if your schema uses different identifiers.

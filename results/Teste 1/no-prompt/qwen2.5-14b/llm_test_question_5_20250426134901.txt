@@ -1,0 +1,66 @@
+To calculate the sizes of each gene locus for specific genes (XIST, MALAT1, BRCA1, COL1A2, NFKB1, NFKB2, REL, RELA, and RELB) from a GFF/GTF formatted genome annotation stored in an SQLite3 database with the provided schema, you can follow these steps:
+
+### Step 1: Identify Gene IDs
+First, we need to identify the gene IDs for each of the genes listed. This involves querying the `features` table where the feature type is "gene" and the attributes column contains the gene name.
+
+The attributes column in GFF/GTF files typically includes information about the gene ID and other annotations. The format can vary but usually looks something like this:
+```
+attributes="ID=ENSG00000148523;Name=XIST"
+```
+
+We will extract the `ID` from the attributes column to get the unique identifier for each gene.
+
+### Step 2: Calculate Gene Locus Sizes
+Once we have the gene IDs, we can calculate the size of each gene locus. The size is simply the difference between the end and start positions in the features table.
+
+Here's a SQL query that accomplishes this:
+
+```sql
+WITH gene_ids AS (
+    SELECT 
+        id,
+        seqid,
+        source,
+        featuretype,
+        start,
+        end,
+        strand,
+        attributes,
+        extra
+    FROM 
+        features
+    WHERE 
+        featuretype = 'gene' AND
+        attributes LIKE '%Name=XIST%' OR
+        attributes LIKE '%Name=MALAT1%' OR
+        attributes LIKE '%Name=BRCA1%' OR
+        attributes LIKE '%Name=COL1A2%' OR
+        attributes LIKE '%Name=NFKB1%' OR
+        attributes LIKE '%Name=NFKB2%' OR
+        attributes LIKE '%Name=REL%' OR
+        attributes LIKE '%Name=RELA%' OR
+        attributes LIKE '%Name=RELB%'
+)
+SELECT 
+    id AS gene_id,
+    seqid,
+    source,
+    featuretype,
+    start,
+    end,
+    strand,
+    (end - start + 1) AS locus_size,
+    attributes,
+    extra
+FROM 
+    gene_ids;
+```
+
+### Explanation:
+- **gene_ids CTE**: This Common Table Expression (CTE) filters the `features` table to only include rows where the feature type is 'gene' and the name matches one of the specified genes.
+- **Main Query**: The main query selects relevant columns from the filtered results, calculates the locus size as `(end - start + 1)` (since both ends are inclusive), and returns this information.
+
+### Step 3: Execute the Query
+You can run the above SQL query in your SQLite database to get the sizes of each gene locus for the specified genes. Make sure you have the necessary permissions and that the data is correctly formatted as expected by the query.
+
+If you need more detailed analysis or additional filtering, feel free to modify the query accordingly!

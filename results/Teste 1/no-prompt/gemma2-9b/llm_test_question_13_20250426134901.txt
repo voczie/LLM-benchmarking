@@ -1,0 +1,24 @@
+```sql
+SELECT attributes 
+FROM features
+WHERE featuretype = 'gene'
+  AND id IN ('XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB', 'COL1A2');
+```
+
+**Walkthrough:**
+
+1. **`SELECT attributes`**: This part of the query specifies that we want to retrieve the `attributes` column from the `features` table. The `attributes` column often contains information about the gene, including its biotype.
+
+2. **`FROM features`**: This indicates that we are querying the `features` table, which stores genomic feature annotations.
+
+3. **`WHERE featuretype = 'gene'`**: This filters the results to only include rows where the `featuretype` is 'gene'. This ensures we are looking at gene entries and not other types of features like transcripts or regulatory regions.
+
+4. **`AND id IN ('XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB', 'COL1A2')`**: This further filters the results to include only the specific genes you are interested in: XIST, MALAT1, BRCA1, NFKB1, NFKB2, REL, RELA, RELB, and COL1A2.
+
+**Output:**
+
+The query will return a result set where each row corresponds to one of the specified genes. The `attributes` column for each row will contain information about that gene, including its biotype. You can then parse this information to determine the biotype of each gene.
+
+
+
+Let me know if you have any other questions or need further assistance!

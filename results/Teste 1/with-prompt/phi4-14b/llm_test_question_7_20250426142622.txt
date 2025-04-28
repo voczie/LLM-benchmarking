@@ -1,0 +1,37 @@
+To determine how many exons the `XIST` gene has, you can use the `gffutils` library in Python to interact with your SQLite database. Here's a step-by-step guide:
+
+1. **Install gffutils**: If you haven't already installed it, you can do so using pip:
+   ```bash
+   pip install gffutils
+   ```
+
+2. **Create a Database Connection**: Use `gffutils` to create an in-memory database from your existing SQLite file.
+
+3. **Query the Database**: Retrieve the `XIST` gene and count its associated exons.
+
+Here's how you can implement this:
+
+```python
+import gffutils
+
+# Step 1: Create a connection to the SQLite database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True, merge_strategy='merge', transform=lambda x: x)
+
+# Step 2: Retrieve the XIST gene
+xist_gene = db[('gene', 'XIST')]
+
+# Step 3: Count the exons associated with the XIST gene
+exon_count = len(list(db.children(xist_gene, featuretype='exon')))
+
+print(f"The XIST gene has {exon_count} exons.")
+```
+
+### Explanation:
+
+- **Database Connection**: `gffutils.FeatureDB` is used to connect to your SQLite database. The `keep_order=True` ensures that features are returned in the order they appear in the file, and `merge_strategy='merge'` handles duplicate entries.
+
+- **Retrieve Gene**: `db[('gene', 'XIST')]` fetches the gene feature with type `'gene'` and name `'XIST'`.
+
+- **Count Exons**: `db.children(xist_gene, featuretype='exon')` retrieves all exon features that are children of the `XIST` gene. The `len(list(...))` counts these exons.
+
+Make sure to replace `'path_to_your_database.db'` with the actual path to your SQLite database file. This script will output the number of exons associated with the `XIST` gene.

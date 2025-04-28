@@ -1,0 +1,34 @@
+```python
+import gffutils
+
+# Connect to the existing database
+db = gffutils.FeatureDB('your_database.db')
+
+# Function to get transcript isoforms for the XIST gene
+def get_xist_transcript_isoforms():
+    # Fetch the gene feature for XIST
+    xist_gene = next(db.features_of_type('gene', filter={'gene_name': 'XIST'}), None)
+    
+    if xist_gene:
+        # Fetch all transcript children of the XIST gene
+        transcripts = list(db.children(xist_gene.id, featuretype='transcript'))
+        transcript_info = []
+        
+        for transcript in transcripts:
+            # Calculate the size of each transcript by summing the sizes of its exons
+            exons = list(db.children(transcript.id, featuretype='exon'))
+            transcript_size = sum(exon.end - exon.start + 1 for exon in exons)
+            transcript_info.append((transcript.attributes.get('transcript_name', [None])[0], transcript_size))
+        
+        return transcript_info
+    else:
+        return []
+
+# Get the transcript isoforms for the XIST gene
+xist_transcripts = get_xist_transcript_isoforms()
+
+# Print the results
+print(f"Number of transcript isoforms for the XIST gene: {len(xist_transcripts)}")
+for transcript_name, size in xist_transcripts:
+    print(f"Transcript Name: {transcript_name}, Size: {size}")
+```

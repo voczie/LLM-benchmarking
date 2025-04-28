@@ -1,0 +1,41 @@
+To determine the strand location of the HOTAIR, HOXC11, and HOXC12 genes using your SQLite database schema, you can follow these steps:
+
+### Step 1: Identify Gene Features
+
+First, ensure that the features table contains entries for the genes of interest. The `attributes` column typically holds key-value pairs in a format like `key=value;`. You need to extract gene names from this column.
+
+### Step 2: Query the Database
+
+You can use SQL queries to find the strand information for each gene. Here's how you can do it:
+
+1. **Extract Gene Names**: Use a query to filter features where the `attributes` column contains the gene names HOTAIR, HOXC11, and HOXC12.
+
+2. **Retrieve Strand Information**: Once you have identified the correct entries, extract the strand information from the `strand` column.
+
+Here is an example SQL query that accomplishes this:
+
+```sql
+SELECT id, seqid, featuretype, start, end, strand
+FROM features
+WHERE attributes LIKE '%gene_id "HOTAIR";%' OR 
+      attributes LIKE '%gene_id "HOXC11";%' OR 
+      attributes LIKE '%gene_id "HOXC12";%';
+```
+
+### Explanation:
+
+- **`attributes LIKE '%gene_id "GENE_NAME";%'`**: This pattern is used to search for the gene name within the `attributes` column. Adjust the pattern if your attribute format differs.
+
+- **Columns Selected**: The query selects relevant columns such as `id`, `seqid`, `featuretype`, `start`, `end`, and `strand`. You can adjust these based on what additional information you need.
+
+### Step 3: Analyze Results
+
+After running the query, you will get a result set with the strand information for each gene. The `strand` column will indicate whether the gene is located on the '+' (plus) or '-' (minus) strand.
+
+### Additional Considerations:
+
+- **Attribute Format**: Ensure that the format of the `attributes` column matches your search pattern. If it differs, you may need to adjust the query accordingly.
+
+- **Database Indexing**: For large datasets, consider indexing the `attributes` column to improve query performance.
+
+By following these steps, you should be able to determine the strand location for HOTAIR, HOXC11, and HOXC12 genes in your database.

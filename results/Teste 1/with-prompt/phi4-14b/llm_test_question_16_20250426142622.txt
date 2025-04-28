@@ -1,0 +1,105 @@
+```python
+import sqlite3
+import numpy as np
+
+# Connect to the SQLite database
+conn = sqlite3.connect('genome_annotation.db')
+db = conn.cursor()
+
+# Define the genes of interest
+genes_of_interest = ['XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'COL1A2', 'HOTAIR', 'HOXC11', 'HOXC12']
+
+def get_transcript_info(gene_name):
+    # Query to find all transcripts for the given gene
+    db.execute("""
+        SELECT id, seqid, start, end, strand 
+        FROM features 
+        WHERE featuretype='transcript' AND attributes LIKE ?
+    """, (f"%gene_id \"{gene_name}\"%",))
+    
+    transcripts = db.fetchall()
+    transcript_info = []
+
+    for transcript in transcripts:
+        transcript_id, chromosomal_location, position_start, position_end, strand = transcript
+        
+        # Query to find exons related to the current transcript
+        db.execute("""
+            SELECT id, start, end 
+            FROM features 
+            WHERE featuretype='exon' AND attributes LIKE ?
+        """, (f"%transcript_id \"{transcript_id}\"%",))
+        
+        exons = db.fetchall()
+        exon_sizes = [(exon[2] - exon[1] + 1) for exon in exons]
+        num_exons = len(exons)
+        avg_exon_size = np.mean(exon_sizes) if exon_sizes else 0
+        transcript_size = position_end - position_start + 1
+        
+        # Query to find the biotype of the gene associated with this transcript
+        db.execute("""
+            SELECT attributes 
+            FROM features 
+            WHERE featuretype='gene' AND attributes LIKE ?
+        """, (f"%gene_id \"{gene_name}\"%",))
+        
+        gene_attributes = db.fetchone()
+        if gene_attributes:
+            attributes_str = gene_attributes[0]
+            biotype = next((attr.split('"')[1] for attr in attributes_str.split(';') if 'biotype' in attr), None)
+        else:
+            biotype = None
+        
+        transcript_info.append({
+            "Transcript ID": transcript_id,
+            "Chromosomal Location": chromosomal_location,
+            "Position Start": position_start,
+            "Position End": position_end,
+            "Size": transcript_size,
+            "Number of Exons": num_exons,
+            "Average Exon Size": avg_exon_size,
+            "Strand": strand,
+            "Biotype": biotype
+        })
+    
+    return transcript_info
+
+# Collect information for all genes of interest
+all_transcript_info = []
+for gene in genes_of_interest:
+    transcripts_data = get_transcript_info(gene)
+    all_transcript_info.extend(transcripts_data)
+
+# Save the collected data to a CSV file
+import csv
+
+with open('transcript_info.csv', 'w', newline='') as csvfile:
+    fieldnames = ["Transcript ID", "Chromosomal Location", "Position Start", "Position End", 
+                  "Size", "Number of Exons", "Average Exon Size", "Strand", "Biotype"]
+    
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+    for transcript in all_transcript_info:
+        writer.writerow(transcript)
+
+# Close the database connection
+conn.close()
+
+print("Transcript information saved to 'transcript_info.csv'.")
+```
+
+### Explanation:
+
+1. **Database Connection**: Connects to the SQLite database containing genome annotation data.
+
+2. **Gene List**: Specifies the genes of interest: XIST, MALAT1, BRCA1, NFKB1, COL1A2, HOTAIR, HOXC11, and HOXC12.
+
+3. **Transcript Information Retrieval**:
+   - For each gene, retrieves all associated transcripts.
+   - Extracts information such as chromosomal location, position, size, number of exons, average exon size, strand, and biotype for each transcript.
+
+4. **Data Storage**: Saves the collected data into a CSV file named `transcript_info.csv`.
+
+5. **Database Closure**: Closes the database connection after processing is complete.
+
+This script efficiently queries the SQLite database to gather detailed information about specific gene transcripts and organizes it in a structured format suitable for further analysis or reporting.

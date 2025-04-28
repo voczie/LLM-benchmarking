@@ -1,0 +1,53 @@
+To determine how many exons the XIST gene has using the provided SQLite database schema, you can follow these steps:
+
+1. **Identify the Gene ID for XIST**: First, you need to find the ID of the XIST gene in the `features` table. The `featuretype` for genes is typically "gene".
+
+2. **Find Exons Associated with the XIST Gene**: Once you have the gene ID for XIST, you can query the `features` table again to count the number of exons associated with that gene. The `featuretype` for exons is typically "exon".
+
+3. **Construct the SQL Queries**: You will need to write SQL queries to perform the above steps.
+
+Here’s how you can do it:
+
+### Step 1: Find the Gene ID for XIST
+
+```sql
+SELECT id 
+FROM features 
+WHERE seqid = 'XIST' AND featuretype = 'gene';
+```
+
+### Step 2: Count the Exons for the XIST Gene
+
+Assuming you found the gene ID from the previous query (let's say it's `gene_id`), you can count the exons like this:
+
+```sql
+SELECT COUNT(*) AS exon_count 
+FROM features 
+WHERE attributes LIKE '%gene_id="gene_id"%'
+AND featuretype = 'exon';
+```
+
+### Complete Query
+
+You can combine these steps into a single query using a subquery:
+
+```sql
+SELECT COUNT(*) AS exon_count 
+FROM features 
+WHERE featuretype = 'exon' 
+AND attributes LIKE '%gene_id=(SELECT id FROM features WHERE seqid = 'XIST' AND featuretype = 'gene')%';
+```
+
+### Explanation of the Query
+
+- The outer query counts the number of rows in the `features` table where the `featuretype` is 'exon'.
+- The inner subquery retrieves the `id` of the XIST gene.
+- The `LIKE` clause in the outer query checks if the `attributes` field contains the gene ID of XIST.
+
+### Execute the Query
+
+Run the complete query in your SQLite database environment. The result will give you the number of exons associated with the XIST gene.
+
+### Note
+
+Make sure to adjust the `LIKE` clause based on how the `attributes` field is formatted in your database. The example assumes a common format but may need to be tailored to your specific data.

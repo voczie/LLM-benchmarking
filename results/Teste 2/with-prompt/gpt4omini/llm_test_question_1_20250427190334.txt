@@ -1,0 +1,37 @@
+To count the number of protein-coding genes on chromosome 12 using the `gffutils` library, you can follow these steps:
+
+1. **Connect to the Database**: First, you need to connect to the SQLite database that contains your genomic annotations.
+
+2. **Fetch Features**: Use the `features_of_type()` method to retrieve all features of type `gene` that are located on chromosome 12.
+
+3. **Filter by Gene Biotype**: Filter these genes to count only those that are classified as protein-coding.
+
+Here’s a Python script that accomplishes this:
+
+```python
+import gffutils
+
+# Connect to the existing database
+db = gffutils.FeatureDB('your_database.db', keep_order=True)
+
+# Define the chromosome of interest
+chromosome = '12'
+
+# Count protein-coding genes on chromosome 12
+protein_coding_genes = sum(1 for gene in db.features_of_type('gene', seqid=chromosome) 
+                            if 'gene_biotype' in gene.attributes and 
+                            gene.attributes['gene_biotype'][0] == 'protein_coding')
+
+# Output the result
+print(f'The number of protein-coding genes on chromosome {chromosome}: {protein_coding_genes}')
+```
+
+### Explanation of the Code:
+- **Import the Library**: The script starts by importing the `gffutils` library.
+- **Connect to the Database**: It connects to the SQLite database file named `your_database.db`. Make sure to replace `'your_database.db'` with the actual path to your database file.
+- **Define the Chromosome**: The variable `chromosome` is set to `'12'`, which is the chromosome of interest.
+- **Count Protein-Coding Genes**: A generator expression is used to iterate over all gene features on chromosome 12. It checks if the `gene_biotype` attribute exists and if its value is `'protein_coding'`. The `sum()` function counts the number of such genes.
+- **Output the Result**: Finally, it prints the count of protein-coding genes on chromosome 12.
+
+### Note:
+Make sure that the attribute names (like `gene_biotype`) match those in your GFF/GTF file, as they can vary between different annotation sources. Adjust the attribute checks accordingly if needed.

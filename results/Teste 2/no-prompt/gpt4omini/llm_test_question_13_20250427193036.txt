@@ -1,0 +1,38 @@
+To find the biotype of the specified genes (XIST, MALAT1, BRCA1, NFKB1, NFKB2, REL, RELA, RELB, and COL1A2) from the SQLite database containing the genome annotation in GFF/GTF format, you will need to query the `features` table. The biotype of a gene is typically stored in the `attributes` column, which often contains key-value pairs including the biotype information.
+
+Here’s a step-by-step guide to construct the SQL query:
+
+1. **Identify the relevant features**: You need to filter the `features` table for entries where the `featuretype` is 'gene' (or whatever the appropriate feature type is for genes in your dataset).
+
+2. **Extract the biotype**: The `attributes` column usually contains information in a format like `key=value`. You will need to extract the biotype from this column.
+
+3. **Filter for specific genes**: You will filter the results to include only the genes of interest.
+
+Here’s an example SQL query that accomplishes this:
+
+```sql
+SELECT 
+    id, 
+    attributes 
+FROM 
+    features 
+WHERE 
+    featuretype = 'gene' 
+    AND id IN ('XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB', 'COL1A2');
+```
+
+### Explanation of the Query:
+- **SELECT id, attributes**: This selects the gene ID and its attributes.
+- **FROM features**: This specifies the table to query.
+- **WHERE featuretype = 'gene'**: This filters the results to only include entries where the feature type is 'gene'.
+- **AND id IN (...)**: This further filters the results to only include the specified gene IDs.
+
+### Next Steps:
+1. **Run the Query**: Execute the above SQL query in your SQLite database environment.
+2. **Parse the Results**: After retrieving the results, you will need to parse the `attributes` column to extract the biotype information. This may involve string manipulation to isolate the biotype key-value pair.
+
+### Example of Parsing Attributes:
+If the `attributes` column contains a string like `gene_id "BRCA1"; biotype "protein_coding";`, you would look for the substring that corresponds to `biotype` and extract its value.
+
+### Note:
+The exact format of the `attributes` column may vary, so you may need to adjust the parsing logic based on the actual data you retrieve. If you need help with parsing the attributes, please provide an example of the `attributes` string format.

@@ -1,0 +1,99 @@
+To determine how many pseudogenes are present on the X chromosome in your genome annotation database, you can follow these steps:
+
+1. **Identify Pseudogene Features**: First, identify all features of type 'pseudogene'.
+2. **Filter by Chromosome**: Then filter those features to only include those located on the X chromosome.
+3. **Count the Features**: Finally, count the number of pseudogenes that meet this criterion.
+
+Here's a step-by-step Python script using `sqlite3` and `gffutils` (if you have it installed) to achieve this:
+
+### Step 1: Connect to the SQLite Database
+First, establish a connection to your SQLite database. If you don't already have a connection set up, here is how you can do it:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')
+cursor = conn.cursor()
+```
+
+### Step 2: Query for Pseudogenes on Chromosome X
+Next, write a query to fetch all pseudogene features located on chromosome X.
+
+```python
+query = """
+SELECT COUNT(*)
+FROM features
+WHERE featuretype = 'pseudogene' AND seqid = 'X';
+"""
+
+# Execute the query and fetch the result
+cursor.execute(query)
+result = cursor.fetchone()[0]
+
+print(f"Number of pseudogenes on chromosome X: {result}")
+```
+
+### Step 3: Close the Database Connection
+
+Don't forget to close the database connection after you're done with your operations.
+
+```python
+conn.close()
+```
+
+### Full Script Example
+
+Here is a complete script that connects to the SQLite database, queries for pseudogenes on chromosome X, and prints out the count:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')
+cursor = conn.cursor()
+
+# Query for pseudogenes on chromosome X
+query = """
+SELECT COUNT(*)
+FROM features
+WHERE featuretype = 'pseudogene' AND seqid = 'X';
+"""
+
+# Execute the query and fetch the result
+cursor.execute(query)
+result = cursor.fetchone()[0]
+
+print(f"Number of pseudogenes on chromosome X: {result}")
+
+# Close the database connection
+conn.close()
+```
+
+### Using gffutils (Optional)
+
+If you prefer using `gffutils` for working with GFF/GTF files, here is an alternative approach:
+
+1. **Install gffutils**:
+   ```sh
+   pip install gffutils
+   ```
+
+2. **Create a database from your GFF/GTF file**:
+   ```python
+   import gffutils
+
+   # Create or load the database
+   db = gffutils.create_db('your_annotation.gtf', 'annotation.db')
+   ```
+
+3. **Query for pseudogenes on chromosome X**:
+
+```python
+# Query for pseudogenes on chromosome X using gffutils
+pseudogenes_on_X = list(db.features_of_type('pseudogene', seqid='X'))
+
+print(f"Number of pseudogenes on chromosome X: {len(pseudogenes_on_X)}")
+```
+
+This script will give you the number of pseudogenes located on the X chromosome in your genome annotation database.

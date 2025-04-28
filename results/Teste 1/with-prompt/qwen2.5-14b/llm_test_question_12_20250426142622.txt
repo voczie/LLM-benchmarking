@@ -1,0 +1,81 @@
+To find the names of the two genes located immediately before and after the gene `COL1A2`, we need to follow these steps:
+
+1. Retrieve the gene `COL1A2` from the database.
+2. Find the start position of `COL1A2`.
+3. Search for genes on the same chromosome that are immediately adjacent to `COL1A2`.
+
+Here's a step-by-step implementation in Python using the SQLite database and the `sqlite3` module:
+
+```python
+import sqlite3
+
+# Connect to the database
+conn = sqlite3.connect('genome_annotation.db')
+db = conn.cursor()
+
+def get_gene_info(gene_name):
+    # Query to find the gene by name
+    db.execute("SELECT seqid, start, end, strand FROM features WHERE attributes LIKE '%\"Name\":\"{}\"%'".format(gene_name))
+    result = db.fetchone()
+    
+    if not result:
+        return None
+    
+    chromosome, start, end, strand = result
+    return chromosome, start, end, strand
+
+def get_adjacent_genes(chromosome, start, end, strand):
+    # Query to find genes immediately before and after COL1A2 on the same chromosome
+    if strand == '+':
+        query_before = "SELECT attributes FROM features WHERE seqid=? AND start<? AND strand=? ORDER BY start DESC LIMIT 1"
+        query_after = "SELECT attributes FROM features WHERE seqid=? AND start>? AND strand=? ORDER BY start ASC LIMIT 1"
+    else:
+        query_before = "SELECT attributes FROM features WHERE seqid=? AND end<? AND strand=? ORDER BY end DESC LIMIT 1"
+        query_after = "SELECT attributes FROM features WHERE seqid=? AND end>? AND strand=? ORDER BY end ASC LIMIT 1"
+
+    db.execute(query_before, (chromosome, start, strand))
+    gene_before = db.fetchone()
+    
+    db.execute(query_after, (chromosome, end, strand))
+    gene_after = db.fetchone()
+
+    return gene_before, gene_after
+
+def get_gene_name(attributes):
+    # Extract the gene name from attributes
+    import json
+    attrs_dict = json.loads(attributes)
+    if 'Name' in attrs_dict:
+        return attrs_dict['Name']
+    return None
+
+# Main function to find adjacent genes
+def main():
+    col1a2_info = get_gene_info('COL1A2')
+    if not col1a2_info:
+        print("Gene COL1A2 not found.")
+        return
+    
+    chromosome, start, end, strand = col1a2_info
+    gene_before, gene_after = get_adjacent_genes(chromosome, start, end, strand)
+    
+    name_before = get_gene_name(gene_before[0]) if gene_before else None
+    name_after = get_gene_name(gene_after[0]) if gene_after else None
+    
+    print(f"Gene immediately before COL1A2: {name_before}")
+    print(f"Gene immediately after COL1A2: {name_after}")
+
+if __name__ == "__main__":
+    main()
+```
+
+### Explanation:
+1. **get_gene_info**: This function retrieves the chromosome, start position, end position, and strand of the gene `COL1A2`.
+2. **get_adjacent_genes**: Depending on the strand orientation (`+` or `-`), this function queries for genes immediately before and after `COL1A2`. It uses a limit of 1 to ensure only one adjacent gene is returned.
+3. **get_gene_name**: This helper function extracts the gene name from the attributes column, which contains JSON-like data.
+
+### Running the Code:
+- Ensure you have connected to your SQLite database correctly.
+- Run the `main` function to get the names of the genes immediately before and after `COL1A2`.
+
+This approach ensures that we accurately find the adjacent genes based on their positions relative to `COL1A2`.

@@ -1,0 +1,49 @@
+To find the chromosomes on which the genes NFKB1, NFKB2, REL, RELA, and RELB are located, you can use a SQL query to search the `features` table in your SQLite database. The `features` table contains information about various genomic features, including genes, and the `seqid` column typically represents the chromosome or scaffold on which these features are located.
+
+Here’s a step-by-step guide on how to construct the SQL query:
+
+1. **Identify the Gene Names**: You want to find the locations of the genes NFKB1, NFKB2, REL, RELA, and RELB.
+
+2. **Construct the SQL Query**: You will need to select the `seqid` (chromosome) from the `features` table where the `featuretype` is 'gene' and the `attributes` column contains the gene names you are interested in.
+
+3. **Use the `IN` Clause**: To filter for multiple gene names, you can use the `IN` clause.
+
+Here’s the SQL query that accomplishes this:
+
+```sql
+SELECT DISTINCT seqid
+FROM features
+WHERE featuretype = 'gene'
+AND attributes LIKE '%NFKB1%'
+   OR attributes LIKE '%NFKB2%'
+   OR attributes LIKE '%REL%'
+   OR attributes LIKE '%RELA%'
+   OR attributes LIKE '%RELB%';
+```
+
+### Explanation of the Query:
+- `SELECT DISTINCT seqid`: This selects unique chromosome identifiers from the `seqid` column.
+- `FROM features`: This specifies the table from which to retrieve the data.
+- `WHERE featuretype = 'gene'`: This filters the results to include only rows where the feature type is 'gene'.
+- `AND attributes LIKE '%gene_name%'`: This checks if the `attributes` column contains the specified gene names. The `%` wildcard allows for matching any characters before or after the gene name.
+
+### Note:
+- Depending on how the gene names are stored in the `attributes` column, you might need to adjust the `LIKE` conditions. For example, if the gene names are stored in a specific format (like `gene_name "NFKB1"`), you may need to modify the query accordingly.
+- If you want to ensure that the conditions for the gene names are all treated together, you might want to use parentheses to group the `OR` conditions properly.
+
+### Final Query with Parentheses:
+```sql
+SELECT DISTINCT seqid
+FROM features
+WHERE featuretype = 'gene'
+AND (
+    attributes LIKE '%NFKB1%'
+    OR attributes LIKE '%NFKB2%'
+    OR attributes LIKE '%REL%'
+    OR attributes LIKE '%RELA%'
+    OR attributes LIKE '%RELB%'
+);
+```
+
+### Execution:
+Run this query in your SQLite database environment to retrieve the chromosomes where the specified genes are located. The result will give you a list of unique chromosomes (seqid) for the genes of interest.

@@ -1,0 +1,80 @@
+To generate a boxplot comparing the sizes of different types of transcripts (protein_coding, lncRNA, and miRNA) from your genome annotation database, you need to follow these steps:
+
+1. **Extract Transcript Information**: Retrieve all transcript features from the database.
+2. **Filter by Biotype**: Filter transcripts based on their biotypes (protein_coding, lncRNA, miRNA).
+3. **Calculate Sizes**: Calculate the sizes of each type of transcript.
+4. **Plot Boxplot**: Use matplotlib to create a boxplot comparing the sizes.
+
+Here's how you can achieve this in Python:
+
+```python
+import sqlite3
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Connect to the SQLite database
+conn = sqlite3.connect('genome_annotation.db')
+db = conn.cursor()
+
+def get_transcript_sizes(biotype):
+    # Query all transcripts of a specific biotype
+    query = f"""
+    SELECT T1.id, T1.start, T1.end, T2.attributes 
+    FROM features AS T1 
+    JOIN features AS T2 ON T1.id = T2.id 
+    WHERE T1.featuretype = 'transcript' AND T2.attributes LIKE '%{biotype}%';
+    """
+    
+    db.execute(query)
+    results = db.fetchall()
+    
+    sizes = []
+    for row in results:
+        transcript_id, start, end, attributes_str = row
+        attributes = dict(item.split("=") for item in attributes_str.strip("{}").split(", "))
+        
+        # Calculate the size of the transcript
+        size = int(end) - int(start) + 1
+        sizes.append(size)
+    
+    return sizes
+
+# Get sizes for each biotype
+protein_coding_sizes = get_transcript_sizes('protein_coding')
+lncrna_sizes = get_transcript_sizes('lncRNA')
+mirna_sizes = get_transcript_sizes('miRNA')
+
+# Create a DataFrame to store the sizes
+data = {
+    'protein_coding': protein_coding_sizes,
+    'lncRNA': lncrna_sizes,
+    'miRNA': mirna_sizes
+}
+
+df = pd.DataFrame(data)
+
+# Plot boxplot
+plt.figure(figsize=(10, 6))
+df.boxplot(showmeans=True)
+plt.title('Comparison of Transcript Sizes by Biotype')
+plt.ylabel('Transcript Size (bp)')
+plt.xlabel('Biotype')
+plt.grid(True)
+plt.show()
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation:
+1. **Database Connection**: Connect to your SQLite database.
+2. **Query Function** (`get_transcript_sizes`):
+   - Construct a SQL query to fetch all transcripts of a specific biotype.
+   - Parse the attributes string to extract relevant information (e.g., start, end positions).
+   - Calculate the size of each transcript and store it in a list.
+3. **Data Collection**: Collect sizes for protein_coding, lncRNA, and miRNA transcripts using the `get_transcript_sizes` function.
+4. **DataFrame Creation**: Store the collected sizes in a pandas DataFrame.
+5. **Boxplot Generation**: Use matplotlib to create a boxplot comparing the transcript sizes.
+
+This script will generate a boxplot that visually compares the distribution of sizes for protein_coding, lncRNA, and miRNA transcripts. Adjust the SQL query and parsing logic as needed based on your specific database schema and attribute format.

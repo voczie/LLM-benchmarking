@@ -1,0 +1,47 @@
+To calculate the sizes of each gene locus for the specified genes (XIST, MALAT1, BRCA1, COL1A2, NFKB1, NFKB2, REL, RELA, and RELB) using the `gffutils` library, you can follow these steps:
+
+1. **Connect to the database**: Use `gffutils.FeatureDB()` to connect to your SQLite database containing the genomic annotations.
+
+2. **Fetch the gene features**: Retrieve the gene features for the specified gene names.
+
+3. **Calculate the gene locus sizes**: For each gene, calculate the locus size using the formula `end - start`.
+
+Here’s a Python script that implements these steps:
+
+```python
+import gffutils
+
+# Connect to the existing GFF/GTF database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# List of gene names to calculate locus sizes
+gene_names = ['XIST', 'MALAT1', 'BRCA1', 'COL1A2', 'NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB']
+
+# Initialize a dictionary to store gene locus sizes
+gene_locus_sizes = {}
+
+# Fetch gene features and calculate locus sizes
+for gene_name in gene_names:
+    # Fetch the gene feature by gene name
+    gene_features = db.features_of_type('gene', filter={'gene_name': gene_name})
+    
+    for gene in gene_features:
+        # Calculate the locus size
+        locus_size = gene.end - gene.start
+        gene_locus_sizes[gene_name] = locus_size
+
+# Print the results
+for gene, size in gene_locus_sizes.items():
+    print(f"Gene: {gene}, Locus Size: {size}")
+```
+
+### Explanation of the Code:
+- **Database Connection**: Replace `'path_to_your_database.db'` with the actual path to your SQLite database.
+- **Gene Names**: The list `gene_names` contains the names of the genes for which you want to calculate the locus sizes.
+- **Fetching Features**: The `db.features_of_type('gene', filter={'gene_name': gene_name})` retrieves gene features based on the specified gene name.
+- **Calculating Locus Size**: The locus size is calculated as `end - start` for each gene feature.
+- **Output**: The results are printed in a readable format.
+
+### Note:
+- Ensure that the attribute used in the filter (`'gene_name'`) matches the actual attribute name in your GFF/GTF file. If the attribute name is different (e.g., `gene_id`), adjust the filter accordingly.
+- If a gene is not found in the database, it will not be included in the output. You may want to add error handling to manage such cases.

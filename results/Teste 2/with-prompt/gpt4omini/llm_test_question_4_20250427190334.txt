@@ -1,0 +1,38 @@
+To determine how many genes for miRNA exist on chromosome 10 using the `gffutils` library, you can follow these steps:
+
+1. **Connect to the Database**: First, you need to connect to the SQLite database that contains your genomic annotations.
+
+2. **Fetch Features**: Use the `features_of_type()` method to retrieve features of type `gene` and filter them based on the `gene_biotype` attribute to find those that correspond to miRNA.
+
+3. **Count the Genes**: Finally, count the number of unique genes that match the criteria.
+
+Here’s a Python script that accomplishes this:
+
+```python
+import gffutils
+
+# Connect to the existing database
+db = gffutils.FeatureDB('your_database.db', keep_order=True)
+
+# Define the chromosome of interest
+chromosome = '10'
+
+# Fetch miRNA genes on chromosome 10
+miRNA_genes = db.features_of_type('gene', filter=lambda f: f.attributes.get('gene_biotype', [''])[0] == 'miRNA' and f.seqid == chromosome)
+
+# Count the unique miRNA genes
+miRNA_gene_count = len(set(g.attributes['gene_id'][0] for g in miRNA_genes))
+
+# Print the result
+print(f'The number of miRNA genes on chromosome {chromosome} is: {miRNA_gene_count}')
+```
+
+### Explanation of the Code:
+- **Database Connection**: The script connects to the SQLite database using `gffutils.FeatureDB()`.
+- **Feature Retrieval**: It retrieves features of type `gene` and filters them to include only those with a `gene_biotype` of `miRNA` on chromosome 10.
+- **Counting Unique Genes**: It uses a set comprehension to ensure that only unique gene IDs are counted.
+- **Output**: Finally, it prints the count of miRNA genes found on the specified chromosome.
+
+### Note:
+- Make sure to replace `'your_database.db'` with the actual path to your SQLite database file.
+- Ensure that the `gene_biotype` attribute is correctly named as per your GFF/GTF file specifications. If it differs, adjust the attribute name accordingly.

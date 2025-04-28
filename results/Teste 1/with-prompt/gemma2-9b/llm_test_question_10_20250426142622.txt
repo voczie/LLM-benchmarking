@@ -1,0 +1,57 @@
+```python
+import sqlite3
+
+# Connect to your database
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your actual database file
+cursor = conn.cursor()
+
+# Execute the query to find the chromosomal position of BRCA1
+query = """
+SELECT seqid, start, end 
+FROM features 
+WHERE featuretype = 'gene' AND attributes LIKE '%BRCA1%';
+"""
+
+cursor.execute(query)
+
+# Fetch the results
+result = cursor.fetchone()
+
+# Print the chromosomal position
+if result:
+    chromosome, start, end = result
+    print(f"The BRCA1 gene is located on chromosome {chromosome} from position {start} to {end}.")
+else:
+    print("BRCA1 gene not found in the database.")
+
+# Close the connection
+conn.close()
+```
+
+**Explanation:**
+
+1. **Connect to the Database:**
+   - Replace `'your_database.db'` with the actual name of your SQLite database file.
+   - The code establishes a connection to the database and creates a cursor object to execute SQL queries.
+
+2. **Construct the Query:**
+   - The query selects the `seqid` (chromosome), `start`, and `end` positions from the `features` table.
+   - It filters for features of type `'gene'` and those whose `attributes` contain the string `'BRCA1%'`. This assumes that BRCA1 gene information is stored within the `attributes` field.
+
+3. **Execute the Query:**
+   - The `cursor.execute(query)` line runs the SQL query against the database.
+
+4. **Fetch the Result:**
+   - `cursor.fetchone()` retrieves a single row (the first match) from the query result. If no match is found, it returns `None`.
+
+5. **Process and Print the Result:**
+   - The code checks if a result was returned.
+     - If so, it unpacks the chromosome, start position, and end position from the result tuple and prints them in a formatted string.
+     - If no result is found, it prints a message indicating that the BRCA1 gene wasn't found in the database.
+
+6. **Close the Connection:**
+   - `conn.close()` closes the database connection to release resources.
+
+
+
+Let me know if you have any other questions or need help with different genomic analysis tasks!

@@ -1,0 +1,53 @@
+To calculate the sizes of each gene locus separately for the specified genes (XIST, MALAT1, BRCA1, COL1A2, NFKB1, NFKB2, REL, RELA, and RELB) from the provided SQLite database schema, you can follow these steps:
+
+1. **Identify the Gene Features**: First, you need to identify the features in the `features` table that correspond to the genes of interest. Typically, gene features are represented by the `featuretype` column, which may contain values like 'gene' or similar.
+
+2. **Extract Gene Attributes**: The `attributes` column contains additional information about each feature, including the gene name. You will need to parse this column to find the gene names.
+
+3. **Calculate the Size of Each Gene Locus**: The size of a gene locus can be calculated as the difference between the `end` and `start` positions for each gene feature.
+
+4. **Group by Gene Name**: If a gene has multiple entries (e.g., different transcripts), you may want to sum the sizes or take the maximum size depending on your definition of the locus.
+
+Here’s a SQL query that accomplishes this:
+
+```sql
+SELECT 
+    gene_name,
+    SUM(end - start + 1) AS locus_size
+FROM (
+    SELECT 
+        attributes,
+        start,
+        end,
+        -- Extract the gene name from the attributes column
+        CASE 
+            WHEN attributes LIKE '%gene_name "XIST"%' THEN 'XIST'
+            WHEN attributes LIKE '%gene_name "MALAT1"%' THEN 'MALAT1'
+            WHEN attributes LIKE '%gene_name "BRCA1"%' THEN 'BRCA1'
+            WHEN attributes LIKE '%gene_name "COL1A2"%' THEN 'COL1A2'
+            WHEN attributes LIKE '%gene_name "NFKB1"%' THEN 'NFKB1'
+            WHEN attributes LIKE '%gene_name "NFKB2"%' THEN 'NFKB2'
+            WHEN attributes LIKE '%gene_name "REL"%' THEN 'REL'
+            WHEN attributes LIKE '%gene_name "RELA"%' THEN 'RELA'
+            WHEN attributes LIKE '%gene_name "RELB"%' THEN 'RELB'
+            ELSE NULL
+        END AS gene_name
+    FROM features
+    WHERE featuretype = 'gene'  -- Assuming 'gene' is the feature type for genes
+) AS gene_features
+WHERE gene_name IS NOT NULL
+GROUP BY gene_name;
+```
+
+### Explanation of the Query:
+
+1. **Subquery**: The inner query selects the `attributes`, `start`, and `end` columns from the `features` table where the `featuretype` is 'gene'. It also uses a `CASE` statement to extract the gene name based on the content of the `attributes` column.
+
+2. **Gene Name Extraction**: The `CASE` statement checks if the `attributes` contain specific gene names and assigns them accordingly.
+
+3. **Outer Query**: The outer query groups the results by `gene_name` and calculates the total size of each gene locus by summing the differences between `end` and `start` for each gene.
+
+4. **Filtering**: The `WHERE gene_name IS NOT NULL` clause ensures that only valid gene names are included in the final results.
+
+### Running the Query:
+You can run this SQL query in your SQLite database environment to get the sizes of the specified gene loci. Make sure to adjust the `LIKE` conditions in the `CASE` statement if the format of the `attributes` column differs from what is assumed here.

@@ -1,0 +1,55 @@
+To find out how many lncRNA genes are on chromosome 7 using the provided SQLite database schema, you will need to query the `features` table. The `featuretype` column will help you identify lncRNA genes, and the `seqid` column will allow you to filter for chromosome 7.
+
+Here’s a step-by-step guide to construct the SQL query:
+
+1. **Identify the relevant columns**: You need to focus on the `seqid` and `featuretype` columns in the `features` table.
+2. **Filter for chromosome 7**: You will filter the `seqid` to match "chr7" (or "7" depending on how chromosomes are named in your dataset).
+3. **Filter for lncRNA genes**: You will filter the `featuretype` to match "lncRNA".
+
+### SQL Query
+
+Here’s the SQL query that accomplishes this:
+
+```sql
+SELECT COUNT(*) AS lncRNA_count
+FROM features
+WHERE seqid = 'chr7' AND featuretype = 'lncRNA';
+```
+
+### Explanation of the Query:
+
+- `SELECT COUNT(*) AS lncRNA_count`: This part of the query counts the number of rows that match the criteria and labels the result as `lncRNA_count`.
+- `FROM features`: This specifies that we are querying the `features` table.
+- `WHERE seqid = 'chr7'`: This condition filters the results to only include entries where the `seqid` is "chr7".
+- `AND featuretype = 'lncRNA'`: This additional condition filters the results to only include entries where the `featuretype` is "lncRNA".
+
+### Execution
+
+To execute this query, you would typically use a SQLite client or a programming language that can interface with SQLite (like Python with the `sqlite3` module). Here’s a brief example in Python:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')  # Replace with your database file
+cursor = conn.cursor()
+
+# Execute the query
+cursor.execute("""
+    SELECT COUNT(*) AS lncRNA_count
+    FROM features
+    WHERE seqid = 'chr7' AND featuretype = 'lncRNA';
+""")
+
+# Fetch the result
+result = cursor.fetchone()
+lncRNA_count = result[0]
+
+# Print the result
+print(f'The number of lncRNA genes on chromosome 7 is: {lncRNA_count}')
+
+# Close the connection
+conn.close()
+```
+
+Make sure to replace `'your_database.db'` with the actual path to your SQLite database file. This script will output the number of lncRNA genes found on chromosome 7.

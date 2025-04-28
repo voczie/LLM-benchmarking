@@ -1,0 +1,49 @@
+To find out how many protein-coding genes are on chromosome 12, you can use SQL queries to extract and count relevant entries from your SQLite database. Here's a step-by-step guide:
+
+### Step 1: Identify the Relevant Data in the `features` Table
+
+The `features` table contains information about various genomic features such as genes, exons, CDS (Coding Sequence), etc. You need to filter this data based on two criteria:
+- The feature type should be "gene".
+- The source attribute within the `attributes` column should indicate that it is a protein-coding gene.
+
+### Step 2: Extract Protein-Coding Genes
+
+Protein-coding genes are typically annotated with an attribute like `biotype="protein_coding"` or similar. You need to parse this information from the `attributes` field, which usually contains key-value pairs separated by semicolons (`;`). 
+
+Here's a query that extracts protein-coding genes on chromosome 12:
+
+```sql
+SELECT COUNT(*)
+FROM features
+WHERE seqid = 'chr12'
+AND featuretype = 'gene'
+AND attributes LIKE '%biotype="protein_coding"%';
+```
+
+### Explanation of the Query:
+- `seqid = 'chr12'`: Filters for entries on chromosome 12.
+- `featuretype = 'gene'`: Ensures that only gene features are considered.
+- `attributes LIKE '%biotype="protein_coding"%'`: Checks if the attributes field contains the string "biotype=\"protein_coding\"". This is a common way to denote protein-coding genes in GFF/GTF files.
+
+### Step 3: Execute and Interpret the Query
+
+Run this query using your SQLite client or command-line tool. The result will be an integer representing the number of protein-coding genes on chromosome 12.
+
+If you want more flexibility, such as handling different biotype labels (e.g., "protein_coding", "coding_gene"), you can modify the `LIKE` condition accordingly:
+
+```sql
+SELECT COUNT(*)
+FROM features
+WHERE seqid = 'chr12'
+AND featuretype = 'gene'
+AND attributes LIKE '%biotype="protein_coding"%' 
+OR attributes LIKE '%biotype="coding_gene"%';
+```
+
+This query will count genes that are either labeled as "protein_coding" or "coding_gene".
+
+### Additional Considerations:
+- If your database uses a different format for specifying protein-coding status, you may need to adjust the `LIKE` condition accordingly.
+- Ensure that the chromosome name in your database matches exactly with 'chr12' (or whatever prefix is used).
+
+This should give you the number of protein-coding genes on chromosome 12.

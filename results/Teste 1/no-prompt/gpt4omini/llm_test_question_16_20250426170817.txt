@@ -1,0 +1,94 @@
+To retrieve the requested information about the transcript isoforms of the specified genes (XIST, MALAT1, BRCA1, NFKB1, COL1A2, HOTAIR, HOXC11, and HOXC12) from the SQLite database, you can follow these steps:
+
+### Step 1: Identify the Features
+First, you need to identify the features corresponding to the genes and their transcript isoforms. Typically, in GFF/GTF files, the gene features are labeled as "gene" and the transcript features as "transcript". 
+
+### Step 2: Write the SQL Query
+You can use the following SQL query to gather the required information:
+
+```sql
+WITH transcript_info AS (
+    SELECT 
+        f.seqid AS chromosomal_location,
+        f.start AS start_position,
+        f.end AS end_position,
+        f.end - f.start + 1 AS size,
+        f.strand,
+        f.attributes,
+        f.featuretype
+    FROM 
+        features f
+    WHERE 
+        f.featuretype = 'transcript' 
+        AND f.attributes LIKE '%gene_id "XIST"%' OR
+        f.attributes LIKE '%gene_id "MALAT1"%' OR
+        f.attributes LIKE '%gene_id "BRCA1"%' OR
+        f.attributes LIKE '%gene_id "NFKB1"%' OR
+        f.attributes LIKE '%gene_id "COL1A2"%' OR
+        f.attributes LIKE '%gene_id "HOTAIR"%' OR
+        f.attributes LIKE '%gene_id "HOXC11"%' OR
+        f.attributes LIKE '%gene_id "HOXC12"%'
+),
+exon_info AS (
+    SELECT 
+        f.attributes,
+        COUNT(*) AS exon_count,
+        SUM(f.end - f.start + 1) AS total_exon_size
+    FROM 
+        features f
+    WHERE 
+        f.featuretype = 'exon'
+        AND f.attributes IN (SELECT attributes FROM transcript_info)
+    GROUP BY 
+        f.attributes
+)
+SELECT 
+    ti.chromosomal_location,
+    ti.start_position,
+    ti.end_position,
+    ti.size,
+    ei.exon_count,
+    CASE WHEN ei.exon_count > 0 THEN ei.total_exon_size / ei.exon_count ELSE 0 END AS average_exon_size,
+    ti.strand,
+    SUBSTR(ti.attributes, INSTR(ti.attributes, 'biotype "') + 9, INSTR(ti.attributes, '"', INSTR(ti.attributes, 'biotype "') + 9) - (INSTR(ti.attributes, 'biotype "') + 9)) AS biotype
+FROM 
+    transcript_info ti
+LEFT JOIN 
+    exon_info ei ON ti.attributes = ei.attributes;
+```
+
+### Explanation of the Query
+1. **Common Table Expressions (CTEs)**:
+   - `transcript_info`: This CTE retrieves the chromosomal location, start and end positions, size, strand, and attributes of the transcript features for the specified genes.
+   - `exon_info`: This CTE counts the number of exons and calculates the total size of the exons for each transcript.
+
+2. **Final SELECT Statement**:
+   - The final SELECT statement combines the information from both CTEs. It calculates the average exon size and extracts the biotype from the attributes.
+
+### Step 3: Execute the Query
+You can execute this query using a SQLite client or a programming language that supports SQLite (like Python with the `sqlite3` module).
+
+### Step 4: Save the Results
+Once you have executed the query and obtained the results, you can save them into a new table or export them to a CSV file, depending on your requirements.
+
+### Example of Saving to a New Table
+If you want to save the results into a new table, you can modify the final SELECT statement to create a new table:
+
+```sql
+CREATE TABLE transcript_summary AS
+SELECT 
+    ti.chromosomal_location,
+    ti.start_position,
+    ti.end_position,
+    ti.size,
+    ei.exon_count,
+    CASE WHEN ei.exon_count > 0 THEN ei.total_exon_size / ei.exon_count ELSE 0 END AS average_exon_size,
+    ti.strand,
+    SUBSTR(ti.attributes, INSTR(ti.attributes, 'biotype "') + 9, INSTR(ti.attributes, '"', INSTR(ti.attributes, 'biotype "') + 9) - (INSTR(ti.attributes, 'biotype "') + 9)) AS biotype
+FROM 
+    transcript_info ti
+LEFT JOIN 
+    exon_info ei ON ti.attributes = ei.attributes;
+```
+
+This will create a new table named `transcript_summary` containing all the requested information.

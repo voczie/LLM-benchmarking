@@ -1,0 +1,50 @@
+To find out how many genes for miRNA exist in chromosome 10 using the provided SQLite database schema, you will need to query the `features` table. The `featuretype` column will help you identify the miRNA genes, and the `seqid` column will allow you to filter for chromosome 10.
+
+Here’s a step-by-step guide to construct the SQL query:
+
+1. **Identify the relevant columns**: You need to focus on the `seqid` and `featuretype` columns in the `features` table. The `seqid` should match "chr10" (or "10" depending on how chromosomes are labeled in your database), and the `featuretype` should match "miRNA".
+
+2. **Construct the SQL query**: You will use a `SELECT` statement with a `COUNT` function to count the number of entries that match your criteria.
+
+Here’s the SQL query you can use:
+
+```sql
+SELECT COUNT(*) AS miRNA_count
+FROM features
+WHERE seqid = 'chr10' AND featuretype = 'miRNA';
+```
+
+### Explanation of the Query:
+- `SELECT COUNT(*) AS miRNA_count`: This part of the query counts all rows that match the criteria and labels the result as `miRNA_count`.
+- `FROM features`: This specifies that you are querying the `features` table.
+- `WHERE seqid = 'chr10' AND featuretype = 'miRNA'`: This filters the results to only include rows where the `seqid` is "chr10" and the `featuretype` is "miRNA".
+
+### Executing the Query:
+You can execute this query using a SQLite client or any programming language that supports SQLite (like Python with the `sqlite3` module). Here’s an example of how you might do it in Python:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')  # Replace with your database file
+cursor = conn.cursor()
+
+# Execute the query
+cursor.execute("""
+    SELECT COUNT(*) AS miRNA_count
+    FROM features
+    WHERE seqid = 'chr10' AND featuretype = 'miRNA';
+""")
+
+# Fetch the result
+result = cursor.fetchone()
+miRNA_count = result[0]
+
+# Print the result
+print(f"Number of miRNA genes in chromosome 10: {miRNA_count}")
+
+# Close the connection
+conn.close()
+```
+
+Make sure to replace `'your_database.db'` with the actual path to your SQLite database file. This script will connect to the database, execute the query, and print the number of miRNA genes found on chromosome 10.

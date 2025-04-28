@@ -1,0 +1,79 @@
+```python
+import sqlite3
+import matplotlib.pyplot as plt
+
+# Connect to the SQLite database
+conn = sqlite3.connect('genome_annotation.db')
+cursor = conn.cursor()
+
+# Query to get counts of protein-coding, lncRNA, and miRNA genes on each chromosome
+query = """
+SELECT 
+    f.seqid AS chromosome,
+    COUNT(CASE WHEN a.gene_biotype = 'protein_coding' THEN 1 END) AS protein_coding_count,
+    COUNT(CASE WHEN a.gene_biotype = 'lincRNA' OR a.gene_biotype = 'processed_transcript' THEN 1 END) AS lncRNA_count,
+    COUNT(CASE WHEN a.gene_biotype = 'miRNA' THEN 1 END) AS miRNA_count
+FROM 
+    features f
+JOIN 
+    (SELECT id, json_extract(attributes, '$.gene_biotype') as gene_biotype FROM features WHERE featuretype='gene') a ON f.id = a.id
+GROUP BY 
+    chromosome;
+"""
+
+# Execute the query and fetch results
+cursor.execute(query)
+results = cursor.fetchall()
+
+# Close the database connection
+conn.close()
+
+# Prepare data for plotting
+chromosomes = [row[0] for row in results]
+protein_coding_counts = [row[1] for row in results]
+lncRNA_counts = [row[2] for row in results]
+miRNA_counts = [row[3] for row in results]
+
+# Plotting the stacked bar chart
+fig, ax = plt.subplots(figsize=(10, 6))
+
+bar_width = 0.5
+index = range(len(chromosomes))
+
+ax.bar(index, protein_coding_counts, bar_width, label='Protein-coding', color='blue')
+ax.bar(index, lncRNA_counts, bar_width, bottom=protein_coding_counts, label='lncRNA', color='green')
+ax.bar(index, miRNA_counts, bar_width, bottom=[i+j for i,j in zip(protein_coding_counts, lncRNA_counts)], label='miRNA', color='red')
+
+# Adding labels and title
+ax.set_xlabel('Chromosome')
+ax.set_ylabel('Gene Count')
+ax.set_title('Proportions of Protein-coding, lncRNA, and miRNA Genes on Each Chromosome')
+ax.set_xticks(index)
+ax.set_xticklabels(chromosomes, rotation=45)
+
+# Adding legend
+ax.legend()
+
+# Display the plot
+plt.tight_layout()
+plt.show()
+```
+
+### Explanation:
+
+1. **Database Connection**: Connect to the SQLite database containing genome annotation data.
+
+2. **SQL Query**:
+   - Selects chromosome (`seqid`) and counts of genes based on their biotype: `protein_coding`, `lncRNA` (including `processed_transcript`), and `miRNA`.
+   - Uses a subquery with `json_extract` to parse the `attributes` column for gene biotypes.
+
+3. **Data Extraction**:
+   - Executes the query and fetches results.
+   - Extracts chromosome names, and counts of each gene type into separate lists.
+
+4. **Plotting**:
+   - Uses Matplotlib to create a stacked bar chart.
+   - Each stack represents a different gene type (protein-coding, lncRNA, miRNA).
+   - Configures the plot with labels, title, and legend for clarity.
+
+5. **Display**: Renders the plot using `plt.show()`.

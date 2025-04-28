@@ -1,0 +1,68 @@
+To determine the average exon size of the BRCA1 transcript isoforms using your SQLite database, you'll need to follow these steps:
+
+### Step 1: Identify Exons and Transcripts
+
+First, ensure that you have a way to identify exons and transcripts. Typically, in GFF/GTF files:
+- **Exons** are features with `featuretype` as "exon".
+- **Transcripts** can be identified by the `attributes` field containing an ID like `transcript_id`.
+
+### Step 2: Extract Exons for BRCA1
+
+You need to extract exons that belong to BRCA1 transcripts. This involves:
+1. Identifying transcript IDs associated with BRCA1.
+2. Finding all exons linked to these transcript IDs.
+
+Assuming the `attributes` field contains key-value pairs separated by semicolons and spaces, you can parse it to find relevant information.
+
+### Step 3: SQL Query
+
+Here's a step-by-step breakdown of how you might construct your query:
+
+1. **Extract Transcript IDs for BRCA1**:
+   - Use a subquery or a common table expression (CTE) to filter transcripts with `gene_id` or `gene_name` as "BRCA1".
+
+2. **Find Exons Linked to These Transcripts**:
+   - Use the `relations` table to link exons to their parent transcripts.
+
+3. **Calculate Exon Sizes and Average**:
+   - Calculate the size of each exon using `(end - start + 1)`.
+   - Compute the average size.
+
+Here's a sample SQL query:
+
+```sql
+WITH brca1_transcripts AS (
+    SELECT id
+    FROM features
+    WHERE featuretype = 'mRNA'
+      AND attributes LIKE '%gene_id "BRCA1";%'
+),
+exon_relations AS (
+    SELECT child AS exon_id, parent AS transcript_id
+    FROM relations
+    WHERE level = 1 -- Assuming level 1 indicates direct parent-child relationship
+      AND parent IN (SELECT id FROM brca1_transcripts)
+),
+brca1_exons AS (
+    SELECT f.id, f.start, f.end
+    FROM features f
+    JOIN exon_relations er ON f.id = er.exon_id
+)
+SELECT AVG(end - start + 1) AS average_exon_size
+FROM brca1_exons;
+```
+
+### Explanation:
+
+- **`brca1_transcripts` CTE**: Identifies all mRNA features (transcripts) associated with the BRCA1 gene.
+- **`exon_relations` CTE**: Finds exons that are children of these transcripts using the `relations` table.
+- **`brca1_exons` CTE**: Retrieves start and end positions for these exons from the `features` table.
+- **Final SELECT**: Calculates the average size of these exons.
+
+### Notes:
+
+- Ensure your `attributes` parsing logic matches the format in your database. Adjust the LIKE clause if necessary.
+- The level in the `relations` table should be checked to ensure it correctly represents parent-child relationships for transcripts and exons.
+- This query assumes that exon sizes are calculated as `(end - start + 1)`, which is typical when both start and end are inclusive.
+
+This approach will give you the average exon size for BRCA1 transcript isoforms stored in your SQLite database.

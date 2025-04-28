@@ -1,0 +1,66 @@
+To determine how many exons each transcript isoform of the BRCA1 gene has, you can follow these steps using SQL queries with the `sqlite3` database. Here's a walkthrough:
+
+### Step-by-Step Guide
+
+1. **Identify Transcript Isoforms for BRCA1:**
+   - First, find all transcripts associated with the BRCA1 gene. You'll need to query the `features` table to get transcript IDs where the feature type is 'transcript' and the gene name matches 'BRCA1'.
+
+2. **Count Exons for Each Transcript Isoform:**
+   - For each transcript identified in step 1, count the number of exons associated with it. This involves querying the `relations` table to find all exon features related to each transcript.
+
+3. **Retrieve Transcript Names:**
+   - Extract the transcript names from the attributes column in the `features` table for each transcript ID found.
+
+4. **Combine Results:**
+   - Combine the results to display each transcript name along with its corresponding number of exons.
+
+### SQL Queries
+
+Here's how you can implement these steps using SQL:
+
+```sql
+-- Step 1: Find all transcripts associated with the BRCA1 gene
+WITH brca1_transcripts AS (
+    SELECT f.id, f.attributes
+    FROM features f
+    JOIN relations r ON f.id = r.child
+    WHERE r.parent IN (
+        SELECT id FROM features WHERE featuretype = 'gene' AND attributes LIKE '%gene_id "BRCA1"%'
+    ) AND f.featuretype = 'transcript'
+),
+
+-- Step 2: Count exons for each transcript isoform
+exon_counts AS (
+    SELECT r.child, COUNT(*) as exon_count
+    FROM relations r
+    JOIN brca1_transcripts bt ON r.parent = bt.id
+    WHERE r.level = 1 AND r.featuretype = 'exon'
+    GROUP BY r.child
+),
+
+-- Step 3: Retrieve transcript names
+transcript_names AS (
+    SELECT id, 
+           json_extract(attributes, '$.transcript_name') as transcript_name
+    FROM features
+    WHERE featuretype = 'transcript' AND id IN (SELECT child FROM exon_counts)
+)
+
+-- Step 4: Combine results to display each transcript name and its number of exons
+SELECT tn.transcript_name, ec.exon_count
+FROM transcript_names tn
+JOIN exon_counts ec ON tn.id = ec.child;
+```
+
+### Explanation
+
+- **CTEs (Common Table Expressions):** Used for breaking down the query into manageable parts.
+  - `brca1_transcripts`: Identifies all transcripts related to the BRCA1 gene.
+  - `exon_counts`: Counts exons for each transcript identified in `brca1_transcripts`.
+  - `transcript_names`: Extracts transcript names from the attributes column.
+
+- **JOIN Operations:** Used to link tables and filter data based on relationships between genes, transcripts, and exons.
+
+- **JSON Extraction:** Assumes that the `attributes` field is stored in a JSON-like format. Adjust the extraction method if your database uses a different format for storing attributes.
+
+This query will output each transcript isoform name of the BRCA1 gene along with the number of exons it contains. Make sure to adjust any attribute extraction logic based on how your specific database schema stores these details.

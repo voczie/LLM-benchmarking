@@ -1,0 +1,60 @@
+Here's a breakdown of how you can generate a boxplot comparing the sizes (end - start) of protein-coding, lncRNA, and miRNA transcripts using your SQLite database.
+
+**1. Data Extraction:**
+
+* **Query:**
+
+```sql
+SELECT 
+    featuretype,
+    (end - start) AS transcript_size
+FROM features
+WHERE featuretype IN ('protein_coding', 'lncRNA', 'miRNA')
+GROUP BY featuretype;
+```
+
+* **Explanation:**
+    * `SELECT featuretype, (end - start) AS transcript_size`:  Selects the feature type and calculates the size of each transcript.
+    * `FROM features`: Specifies the table to query.
+    * `WHERE featuretype IN ('protein_coding', 'lncRNA', 'miRNA')`: Filters for transcripts of the desired types.
+    * `GROUP BY featuretype`: Groups the results by feature type, allowing you to calculate size statistics for each category.
+
+**2. Data Visualization (Using Python):**
+
+You'll need a Python library like matplotlib or seaborn to create the boxplot. Here's a basic example using pandas and seaborn:
+
+```python
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Connect to your SQLite database
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your file name
+
+# Execute the SQL query
+df = pd.read_sql_query(your_sql_query, conn) 
+
+# Create the boxplot
+sns.boxplot(x='featuretype', y='transcript_size', data=df)
+plt.title('Comparison of Transcript Sizes by Feature Type')
+plt.xlabel('Feature Type')
+plt.ylabel('Transcript Size (bp)')
+plt.show()
+
+# Close the database connection
+conn.close()
+```
+
+**Explanation:**
+
+* **Import Libraries:** Import pandas for data manipulation and seaborn/matplotlib for plotting.
+* **Connect to Database:** Establish a connection to your SQLite database using `sqlite3.connect()`.
+* **Execute Query:** Use `pd.read_sql_query()` to execute the SQL query you defined earlier and store the results in a pandas DataFrame (`df`).
+* **Create Boxplot:** Use `sns.boxplot()` to generate the boxplot, specifying the 'featuretype' column for categories on the x-axis and 'transcript_size' for the y-axis.
+* **Customize Plot:** Add a title, axis labels, and any other desired customizations using matplotlib functions.
+* **Show Plot:** Display the plot using `plt.show()`.
+* **Close Connection:** Close the database connection to release resources.
+
+
+
+Let me know if you have any more questions or need help with specific parts of the process!

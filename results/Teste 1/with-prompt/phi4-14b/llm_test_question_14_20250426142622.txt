@@ -1,0 +1,64 @@
+To determine the strands of the HOTAIR, HOXC11, and HOXC12 genes using the provided SQLite database schema, you can follow these steps:
+
+1. **Access the Database**: Ensure that you have access to the SQLite database file containing your genome annotation data.
+
+2. **Connect to the Database**: Use a Python script with the `sqlite3` module to connect to the database.
+
+3. **Query for Gene Information**:
+   - You need to extract information about the genes HOTAIR, HOXC11, and HOXC12 from the `features` table.
+   - Specifically, you want to retrieve the `strand` column where the `featuretype` is 'gene' and the gene names are in their attributes.
+
+4. **Execute the Query**:
+   - Use SQL queries to find the strand information for each of these genes.
+
+Here's a Python script that demonstrates how to perform this task:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('path_to_your_database.db')
+cursor = conn.cursor()
+
+# Define the gene names you are interested in
+gene_names = ['HOTAIR', 'HOXC11', 'HOXC12']
+
+# Prepare a query template for each gene
+query_template = """
+SELECT strand FROM features 
+WHERE featuretype = 'gene' AND attributes LIKE ?
+"""
+
+# Iterate over each gene name and execute the query
+for gene_name in gene_names:
+    # Format the attribute condition to search within the attributes column
+    like_pattern = f"%{gene_name}%"
+    
+    # Execute the query with the formatted pattern
+    cursor.execute(query_template, (like_pattern,))
+    
+    # Fetch the result
+    result = cursor.fetchone()
+    
+    if result:
+        print(f"The {gene_name} gene is located on strand: {result[0]}")
+    else:
+        print(f"No entry found for the {gene_name} gene.")
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation:
+
+- **Database Connection**: The script connects to your SQLite database using `sqlite3.connect()`.
+  
+- **Query Execution**:
+  - For each gene name, it constructs a query that searches the `attributes` column for entries containing the gene name.
+  - The `%` symbols in the `LIKE` clause are wildcards that allow matching any characters before or after the gene name.
+
+- **Result Handling**: 
+  - It fetches the first result using `fetchone()` since each gene should have a unique entry.
+  - If an entry is found, it prints the strand information; otherwise, it indicates no entry was found.
+
+Make sure to replace `'path_to_your_database.db'` with the actual path to your SQLite database file. This script will output the strands for HOTAIR, HOXC11, and HOXC12 genes based on the data in your database.

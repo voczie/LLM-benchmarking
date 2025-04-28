@@ -1,0 +1,26 @@
+```python
+import gffutils
+
+# Connect to the existing database
+db = gffutils.FeatureDB('your_database.db')
+
+# Fetch the gene of interest
+target_gene = db.features_of_type('gene', filter={'gene_id': 'COL1A2'}).next()
+
+# Get the chromosome of the target gene
+chromosome = target_gene.seqid
+
+# Fetch all genes on the same chromosome, sorted by their start position
+genes_on_chromosome = sorted(db.features_of_type('gene', filter={'seqid': chromosome}), key=lambda g: g.start)
+
+# Find the index of the target gene
+target_index = genes_on_chromosome.index(target_gene)
+
+# Get the names of the genes immediately before and after the target gene
+gene_before = genes_on_chromosome[target_index - 1].attributes.get('gene_id', [None])[0] if target_index > 0 else None
+gene_after = genes_on_chromosome[target_index + 1].attributes.get('gene_id', [None])[0] if target_index < len(genes_on_chromosome) - 1 else None
+
+# Print the results
+print(f'Gene before COL1A2: {gene_before}')
+print(f'Gene after COL1A2: {gene_after}')
+```

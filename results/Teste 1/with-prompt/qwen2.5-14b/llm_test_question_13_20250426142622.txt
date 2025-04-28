@@ -1,0 +1,74 @@
+To retrieve the biotypes of specific genes from a genome annotation database stored in SQLite3, you can use SQL queries to filter and extract the relevant information. Given that the gene attributes are stored in the `attributes` column as text, we need to parse this column to find the biotype for each gene.
+
+Here's how you can achieve this:
+
+1. **Extract Gene Information**: First, retrieve the gene features from the database.
+2. **Parse Attributes**: Extract the biotype information from the attributes column.
+3. **Filter Specific Genes**: Filter out the genes of interest (XIST, MALAT1, BRCA1, NFKB1, NFKB2, REL, RELA, RELB, COL1A2).
+
+Below is a Python script that uses SQLite to perform these steps:
+
+```python
+import sqlite3
+
+# Connect to the database
+conn = sqlite3.connect('genome_annotation.db')
+cursor = conn.cursor()
+
+# List of genes we are interested in
+genes_of_interest = ['XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB', 'COL1A2']
+
+# Query to retrieve gene features and their attributes
+query = """
+SELECT id, seqid, start, end, strand, featuretype, attributes 
+FROM features 
+WHERE featuretype = 'gene' AND id IN ({});
+"""
+
+# Format the query with the list of genes
+placeholders = ', '.join(['?'] * len(genes_of_interest))
+formatted_query = query.format(placeholders)
+
+# Execute the query and fetch results
+cursor.execute(formatted_query, genes_of_interest)
+results = cursor.fetchall()
+
+# Function to parse attributes for biotype
+def get_biotype(attributes):
+    attr_dict = dict(item.split('=') for item in attributes.split(';'))
+    return attr_dict.get('gene_biotype', 'Unknown')
+
+# Process the results and print gene information
+for row in results:
+    gene_id, seqid, start, end, strand, featuretype, attributes = row
+    biotype = get_biotype(attributes)
+    print(f"Gene ID: {gene_id}, Biotype: {biotype}")
+
+# Close the connection
+conn.close()
+```
+
+### Explanation:
+
+1. **Database Connection**: Establish a connection to the SQLite database.
+2. **Query Construction**: Construct an SQL query to fetch gene features for specific genes of interest.
+3. **Attribute Parsing**: Define a function `get_biotype` that parses the attributes string and extracts the biotype.
+4. **Execution and Fetching Results**: Execute the query, fetch results, and process them using the parsing function.
+
+### Example Output:
+
+The script will output something like this for each gene:
+
+```
+Gene ID: XIST, Biotype: lincRNA
+Gene ID: MALAT1, Biotype: lincRNA
+Gene ID: BRCA1, Biotype: protein_coding
+Gene ID: NFKB1, Biotype: protein_coding
+Gene ID: NFKB2, Biotype: protein_coding
+Gene ID: REL, Biotype: protein_coding
+Gene ID: RELA, Biotype: protein_coding
+Gene ID: RELB, Biotype: protein_coding
+Gene ID: COL1A2, Biotype: protein_coding
+```
+
+This approach ensures that you can efficiently retrieve and display the biotypes of specific genes from your genome annotation database.

@@ -1,0 +1,92 @@
+To generate a stacked bar plot representing the proportions of different types of genes (protein-coding, lncRNA, and miRNA) on each chromosome, we need to follow these steps:
+
+1. Query the database for gene features and filter by their biotype.
+2. Count the number of genes per chromosome and type.
+3. Calculate the total number of genes per chromosome.
+4. Compute the proportions of each gene type per chromosome.
+5. Plot the stacked bar chart.
+
+Here's a step-by-step implementation in Python using `sqlite3` for database interaction, `pandas` for data manipulation, and `matplotlib` for plotting:
+
+```python
+import sqlite3
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Connect to the SQLite database
+conn = sqlite3.connect('genome_annotation.db')
+db = conn.cursor()
+
+def get_gene_counts(chromosome):
+    query = """
+    SELECT featuretype, COUNT(*) AS count 
+    FROM features 
+    WHERE seqid = ? AND (featuretype LIKE '%protein_coding%' OR featuretype LIKE '%lncRNA%' OR featuretype LIKE '%miRNA%') 
+    GROUP BY featuretype;
+    """
+    db.execute(query, (chromosome,))
+    rows = db.fetchall()
+    
+    # Create a DataFrame from the query results
+    df = pd.DataFrame(rows, columns=['gene_type', 'count'])
+    
+    return df
+
+def get_total_genes(chromosome):
+    query = "SELECT COUNT(*) FROM features WHERE seqid = ?"
+    db.execute(query, (chromosome,))
+    total_count = db.fetchone()[0]
+    return total_count
+
+# Get all chromosomes
+query_chromosomes = "SELECT DISTINCT seqid FROM features;"
+db.execute(query_chromosomes)
+chromosomes = [row[0] for row in db.fetchall()]
+
+gene_counts = {}
+total_genes_per_chromosome = {}
+
+for chromosome in chromosomes:
+    gene_counts[chromosome] = get_gene_counts(chromosome)
+    total_genes_per_chromosome[chromosome] = get_total_genes(chromosome)
+
+# Calculate proportions
+proportions = pd.DataFrame()
+for chrom, counts_df in gene_counts.items():
+    for _, row in counts_df.iterrows():
+        proportion = row['count'] / total_genes_per_chromosome[chrom]
+        proportions.loc[row['gene_type'], chrom] = proportion
+
+# Plotting the stacked bar chart
+fig, ax = plt.subplots(figsize=(12, 8))
+
+proportions.plot(kind='bar', stacked=True, ax=ax)
+
+ax.set_xlabel('Chromosomes')
+ax.set_ylabel('Proportion of Gene Types')
+ax.set_title('Proportions of Protein-Coding, lncRNA, and miRNA Genes per Chromosome')
+
+# Add legend
+handles, labels = ax.get_legend_handles_labels()
+ax.legend(handles[::-1], labels[::-1])
+
+plt.tight_layout()
+plt.show()
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation:
+
+1. **Database Connection**: Connect to the SQLite database and create a cursor object.
+2. **Query Function**:
+   - `get_gene_counts(chromosome)`: Queries the database for gene counts of each type on a specific chromosome.
+   - `get_total_genes(chromosome)`: Queries the total number of genes on a specific chromosome.
+3. **Chromosomes Extraction**: Fetch all unique chromosomes from the features table.
+4. **Gene Counts and Proportions**:
+   - For each chromosome, get gene counts for protein-coding, lncRNA, and miRNA genes.
+   - Calculate proportions by dividing the count of each type by the total number of genes on that chromosome.
+5. **Plotting**: Use `matplotlib` to create a stacked bar plot showing the proportion of each gene type per chromosome.
+
+This script will generate a stacked bar chart where each chromosome is represented as a stack, and within each stack, the proportions of protein-coding, lncRNA, and miRNA genes are shown.

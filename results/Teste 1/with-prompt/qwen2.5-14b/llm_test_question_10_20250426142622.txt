@@ -1,0 +1,103 @@
+To determine the chromosomal position of the BRCA1 gene in your genome annotation database, you can follow these steps:
+
+### Step 1: Query for the BRCA1 Gene
+
+First, we need to find the specific entry for the BRCA1 gene. We will use the `features` table and filter by the gene name or ID.
+
+```python
+import sqlite3
+
+# Connect to the database
+conn = sqlite3.connect('your_database.db')
+db = conn.cursor()
+
+# Query for the BRCA1 gene
+brca1_query = """
+SELECT seqid, start, end, strand 
+FROM features 
+WHERE featuretype = 'gene' AND attributes LIKE '%BRCA1%';
+"""
+
+# Execute the query
+db.execute(brca1_query)
+result = db.fetchone()
+conn.close()
+
+if result:
+    chromosome, start, end, strand = result
+    print(f"BRCA1 gene is located on {chromosome} from position {start} to {end}. The strand is {strand}.")
+else:
+    print("BRCA1 gene not found.")
+```
+
+### Step 2: Verify the Gene Attributes
+
+If you have more detailed attributes stored in the `attributes` column, you can parse them to ensure that BRCA1 is correctly identified. For example:
+
+```python
+import json
+
+# Parse the attributes JSON string
+def get_attribute(attributes_str, key):
+    try:
+        attributes = json.loads(attributes_str)
+        return attributes.get(key)
+    except Exception as e:
+        print(f"Error parsing attributes: {e}")
+        return None
+
+# Query for BRCA1 gene with detailed attribute checking
+brca1_query_detailed = """
+SELECT seqid, start, end, strand, attributes 
+FROM features 
+WHERE featuretype = 'gene';
+"""
+
+db.execute(brca1_query_detailed)
+results = db.fetchall()
+
+for row in results:
+    chromosome, start, end, strand, attributes_str = row
+    gene_id = get_attribute(attributes_str, "ID")
+    gene_name = get_attribute(attributes_str, "Name")
+
+    if gene_name == 'BRCA1':
+        print(f"BRCA1 gene is located on {chromosome} from position {start} to {end}. The strand is {strand}. Gene ID: {gene_id}")
+```
+
+### Step 3: Use Biopython for Parsing Attributes (Optional)
+
+If you are using a more complex GFF/GTF format and need to parse attributes in a structured way, consider using the `Biopython` library:
+
+```python
+from Bio import SeqIO
+
+# Assuming your database is stored as a file
+for record in SeqIO.parse("your_annotation_file.gtf", "gtf"):
+    if 'gene_name' in record.qualifiers and record.qualifiers['gene_name'][0] == 'BRCA1':
+        print(f"BRCA1 gene is located on {record.id} from position {record.start + 1} to {record.end}. The strand is {record.strand}")
+```
+
+### Step 4: Plotting the Position (Optional)
+
+If you want to visualize the BRCA1 gene's location, you can use matplotlib:
+
+```python
+import matplotlib.pyplot as plt
+
+# Assuming we have the chromosome and positions from previous steps
+chromosome = "chr17"
+start_pos = 43044295
+end_pos = 43125334
+
+plt.figure(figsize=(10, 1))
+plt.fill_between([start_pos, end_pos], [0.5], [1.5], color='blue')
+plt.title(f"BRCA1 gene location on {chromosome}")
+plt.xlabel("Chromosome Position")
+plt.yticks([])
+plt.show()
+```
+
+### Summary
+
+By following these steps, you can accurately determine the chromosomal position of the BRCA1 gene in your genome annotation database and visualize its location if needed. Adjust the queries based on the specific structure and content of your database schema.

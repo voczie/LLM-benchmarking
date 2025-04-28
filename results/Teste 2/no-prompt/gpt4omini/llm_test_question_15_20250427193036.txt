@@ -1,0 +1,61 @@
+To find the genes located between the HOXC11 and HOXC12 genes on both the + and - strands, you can follow these steps:
+
+1. **Identify the positions of HOXC11 and HOXC12**: First, you need to retrieve the start and end positions of both genes from the `features` table.
+
+2. **Find genes between the two identified genes**: Once you have the positions, you can query the `features` table again to find genes that are located between these two positions on both strands.
+
+Here’s how you can do this step-by-step with SQL queries:
+
+### Step 1: Retrieve Positions of HOXC11 and HOXC12
+
+You can use the following SQL query to get the start and end positions of HOXC11 and HOXC12:
+
+```sql
+SELECT seqid, featuretype, start, end, strand
+FROM features
+WHERE featuretype = 'gene' AND (id = 'HOXC11' OR id = 'HOXC12');
+```
+
+### Step 2: Find Genes Between HOXC11 and HOXC12
+
+Assuming you have the results from the previous query, you can then use those positions to find the genes located between them. You will need to check both strands separately.
+
+Here’s an example query that assumes you have the start and end positions of HOXC11 and HOXC12:
+
+```sql
+WITH hoxc_positions AS (
+    SELECT id, start, end, strand
+    FROM features
+    WHERE id IN ('HOXC11', 'HOXC12')
+),
+hoxc11 AS (
+    SELECT start AS start_pos, end AS end_pos, strand
+    FROM hoxc_positions
+    WHERE id = 'HOXC11'
+),
+hoxc12 AS (
+    SELECT start AS start_pos, end AS end_pos, strand
+    FROM hoxc_positions
+    WHERE id = 'HOXC12'
+)
+
+SELECT f.id, f.start, f.end, f.strand
+FROM features f
+JOIN hoxc11 h11 ON f.strand = h11.strand
+JOIN hoxc12 h12 ON f.strand = h12.strand
+WHERE f.featuretype = 'gene'
+AND (
+    (h11.start_pos < f.start AND f.start < h12.start_pos) OR
+    (h12.start_pos < f.start AND f.start < h11.start_pos)
+);
+```
+
+### Explanation of the Query:
+
+1. **Common Table Expressions (CTEs)**: The `hoxc_positions` CTE retrieves the start and end positions of HOXC11 and HOXC12. The `hoxc11` and `hoxc12` CTEs extract the specific start and end positions for each gene.
+
+2. **Main Query**: The main query selects genes from the `features` table that are on the same strand as either HOXC11 or HOXC12 and checks if their start position is between the start and end positions of the two genes.
+
+### Note:
+- Make sure to adjust the conditions in the `WHERE` clause if you want to include the boundaries (i.e., whether you want to include genes that start exactly at the end of HOXC11 or at the start of HOXC12).
+- If you want to handle cases where HOXC11 and HOXC12 are on different strands, you may need to modify the logic accordingly.

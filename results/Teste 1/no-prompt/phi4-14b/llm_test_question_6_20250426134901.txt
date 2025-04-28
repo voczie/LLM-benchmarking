@@ -1,0 +1,63 @@
+To determine how many transcript isoforms the XIST gene has, along with their names and sizes, we need to follow these steps using SQL queries on your SQLite database. Here's a walkthrough:
+
+### Step 1: Identify the XIST Gene
+
+First, we need to find the ID of the XIST gene in the `features` table. The XIST gene is typically annotated as a "gene" feature type.
+
+```sql
+SELECT id FROM features WHERE seqid = 'X' AND featuretype = 'gene' AND attributes LIKE '%gene_id "%XIST"%';
+```
+
+This query assumes that the chromosome for the XIST gene is labeled as 'X'. Adjust `seqid` if necessary based on your data. The `attributes` column contains key-value pairs, and we're looking for an entry with `gene_id "XIST"`.
+
+### Step 2: Find Transcript Isoforms Related to the XIST Gene
+
+Once you have the gene ID from Step 1 (let's call it `xist_gene_id`), use it to find all related transcript isoforms. This involves querying the `relations` table to find children of the XIST gene that are transcripts.
+
+```sql
+SELECT child FROM relations WHERE parent = 'xist_gene_id' AND level = 1;
+```
+
+Here, `level = 1` typically indicates a direct relationship between the gene and its transcripts.
+
+### Step 3: Retrieve Transcript Isoform Names and Sizes
+
+Now, use the transcript IDs obtained from Step 2 to get their names and sizes. The transcript name is usually stored in the `attributes` column of the `features` table.
+
+```sql
+SELECT 
+    attributes,
+    (end - start + 1) AS size
+FROM 
+    features
+WHERE 
+    id IN (
+        SELECT child FROM relations WHERE parent = 'xist_gene_id' AND level = 1
+    )
+AND featuretype = 'transcript';
+```
+
+This query calculates the size of each transcript as `end - start + 1`.
+
+### Step 4: Extract Transcript Names
+
+To extract the transcript names from the `attributes` column, you can use SQLite's string functions. Assuming the attribute format is something like `transcript_id "ENST000..."; gene_id "XIST"; ...`, you can do:
+
+```sql
+SELECT 
+    substr(attributes, instr(attributes, 'transcript_id "') + 15, instr(attributes, '"', instr(attributes, 'transcript_id "') + 15) - (instr(attributes, 'transcript_id "') + 15)) AS transcript_name,
+    (end - start + 1) AS size
+FROM 
+    features
+WHERE 
+    id IN (
+        SELECT child FROM relations WHERE parent = 'xist_gene_id' AND level = 1
+    )
+AND featuretype = 'transcript';
+```
+
+This query extracts the `transcript_id` from the `attributes` column.
+
+### Final Output
+
+Running these queries will give you a list of transcript isoforms for the XIST gene, along with their names and sizes. Adjust any assumptions about attribute formatting or chromosome naming as needed based on your specific dataset.

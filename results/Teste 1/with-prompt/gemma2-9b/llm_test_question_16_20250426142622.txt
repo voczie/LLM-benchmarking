@@ -1,0 +1,76 @@
+```python
+import sqlite3
+
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your database file
+cursor = conn.cursor()
+
+genes = ['XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'COL1A2', 'HOTAIR', 'HOXC11', 'HOXC12']
+
+table_data = []
+
+for gene in genes:
+    transcript_query = f"""
+        SELECT 
+            f.seqid, 
+            f.start, 
+            f.end, 
+            LENGTH(f.attributes) AS transcript_size, 
+            COUNT(DISTINCT c.id) AS num_exons,
+            AVG(c.end - c.start + 1) AS avg_exon_size,
+            f.strand,
+            JSON_EXTRACT(f.attributes, '$.gene_biotype') AS biotype
+        FROM features AS f
+        JOIN relations AS r ON f.id = r.parent
+        JOIN features AS c ON r.child = c.id
+        WHERE f.featuretype = 'transcript' AND f.attributes LIKE '%"{gene}"%'
+        GROUP BY f.id;
+    """
+
+    cursor.execute(transcript_query)
+    results = cursor.fetchall()
+
+    for row in results:
+        table_data.append({
+            'Gene': gene,
+            'Chromosomal Location': row[0],
+            'Start Position': row[1],
+            'End Position': row[2],
+            'Size (bp)': row[3],
+            'Number of Exons': row[4],
+            'Average Exon Size (bp)': row[5],
+            'Strand': row[6],
+            'Biotype': row[7]
+        })
+
+# Save the data to a CSV file
+import csv
+with open('transcript_data.csv', 'w', newline='') as csvfile:
+    fieldnames = ['Gene', 'Chromosomal Location', 'Start Position', 'End Position', 'Size (bp)', 'Number of Exons', 'Average Exon Size (bp)', 'Strand', 'Biotype']
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+    writer.writeheader()
+    writer.writerows(table_data)
+
+
+
+conn.close()
+```
+
+**Explanation:**
+
+1. **Database Connection:** Establishes a connection to your SQLite database. Replace `'your_database.db'` with the actual filename.
+2. **Gene List:** Defines a list of gene names you want to analyze.
+3. **Query Construction:**
+   - Uses f-strings to dynamically build SQL queries for each gene.
+   - The query selects relevant information (chromosomal location, size, number of exons, average exon size, strand, and biotype) from the `features` table and its related `relations` table.
+   - It filters results based on the `featuretype` being 'transcript' and the gene name present in the `attributes` column.
+4. **Data Fetching:** Executes the query for each gene and stores the results in a list of dictionaries (`table_data`).
+5. **CSV Output:** Saves the collected data into a CSV file named `transcript_data.csv`.
+
+**Important Notes:**
+
+- Make sure your database schema matches the provided schema. Adjust column names if necessary.
+- The query assumes that gene names are present within the `attributes` column of the `features` table. Modify the query accordingly if the structure is different.
+
+
+

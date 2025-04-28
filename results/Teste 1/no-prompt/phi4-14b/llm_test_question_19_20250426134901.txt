@@ -1,0 +1,105 @@
+To generate a boxplot comparing the sizes of protein-coding, lncRNA, and miRNA transcripts from your genome annotation stored in an SQLite database, you can follow these steps:
+
+### Step 1: Query the Database
+
+First, we need to extract the relevant data from the `features` table. We'll calculate the size of each transcript by subtracting the `start` position from the `end` position for entries that are classified as protein-coding, lncRNA, or miRNA.
+
+Here's a SQL query to retrieve this information:
+
+```sql
+SELECT 
+    attributes,
+    (end - start + 1) AS transcript_size
+FROM 
+    features
+WHERE 
+    featuretype = 'transcript'
+    AND (
+        attributes LIKE '%gene_type "protein_coding"' OR
+        attributes LIKE '%gene_type "lncRNA"' OR
+        attributes LIKE '%gene_type "miRNA"'
+    );
+```
+
+### Step 2: Process the Data
+
+You will need to process this data in a programming environment like Python. Here's how you can do it using Python with libraries such as `sqlite3` and `pandas`.
+
+```python
+import sqlite3
+import pandas as pd
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')
+
+# Execute the query
+query = """
+SELECT 
+    attributes,
+    (end - start + 1) AS transcript_size
+FROM 
+    features
+WHERE 
+    featuretype = 'transcript'
+    AND (
+        attributes LIKE '%gene_type "protein_coding"' OR
+        attributes LIKE '%gene_type "lncRNA"' OR
+        attributes LIKE '%gene_type "miRNA"'
+    );
+"""
+
+# Load the data into a DataFrame
+df = pd.read_sql_query(query, conn)
+
+# Close the connection
+conn.close()
+
+# Extract gene types from the attributes column
+def extract_gene_type(attributes):
+    if 'gene_type "protein_coding"' in attributes:
+        return 'protein_coding'
+    elif 'gene_type "lncRNA"' in attributes:
+        return 'lncRNA'
+    elif 'gene_type "miRNA"' in attributes:
+        return 'miRNA'
+    else:
+        return None
+
+# Apply the function to create a new column for gene type
+df['gene_type'] = df['attributes'].apply(extract_gene_type)
+
+# Filter out any rows where gene_type is None
+df = df[df['gene_type'].notnull()]
+
+# Display the first few rows of the DataFrame
+print(df.head())
+```
+
+### Step 3: Generate the Boxplot
+
+Now, use a visualization library like `matplotlib` or `seaborn` to create the boxplot.
+
+```python
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Create the boxplot
+plt.figure(figsize=(10, 6))
+sns.boxplot(x='gene_type', y='transcript_size', data=df)
+
+# Add titles and labels
+plt.title('Comparison of Transcript Sizes')
+plt.xlabel('Gene Type')
+plt.ylabel('Transcript Size (bp)')
+
+# Show the plot
+plt.show()
+```
+
+### Summary
+
+1. **Query the Database**: Extract transcript sizes for protein-coding, lncRNA, and miRNA.
+2. **Process Data**: Use Python to parse and organize the data into a DataFrame.
+3. **Visualize**: Create a boxplot using `seaborn` or `matplotlib`.
+
+This approach will give you a clear visual comparison of the transcript sizes across the three gene types. Adjust the database connection string (`your_database.db`) as needed for your specific setup.

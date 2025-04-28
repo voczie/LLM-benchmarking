@@ -1,0 +1,52 @@
+To determine how many protein-coding genes are present on chromosome 12 using the provided SQLite database schema, you will need to query the `features` table. The `featuretype` column will help you filter for protein-coding genes, and the `seqid` column will allow you to specify chromosome 12.
+
+Here’s a step-by-step guide to constructing the SQL query:
+
+1. **Identify the relevant columns**: You need to focus on the `seqid` and `featuretype` columns in the `features` table.
+2. **Filter for chromosome 12**: You will filter the `seqid` column to match "chr12" (or "12" depending on how chromosomes are labeled in your dataset).
+3. **Filter for protein-coding genes**: You will filter the `featuretype` column to match "gene" (assuming that protein-coding genes are labeled as "gene" in your dataset).
+4. **Count the results**: Use the `COUNT` function to get the total number of protein-coding genes.
+
+Here’s the SQL query that accomplishes this:
+
+```sql
+SELECT COUNT(*) AS protein_coding_gene_count
+FROM features
+WHERE seqid = 'chr12' AND featuretype = 'gene';
+```
+
+### Explanation of the Query:
+- `SELECT COUNT(*) AS protein_coding_gene_count`: This part of the query counts all the rows that match the criteria and labels the result as `protein_coding_gene_count`.
+- `FROM features`: This specifies that we are querying the `features` table.
+- `WHERE seqid = 'chr12'`: This filters the results to only include entries where the `seqid` is "chr12".
+- `AND featuretype = 'gene'`: This further filters the results to only include entries where the `featuretype` is "gene".
+
+### Execution:
+You can execute this query using a SQLite client or any programming language that supports SQLite (like Python with the `sqlite3` module). 
+
+### Example in Python:
+If you are using Python, here’s how you might execute the query:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')  # Replace with your database file
+cursor = conn.cursor()
+
+# Execute the query
+cursor.execute("""
+    SELECT COUNT(*) AS protein_coding_gene_count
+    FROM features
+    WHERE seqid = 'chr12' AND featuretype = 'gene';
+""")
+
+# Fetch the result
+result = cursor.fetchone()
+print(f"Number of protein-coding genes on chromosome 12: {result[0]}")
+
+# Close the connection
+conn.close()
+```
+
+Make sure to replace `'your_database.db'` with the actual path to your SQLite database file. This will give you the count of protein-coding genes on chromosome 12.

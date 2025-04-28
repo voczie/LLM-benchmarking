@@ -1,0 +1,94 @@
+To find the names of the two genes located immediately before and after the gene `COL1A2`, you need to follow these steps:
+
+### Step-by-Step Walkthrough
+
+#### 1. Identify the Gene `COL1A2`
+First, we need to identify the location (chromosome and start/end positions) of the gene `COL1A2` in the database.
+
+```sql
+SELECT seqid, start, end, attributes 
+FROM features 
+WHERE featuretype = 'gene' AND attributes LIKE '%ID=COL1A2%;'
+```
+
+This query will return the chromosome (`seqid`) and position (`start`, `end`) of the gene `COL1A2`. The `attributes` column contains additional information about the gene, including its ID.
+
+#### 2. Extract Gene IDs from Attributes
+The `attributes` field is a text string that typically includes key-value pairs like `ID=COL1A2;Name=gene_name;...`. We need to extract the actual gene name if it's different from `COL1A2`.
+
+```sql
+SELECT seqid, start, end, 
+       SUBSTR(attributes, INSTR(attributes, 'Name=') + 5, INSTR(attributes, ';', INSTR(attributes, 'Name=')) - INSTR(attributes, 'Name=') - 5) AS gene_name
+FROM features 
+WHERE featuretype = 'gene' AND attributes LIKE '%ID=COL1A2%;'
+```
+
+This query extracts the `Name` attribute from the `attributes` field.
+
+#### 3. Find Genes Before and After COL1A2
+Once we have the chromosome (`seqid`) and position of `COL1A2`, we can find genes located immediately before and after it on the same chromosome.
+
+```sql
+WITH col1a2_info AS (
+    SELECT seqid, start as col1a2_start, end as col1a2_end,
+           SUBSTR(attributes, INSTR(attributes, 'Name=') + 5, INSTR(attributes, ';', INSTR(attributes, 'Name=')) - INSTR(attributes, 'Name=') - 5) AS gene_name
+    FROM features 
+    WHERE featuretype = 'gene' AND attributes LIKE '%ID=COL1A2%;'
+)
+SELECT f.seqid, f.start, f.end,
+       SUBSTR(f.attributes, INSTR(f.attributes, 'Name=') + 5, INSTR(f.attributes, ';', INSTR(f.attributes, 'Name=')) - INSTR(f.attributes, 'Name=') - 5) AS gene_name
+FROM features f, col1a2_info c
+WHERE f.featuretype = 'gene' AND 
+      f.seqid = c.seqid AND 
+      (f.start < c.col1a2_start AND f.end > c.col1a2_start OR 
+       f.start < c.col1a2_end AND f.end > c.col1a2_end)
+ORDER BY ABS(f.start - c.col1a2_start) ASC, ABS(f.end - c.col1a2_end) ASC
+LIMIT 2;
+```
+
+This query uses a Common Table Expression (CTE) to first find the `COL1A2` gene's details. Then it selects genes that overlap with or are immediately adjacent to `COL1A2`. The `ORDER BY` clause ensures we get the closest genes based on their start and end positions relative to `COL1A2`.
+
+#### 4. Filter for Immediate Neighbors
+To ensure we only get the immediate neighbors, you might need to filter out any overlapping genes or those that are too far away.
+
+```sql
+WITH col1a2_info AS (
+    SELECT seqid, start as col1a2_start, end as col1a2_end,
+           SUBSTR(attributes, INSTR(attributes, 'Name=') + 5, INSTR(attributes, ';', INSTR(attributes, 'Name=')) - INSTR(attributes, 'Name=') - 5) AS gene_name
+    FROM features 
+    WHERE featuretype = 'gene' AND attributes LIKE '%ID=COL1A2%;'
+)
+SELECT f.seqid, f.start, f.end,
+       SUBSTR(f.attributes, INSTR(f.attributes, 'Name=') + 5, INSTR(f.attributes, ';', INSTR(f.attributes, 'Name=')) - INSTR(f.attributes, 'Name=') - 5) AS gene_name
+FROM features f, col1a2_info c
+WHERE f.featuretype = 'gene' AND 
+      f.seqid = c.seqid AND 
+      (f.start < c.col1a2_start AND f.end > c.col1a2_start OR 
+       f.start < c.col1a2_end AND f.end > c.col1a2_end)
+ORDER BY ABS(f.start - c.col1a2_start) ASC, ABS(f.end - c.col1a2_end) ASC
+LIMIT 2;
+```
+
+This query should give you the names of the two genes immediately before and after `COL1A2`.
+
+### Final Query
+
+```sql
+WITH col1a2_info AS (
+    SELECT seqid, start as col1a2_start, end as col1a2_end,
+           SUBSTR(attributes, INSTR(attributes, 'Name=') + 5, INSTR(attributes, ';', INSTR(attributes, 'Name=')) - INSTR(attributes, 'Name=') - 5) AS gene_name
+    FROM features 
+    WHERE featuretype = 'gene' AND attributes LIKE '%ID=COL1A2%;'
+)
+SELECT f.seqid, f.start, f.end,
+       SUBSTR(f.attributes, INSTR(f.attributes, 'Name=') + 5, INSTR(f.attributes, ';', INSTR(f.attributes, 'Name=')) - INSTR(f.attributes, 'Name=') - 5) AS gene_name
+FROM features f, col1a2_info c
+WHERE f.featuretype = 'gene' AND 
+      f.seqid = c.seqid AND 
+      (f.start < c.col1a2_start AND f.end > c.col1a2_start OR 
+       f.start < c.col1a2_end AND f.end > c.col1a2_end)
+ORDER BY ABS(f.start - c.col1a2_start) ASC, ABS(f.end - c.col1a2_end) ASC
+LIMIT 2;
+```
+
+This query should provide the names of the two genes immediately before and after `COL1A2`.

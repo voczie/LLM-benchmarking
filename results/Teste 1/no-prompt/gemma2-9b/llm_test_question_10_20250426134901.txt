@@ -1,0 +1,29 @@
+Here's how you can find the chromosomal position of the BRCA1 gene using your SQLite3 database schema:
+
+**SQL Query:**
+
+```sql
+SELECT start, end 
+FROM features
+WHERE featuretype = 'gene' AND attributes LIKE '%BRCA1%';
+```
+
+**Explanation:**
+
+1. **`SELECT start, end`**: This specifies that we want to retrieve the `start` and `end` columns from the `features` table. These columns represent the beginning and ending positions of a genomic feature on the chromosome.
+
+2. **`FROM features`**:  This indicates that we are querying the `features` table, which stores information about genomic features like genes.
+
+3. **`WHERE featuretype = 'gene'`**: This filters the results to only include rows where the `featuretype` is 'gene'. We're specifically looking for gene annotations.
+
+4. **`AND attributes LIKE '%BRCA1%'`**: This further refines the results by searching for genes whose `attributes` column contains the string "BRCA1".  The `LIKE` operator with the wildcard '%' allows us to find partial matches, ensuring we capture the BRCA1 gene even if its attribute description isn't exactly "BRCA1".
+
+**Running the Query:**
+
+* Connect to your SQLite3 database.
+* Execute the SQL query.
+* The result will be a table showing the `start` and `end` positions of the BRCA1 gene on the chromosome.
+
+
+
+Let me know if you have any other questions about working with genomic data in SQLite!

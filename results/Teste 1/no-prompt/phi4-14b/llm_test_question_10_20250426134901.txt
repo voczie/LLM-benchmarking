@@ -1,0 +1,59 @@
+To find the chromosomal position of the BRCA1 gene using your SQLite database, you'll need to perform a series of steps. The goal is to query the `features` table for entries related to the BRCA1 gene and extract its start and end positions on the chromosome.
+
+Here's a step-by-step guide:
+
+### Step 1: Identify the BRCA1 Gene
+
+The BRCA1 gene will be identified by its attributes in the GFF/GTF format. Typically, this information is stored in the `attributes` column of the `features` table. The `attributes` field often contains key-value pairs separated by semicolons and spaces.
+
+### Step 2: Query the Database
+
+You need to write a SQL query that searches for entries where the `featuretype` is "gene" (or another relevant type if your data uses different conventions) and the `attributes` contain information about BRCA1. Here's how you can do it:
+
+```sql
+SELECT seqid, start, end
+FROM features
+WHERE featuretype = 'gene'
+AND attributes LIKE '%BRCA1%';
+```
+
+### Explanation of the Query
+
+- **`featuretype = 'gene'`:** This filters the entries to only include those that are genes. Depending on your data, you might need to adjust this if BRCA1 is annotated differently.
+  
+- **`attributes LIKE '%BRCA1%'`:** This part searches for any gene whose attributes mention "BRCA1". The `%` symbols are wildcards in SQL, meaning they match any sequence of characters before or after "BRCA1".
+
+### Step 3: Execute the Query
+
+Run this query in your SQLite environment. It will return rows containing the `seqid`, `start`, and `end` columns for entries matching the criteria.
+
+- **`seqid`:** This is typically the chromosome name (e.g., "chr17").
+  
+- **`start` and `end`:** These are the chromosomal positions where the BRCA1 gene starts and ends, respectively.
+
+### Step 4: Interpret the Results
+
+The result of your query will give you the chromosomal position of the BRCA1 gene. For example:
+
+```
+seqid | start | end
+-------------------
+chr17 | 43044295 | 43125482
+```
+
+This indicates that the BRCA1 gene is located on chromosome 17, starting at position 43,044,295 and ending at position 43,125,482.
+
+### Additional Considerations
+
+- **Attributes Parsing:** If your `attributes` field uses a different format (e.g., key-value pairs with "="), you might need to adjust the query to parse it correctly. For example:
+
+  ```sql
+  SELECT seqid, start, end
+  FROM features
+  WHERE featuretype = 'gene'
+  AND attributes LIKE '%ID=BRCA1%';
+  ```
+
+- **Database Schema:** Ensure that your database schema matches what is expected in the query. Adjust field names if necessary.
+
+By following these steps, you should be able to determine the chromosomal position of the BRCA1 gene from your SQLite database.

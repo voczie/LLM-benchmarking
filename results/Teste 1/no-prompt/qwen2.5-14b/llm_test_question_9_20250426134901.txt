@@ -1,0 +1,72 @@
+To find the average exon size for the BRCA1 transcript isoforms, we need to follow these steps:
+
+1. Identify all exons that belong to transcripts of the BRCA1 gene.
+2. Calculate the length (size) of each exon.
+3. Compute the average size of these exons.
+
+Here's a step-by-step guide on how you can achieve this using SQL queries with your SQLite database schema.
+
+### Step 1: Identify Exons Belonging to BRCA1 Transcripts
+
+First, we need to find all transcripts that belong to the BRCA1 gene. Then, we will identify exons that are children of these transcripts.
+
+```sql
+-- Find all transcript IDs for BRCA1 gene
+WITH brca1_transcripts AS (
+    SELECT DISTINCT T2.child AS transcript_id
+    FROM relations AS R1
+    JOIN features AS F1 ON R1.parent = F1.id
+    JOIN relations AS R2 ON R2.parent = F1.id AND R2.level = 0 -- Assuming level 0 is the gene
+    JOIN features AS F2 ON R2.child = F2.id
+    WHERE F1.featuretype = 'gene' AND F2.featuretype = 'transcript'
+      AND F2.attributes LIKE '%Name=BRCA1%' -- Adjust this based on how BRCA1 is annotated in your database
+)
+-- Find all exons that are children of these transcripts
+SELECT DISTINCT T3.child AS exon_id, F3.start, F3.end
+FROM relations AS R3
+JOIN brca1_transcripts AS BT ON R3.parent = BT.transcript_id AND R3.level = 1 -- Assuming level 1 is the transcript to exon relationship
+JOIN features AS F3 ON R3.child = F3.id
+WHERE F3.featuretype = 'exon';
+```
+
+### Step 2: Calculate Exon Lengths
+
+Next, we calculate the length of each exon.
+
+```sql
+WITH brca1_exons AS (
+    SELECT DISTINCT T3.child AS exon_id, F3.start, F3.end
+    FROM relations AS R3
+    JOIN brca1_transcripts AS BT ON R3.parent = BT.transcript_id AND R3.level = 1 -- Assuming level 1 is the transcript to exon relationship
+    JOIN features AS F3 ON R3.child = F3.id
+    WHERE F3.featuretype = 'exon'
+)
+SELECT exon_id, (end - start + 1) AS length FROM brca1_exons;
+```
+
+### Step 3: Compute Average Exon Size
+
+Finally, we compute the average size of these exons.
+
+```sql
+WITH brca1_exons AS (
+    SELECT DISTINCT T3.child AS exon_id, F3.start, F3.end
+    FROM relations AS R3
+    JOIN brca1_transcripts AS BT ON R3.parent = BT.transcript_id AND R3.level = 1 -- Assuming level 1 is the transcript to exon relationship
+    JOIN features AS F3 ON R3.child = F3.id
+    WHERE F3.featuretype = 'exon'
+),
+lengths AS (
+    SELECT exon_id, (end - start + 1) AS length FROM brca1_exons
+)
+SELECT AVG(length) AS average_exon_size FROM lengths;
+```
+
+### Explanation
+
+- **brca1_transcripts**: This CTE finds all transcript IDs that belong to the BRCA1 gene.
+- **brca1_exons**: This CTE identifies exons that are children of these transcripts.
+- **lengths**: This CTE calculates the length of each exon.
+- The final query computes the average length of these exons.
+
+Make sure to adjust the `LIKE` condition in the first part of the query if your database uses a different naming convention for the BRCA1 gene.

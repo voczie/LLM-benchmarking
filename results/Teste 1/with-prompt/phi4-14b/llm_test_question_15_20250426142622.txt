@@ -1,0 +1,67 @@
+To find genes located between the `HOXC11` and `HOXC12` genes on both the positive (+) and negative (-) strands, we can follow these steps using SQL queries. We'll assume that the database is already loaded with the genome annotation data.
+
+### Step-by-Step Guide
+
+1. **Identify the Positions of HOXC11 and HOXC12:**
+   - First, retrieve the start and end positions for both `HOXC11` and `HOXC12`.
+
+2. **Determine Strand Orientation:**
+   - Check the strand orientation (`+` or `-`) for each gene.
+
+3. **Query Genes Between HOXC11 and HOXC12:**
+   - Depending on the strand, determine which genes are located between these two genes.
+
+### SQL Queries
+
+#### Step 1: Retrieve Positions and Strands
+
+```sql
+-- Get positions and strands for HOXC11 and HOXC12
+SELECT id, start, end, strand 
+FROM features 
+WHERE featuretype = 'gene' AND (id = 'HOXC11' OR id = 'HOXC12');
+```
+
+#### Step 2: Query Genes Between HOXC11 and HOXC12
+
+- **For the Positive Strand (+):**
+
+```sql
+-- Find genes between HOXC11 and HOXC12 on the positive strand
+SELECT f.id, f.start, f.end, f.strand 
+FROM features AS f
+JOIN (
+    SELECT start AS hoxc11_start, end AS hoxc11_end FROM features WHERE id = 'HOXC11'
+) AS h11 ON 1=1
+JOIN (
+    SELECT start AS hoxc12_start, end AS hoxc12_end FROM features WHERE id = 'HOXC12'
+) AS h12 ON 1=1
+WHERE f.featuretype = 'gene' 
+AND f.strand = '+' 
+AND ((f.start > h11.hoxc11_end AND f.end < h12.hoxc12_start) OR (f.start > h12.hoxc12_end AND f.end < h11.hoxc11_start));
+```
+
+- **For the Negative Strand (-):**
+
+```sql
+-- Find genes between HOXC11 and HOXC12 on the negative strand
+SELECT f.id, f.start, f.end, f.strand 
+FROM features AS f
+JOIN (
+    SELECT start AS hoxc11_start, end AS hoxc11_end FROM features WHERE id = 'HOXC11'
+) AS h11 ON 1=1
+JOIN (
+    SELECT start AS hoxc12_start, end AS hoxc12_end FROM features WHERE id = 'HOXC12'
+) AS h12 ON 1=1
+WHERE f.featuretype = 'gene' 
+AND f.strand = '-' 
+AND ((f.start < h11.hoxc11_start AND f.end > h11.hoxc11_end) OR (f.start < h12.hoxc12_start AND f.end > h12.hoxc12_end));
+```
+
+### Explanation
+
+- **Positive Strand (+):** For genes on the positive strand, we look for genes that start after `HOXC11` ends and end before `HOXC12` starts, or vice versa.
+  
+- **Negative Strand (-):** For genes on the negative strand, we look for genes that start before `HOXC11` starts and end after `HOXC11` ends, or similarly with `HOXC12`.
+
+These queries will give you a list of genes located between `HOXC11` and `HOXC12` on both strands. Adjust the logic if your genome annotation has specific requirements or additional constraints.

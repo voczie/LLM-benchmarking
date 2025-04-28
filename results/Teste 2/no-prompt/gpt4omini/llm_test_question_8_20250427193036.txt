@@ -1,0 +1,39 @@
+To answer the question of how many exons each transcript isoform of the BRCA1 gene has, you can follow these steps to construct the SQL query:
+
+1. **Identify the BRCA1 gene**: First, you need to find the gene ID or name for BRCA1 in the `features` table.
+
+2. **Find the transcript isoforms**: Once you have the BRCA1 gene, you can find its associated transcript isoforms.
+
+3. **Count the exons for each transcript isoform**: Finally, you will count the number of exons associated with each transcript isoform.
+
+Here’s a SQL query that accomplishes this:
+
+```sql
+WITH brca1_transcripts AS (
+    SELECT f.id AS transcript_id, f.attributes AS transcript_name
+    FROM features f
+    WHERE f.featuretype = 'gene' AND f.attributes LIKE '%BRCA1%'
+),
+exon_counts AS (
+    SELECT r.parent AS transcript_id, COUNT(f.id) AS exon_count
+    FROM relations r
+    JOIN features f ON r.child = f.id
+    WHERE f.featuretype = 'exon'
+    AND r.parent IN (SELECT transcript_id FROM brca1_transcripts)
+    GROUP BY r.parent
+)
+SELECT bt.transcript_name, ec.exon_count
+FROM brca1_transcripts bt
+JOIN exon_counts ec ON bt.transcript_id = ec.transcript_id;
+```
+
+### Explanation of the Query:
+
+1. **CTE `brca1_transcripts`**: This Common Table Expression (CTE) selects the transcript IDs and names for the BRCA1 gene from the `features` table. It filters for entries where the `featuretype` is 'gene' and the `attributes` contain 'BRCA1'.
+
+2. **CTE `exon_counts`**: This CTE counts the number of exons for each transcript. It joins the `relations` table (which connects transcripts to their exons) with the `features` table to filter for entries where the `featuretype` is 'exon'. It groups the results by the transcript ID and counts the number of exons.
+
+3. **Final SELECT**: The final query selects the transcript names and their corresponding exon counts by joining the two CTEs on the transcript ID.
+
+### Running the Query:
+You can run this query in your SQLite database environment where the GFF/GTF data is stored. Make sure to adjust the `LIKE '%BRCA1%'` part if the attribute format for the gene name is different in your dataset.

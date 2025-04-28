@@ -1,0 +1,50 @@
+```python
+import sqlite3
+
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your database file
+cursor = conn.cursor()
+
+query = """
+SELECT COUNT(*) 
+FROM features
+WHERE seqid = 'chr12' AND featuretype = 'gene' AND 'protein_coding' IN (attributes)
+"""
+
+cursor.execute(query)
+count = cursor.fetchone()[0]
+
+print(f"There are {count} protein-coding genes on chromosome 12.")
+
+conn.close()
+```
+
+**Explanation:**
+
+1. **Connect to the database:**
+   - Replace `'your_database.db'` with the actual name of your SQLite database file.
+   - `sqlite3.connect()` establishes a connection to the database.
+
+2. **Create a cursor object:**
+   - `conn.cursor()` creates a cursor object, which is used to execute SQL queries and fetch results.
+
+3. **Construct the SQL query:**
+   - `SELECT COUNT(*)`: Counts all rows that match the specified criteria.
+   - `FROM features`: Specifies the table to query (your feature table).
+   - `WHERE seqid = 'chr12'`: Filters for features on chromosome 12.
+   - `AND featuretype = 'gene'`: Further filters for gene features.
+   - `AND 'protein_coding' IN (attributes)`: Checks if the `attributes` column contains the string 'protein_coding', indicating protein-coding genes.
+
+4. **Execute the query:**
+   - `cursor.execute(query)` runs the SQL query.
+
+5. **Fetch the result:**
+   - `cursor.fetchone()[0]` retrieves the first row of the result (which will contain a single value: the count) and extracts the first element (the count itself).
+
+6. **Print the result:**
+   - The `print` statement displays the number of protein-coding genes found on chromosome 12.
+
+7. **Close the connection:**
+   - `conn.close()` closes the database connection, releasing resources.
+
+
+

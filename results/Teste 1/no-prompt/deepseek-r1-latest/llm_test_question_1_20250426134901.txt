@@ -1,0 +1,58 @@
+<think>
+Okay, so I need to figure out how many protein-coding genes are on chromosome 12 using the provided database schema. Let's break this down step by step.
+
+First, I know that in GFF/GTF format, each feature is described with specific attributes. For genes, a key attribute is "transcript_start" and "transcript_end", which define where the gene starts and ends on the chromosome. Also, there's an "exons" field that lists all the exons of the gene.
+
+So, I need to find all the features in the database where the feature type is 'gene' and they are located on chromosome 12. Once I have those genes, I should look at their exons to ensure each exon starts after the previous one (i.e., the start position of an exon must be greater than or equal to the end position of the previous exon). This will confirm that it's a single gene with multiple exons.
+
+I'll write a SQL query that selects genes from the 'features' table where seqid is 'chr12'. Then, I'll join this with the 'relations' table because each gene has an ID and might be part of a larger assembly. This will help me get the correct ID for each gene on chromosome 12.
+
+Next, for each selected gene, I need to check if it's a protein-coding gene. Protein-coding genes typically have at least one exon where the transcript is not just a UTR ( untranslated region). So, I'll look for genes that have an exon with either 'CDS' or 'protein_coding' in their attributes.
+
+I should also consider that some genes might be part of larger assemblies and have multiple relations. By selecting based on the gene ID from the relations table, I can ensure I'm counting each unique gene once.
+
+Finally, after executing the query, I'll count how many rows are returned to get the number of protein-coding genes on chromosome 12.
+</think>
+
+To determine the number of protein-coding genes on chromosome 12 using the provided database schema, follow these steps:
+
+### Step-by-Step Explanation:
+
+1. **Identify Relevant Tables and Fields:**
+   - Use the `features` table to find all gene features (where `featuretype = 'gene'`) located on chromosome 12 (`seqid = chr12`).
+   - Ensure each gene has at least one exon that encodes a protein, indicated by attributes like `'CDS'` or `'protein_coding'`.
+
+2. **Query the Database:**
+   - Select genes from `features` where `featuretype = 'gene'`, `seqid = chr12`, and they have an exon with a CDS or are explicitly protein-coding.
+   - Use relations to ensure you're referencing unique gene IDs.
+
+3. **Execute the Query:**
+   - Run the SQL query to count matching genes, which will give the number of protein-coding genes on chromosome 12.
+
+### SQL Query:
+
+```sql
+SELECT COUNT(*) 
+FROM features 
+WHERE featuretype = 'gene' 
+    AND seqid LIKE 'chr12' 
+    AND (attributes LIKE '%CDS%' OR attributes LIKE '%protein_coding%') 
+    AND id IN (
+        SELECT DISTINCT id 
+        FROM relations 
+        WHERE parent LIKE 'chr12' 
+        OR child LIKE 'chr12'
+    );
+```
+
+### Explanation of the Query:
+
+- **`FROM features`:** Restricts to gene features.
+- **`WHERE featuretype = 'gene'`:** Filters by genes only.
+- **`AND seqid LIKE 'chr12'`:** Limits to chromosome 12.
+- **`AND (attributes LIKE '%CDS%' OR attributes LIKE '%protein_coding%')`:** Ensures at least one exon is CDS or protein-coding.
+- **`AND id IN (...)`:** Ensures each gene ID corresponds to a feature on chr12, avoiding duplicates.
+
+### Result:
+
+After executing the query, the result will be the count of protein-coding genes on chromosome 12.

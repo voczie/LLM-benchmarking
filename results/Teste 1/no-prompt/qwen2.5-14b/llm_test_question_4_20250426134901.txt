@@ -1,0 +1,37 @@
+To find out how many genes for miRNA exist in chromosome 10, you need to query your SQLite database using SQL. The `features` table contains information about genomic features such as genes, and the attributes column often includes additional details like gene type or product.
+
+Here's a step-by-step guide on how to write the SQL query:
+
+### Step 1: Identify Relevant Columns
+- **seqid**: This should be 'chr10' for chromosome 10.
+- **featuretype**: You are interested in genes, so you need to filter by `featuretype = 'gene'`.
+- **attributes**: The attributes column often contains information about the gene type. For miRNA genes, this might include something like "gene_type" or "product".
+
+### Step 2: Extract Relevant Information from Attributes
+The `attributes` column is usually a semicolon-separated list of key-value pairs (e.g., `gene_id="ENSG001";gene_type="miRNA";...`). You need to extract the part that specifies if it's an miRNA gene.
+
+### Step 3: Write the Query
+
+Here’s how you can write the SQL query:
+
+```sql
+SELECT COUNT(*)
+FROM features
+WHERE seqid = 'chr10'
+AND featuretype = 'gene'
+AND attributes LIKE '%gene_type "miRNA"%';
+```
+
+This query counts all rows where:
+- `seqid` is 'chr10' (chromosome 10).
+- `featuretype` is 'gene'.
+- The `attributes` column contains the substring `"gene_type "miRNA"`.
+
+### Step 4: Execute and Interpret Results
+Run this SQL command in your SQLite database. It will return a single number representing how many genes on chromosome 10 are miRNAs according to the specified criteria.
+
+### Notes:
+- If the `attributes` column uses different keys or formats, you might need to adjust the query accordingly.
+- Some databases may use other terms for miRNA genes (e.g., "miRNA_gene" instead of just "miRNA"). You should check your specific dataset's documentation if necessary.
+
+This approach assumes that the attributes are stored in a consistent format and that 'gene_type' is used as the key to identify miRNA genes. If this isn't the case, you might need to adjust the query or consult the database schema for more details on how gene types are specified.

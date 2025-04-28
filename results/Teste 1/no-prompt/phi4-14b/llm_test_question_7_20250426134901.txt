@@ -1,0 +1,51 @@
+To determine how many exons the XIST gene has using your SQLite database, you'll need to follow these steps:
+
+### Step 1: Identify the XIST Gene
+
+First, we need to identify the ID of the XIST gene. This information is typically stored in the `attributes` column of the `features` table. The attributes are usually formatted as key-value pairs separated by semicolons.
+
+#### Query to Find the XIST Gene ID:
+
+```sql
+SELECT id 
+FROM features 
+WHERE featuretype = 'gene' AND attributes LIKE '%ID=XIST%';
+```
+
+This query searches for a gene with an attribute indicating it is the XIST gene. The `%` symbols are wildcards that allow for any characters before or after `ID=XIST`.
+
+### Step 2: Find Exons Related to the XIST Gene
+
+Once you have the ID of the XIST gene, use it to find all related exons. This involves using the `relations` table to find features (exons) that are children of the XIST gene.
+
+#### Query to Find Exon IDs:
+
+Assuming the result from Step 1 gives us a gene ID (let's call it `XIST_gene_id`), use this ID in the following query:
+
+```sql
+SELECT child 
+FROM relations 
+WHERE parent = 'XIST_gene_id' AND level = 1;
+```
+
+Here, `level = 1` typically indicates direct children of the gene, which should be exons.
+
+### Step 3: Count the Exons
+
+Finally, count the number of unique exon entries retrieved in Step 2.
+
+#### Query to Count Exons:
+
+```sql
+SELECT COUNT(DISTINCT child) AS exon_count 
+FROM relations 
+WHERE parent = 'XIST_gene_id' AND level = 1;
+```
+
+### Complete Walkthrough
+
+1. **Run the first query** to get the ID of the XIST gene.
+2. **Use the retrieved gene ID** in the second query to find all related exons.
+3. **Count the number of unique exon IDs** using the third query.
+
+By following these steps, you will determine how many exons are associated with the XIST gene in your database. Make sure to replace `'XIST_gene_id'` with the actual ID obtained from Step 1 when running the queries.

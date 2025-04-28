@@ -1,0 +1,37 @@
+<think>
+Okay, so I need to figure out how many miRNAs are present in chromosome 10 using the provided database schema. Let's break this down step by step.
+
+First, I know that miRNAs are a type of RNA, specifically micro RNAs, and they function in gene regulation. In the context of genome annotation, miRNAs would be represented as genes with the 'miRNA' feature type. So, I should look into the features table where the featuretype is 'miRNA'.
+
+Next, each gene has a start and end position on a chromosome. The database schema includes an 'end' integer field for each feature. To find genes on chromosome 10, I need to filter entries where the 'seqid' (which represents the chromosome) is 'chr10'. 
+
+Once I have all miRNA genes on chr10, I can count how many there are by looking at their 'id's. Since each gene should have a unique id, counting the number of distinct or total ids in this subset will give me the answer.
+
+I also need to ensure that my query is efficient and correctly structured. Using a SELECT statement with COUNT on the 'id' field makes sense here because it will count all unique miRNA entries for chromosome 10 without duplicates.
+
+Putting it all together, I'll write a SQL query that selects from the features table where featuretype is 'miRNA', seqid is 'chr10', and then counts the number of such entries. This should give me the exact number of miRNAs present on chromosome 10.
+</think>
+
+To determine how many miRNAs exist in chromosome 10, follow these steps:
+
+1. **Identify the relevant table**: The features table contains all genomic data, including genes.
+
+2. **Filter by feature type and chromosome**:
+   - Use `WHERE` clause to select 'miRNA' as the featuretype.
+   - Filter for `seqid = 'chr10'`.
+
+3. **Count unique miRNAs**:
+   - Use `COUNT(DISTINCT id)` to count each gene uniquely.
+
+4. **Construct the SQL query**:
+
+```sql
+SELECT COUNT(DISTINCT id) AS miRNA_count
+FROM features
+WHERE featuretype = 'miRNA'
+    AND seqid = 'chr10';
+```
+
+5. **Execute the query**: Run this script in your SQLite database to get the count of miRNAs on chromosome 10.
+
+This approach efficiently isolates and counts only the unique miRNA genes located on chromosome 10.

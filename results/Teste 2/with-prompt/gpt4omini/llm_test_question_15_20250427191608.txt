@@ -1,0 +1,65 @@
+To find the genes located between the HOXC11 and HOXC12 genes on both the + and - strands, we can follow these steps:
+
+1. **Connect to the database**: Use `gffutils` to connect to the SQLite database containing the genomic annotations.
+2. **Fetch the coordinates of HOXC11 and HOXC12**: Retrieve the start and end coordinates of these genes.
+3. **Identify the strand**: Determine the strand of both HOXC11 and HOXC12.
+4. **Query for genes between the two**: Depending on the strand, query for genes that fall within the range defined by the start and end coordinates of HOXC11 and HOXC12.
+
+Here’s a Python script that implements these steps:
+
+```python
+import gffutils
+
+# Connect to the GFF/GTF database
+db = gffutils.FeatureDB('your_database.db', keep_order=True)
+
+# Fetch HOXC11 and HOXC12 features
+hoxc11 = db.features_of_type('gene', filter={'gene_id': 'HOXC11'}).next()
+hoxc12 = db.features_of_type('gene', filter={'gene_id': 'HOXC12'}).next()
+
+# Extract coordinates and strand information
+hoxc11_start = hoxc11.start
+hoxc11_end = hoxc11.end
+hoxc11_strand = hoxc11.strand
+
+hoxc12_start = hoxc12.start
+hoxc12_end = hoxc12.end
+hoxc12_strand = hoxc12.strand
+
+# Determine the range for querying
+if hoxc11_strand == '+':
+    start_range = hoxc11_end
+    end_range = hoxc12_start
+else:
+    start_range = hoxc12_end
+    end_range = hoxc11_start
+
+# Fetch genes located between HOXC11 and HOXC12
+genes_between = db.features_of_type('gene', 
+                                     filter={'seqid': hoxc11.seqid, 
+                                             'start': (start_range, end_range), 
+                                             'end': (start_range, end_range)})
+
+# Collect results
+results = []
+for gene in genes_between:
+    results.append((gene.attributes['gene_id'][0], gene.start, gene.end, gene.strand))
+
+# Print results
+print("Genes located between HOXC11 and HOXC12:")
+print("|Gene_ID|Start|End|Strand|")
+for gene_id, start, end, strand in results:
+    print(f"|{gene_id}|{start}|{end}|{strand}|")
+```
+
+### Explanation of the Code:
+- **Database Connection**: The script connects to the SQLite database using `gffutils.FeatureDB`.
+- **Feature Retrieval**: It retrieves the features for HOXC11 and HOXC12 using their gene IDs.
+- **Coordinate Extraction**: The start and end coordinates, along with the strand information, are extracted.
+- **Range Determination**: Depending on the strand of HOXC11, it sets the appropriate range for querying.
+- **Gene Querying**: It queries for genes that fall within the specified range on the same chromosome.
+- **Results Collection**: The results are collected and printed in a formatted table.
+
+### Note:
+- Replace `'your_database.db'` with the actual path to your GFF/GTF database file.
+- Ensure that the gene IDs used in the filter match the format in your database.

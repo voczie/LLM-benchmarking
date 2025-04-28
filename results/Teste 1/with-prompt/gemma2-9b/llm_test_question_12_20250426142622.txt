@@ -1,0 +1,65 @@
+```python
+import sqlite3
+
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your actual database file
+cursor = conn.cursor()
+
+# Query to find the gene COL1A2 and its neighbors
+query = """
+SELECT 
+    f.attributes
+FROM features AS f
+WHERE f.featuretype = 'gene' AND f.attributes LIKE '%COL1A2%';
+"""
+
+cursor.execute(query)
+col1a2_data = cursor.fetchone()  
+
+# Extract the start and end positions of COL1A2 from its attributes
+start, end = col1a2_data[0].split(';')[1].split('=')[1], col1a2_data[0].split(';')[2].split('=')[1]
+
+# Query to find genes before and after COL1A2 based on their positions
+query = """
+SELECT 
+    f.attributes
+FROM features AS f
+WHERE f.featuretype = 'gene' AND f.start < ? AND f.end > ? ORDER BY f.end ASC LIMIT 1
+UNION ALL
+SELECT 
+    f.attributes
+FROM features AS f
+WHERE f.featuretype = 'gene' AND f.start > ? AND f.end < ? ORDER BY f.start DESC LIMIT 1;
+"""
+
+cursor.execute(query, (int(end), int(start), int(start), int(end)))
+neighbors = cursor.fetchall()
+
+# Extract gene names from the attributes of the neighboring genes
+before_gene = neighbors[0][0].split(';')[0].split('=')[1]
+after_gene = neighbors[1][0].split(';')[0].split('=')[1]
+
+print(f"Gene before COL1A2: {before_gene}")
+print(f"Gene after COL1A2: {after_gene}")
+
+
+
+conn.close()
+```
+
+
+**Explanation:**
+
+1. **Connect to the Database:** Establish a connection to your SQLite database using `sqlite3.connect()`. Replace 'your_database.db' with the actual filename of your database.
+
+2. **Query for COL1A2:** Use a SQL query to find the attributes of the gene named "COL1A2". The query selects the `attributes` column from the `features` table where `featuretype` is 'gene' and the `attributes` contain "COL1A2".
+
+3. **Extract COL1A2 Positions:** Parse the retrieved attributes to find the start and end positions of COL1A2. The exact format of the attributes might vary depending on your annotation format, so adjust the parsing logic accordingly.
+
+4. **Query for Neighbors:** Construct a SQL query that finds genes located before and after COL1A2 based on their start and end positions. Use `ORDER BY` to sort the results appropriately (ascending for before, descending for after). Limit the results to one gene using `LIMIT 1`.
+
+5. **Extract Neighbor Gene Names:** Parse the attributes of the retrieved neighboring genes to extract their names. Again, adjust the parsing logic based on your annotation format.
+
+6. **Print Results:** Display the names of the genes located before and after COL1A2.
+
+
+

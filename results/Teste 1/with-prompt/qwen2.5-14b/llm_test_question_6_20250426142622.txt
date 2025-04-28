@@ -1,0 +1,75 @@
+To determine how many transcript isoforms the `XIST` gene has and print their names along with their sizes, you can follow these steps:
+
+1. Retrieve the `XIST` gene from the database.
+2. Find all transcripts associated with this gene.
+3. Calculate the size of each transcript by summing up the lengths of its exons.
+
+Here's a Python script that accomplishes this using the provided SQLite database schema and the `sqlite3` module:
+
+```python
+import sqlite3
+
+# Connect to the database
+conn = sqlite3.connect('genome_annotation.db')
+db = conn.cursor()
+
+def get_gene_id(gene_name):
+    # Retrieve the gene ID for XIST
+    db.execute("SELECT id FROM features WHERE attributes LIKE '%gene_name=\"XIST\"%' AND featuretype='gene'")
+    result = db.fetchone()
+    if result:
+        return result[0]
+    else:
+        raise ValueError(f"Gene {gene_name} not found in the database")
+
+def get_transcripts(gene_id):
+    # Retrieve all transcripts associated with the gene
+    db.execute("SELECT id FROM features WHERE parent=? AND featuretype='transcript'", (gene_id,))
+    return [row[0] for row in db.fetchall()]
+
+def transcript_size(transcript_id):
+    # Calculate the size of a transcript by summing up exon lengths
+    exons = db.execute("SELECT end - start + 1 FROM features WHERE parent=? AND featuretype='exon'", (transcript_id,))
+    return sum([row[0] for row in exons.fetchall()])
+
+def main():
+    gene_name = 'XIST'
+    gene_id = get_gene_id(gene_name)
+    
+    transcripts = get_transcripts(gene_id)
+    
+    print(f"Transcript isoforms of the {gene_name} gene:")
+    for transcript_id in transcripts:
+        size = transcript_size(transcript_id)
+        db.execute("SELECT attributes FROM features WHERE id=?", (transcript_id,))
+        result = db.fetchone()
+        if result:
+            attributes = dict(item.split("=") for item in result[0].split(";"))
+            transcript_name = attributes.get('transcript_name', 'Unknown')
+            print(f"Transcript ID: {transcript_id}, Name: {transcript_name}, Size: {size}")
+
+if __name__ == "__main__":
+    main()
+```
+
+### Explanation:
+
+1. **get_gene_id**: This function retrieves the gene ID for `XIST` by querying the database for a feature with the attribute `gene_name="XIST"` and type `gene`.
+2. **get_transcripts**: This function retrieves all transcript IDs associated with the given gene ID.
+3. **transcript_size**: This function calculates the size of each transcript by summing up the lengths of its exons.
+4. **main**: The main function orchestrates the process:
+   - Retrieves the gene ID for `XIST`.
+   - Finds all transcripts associated with this gene.
+   - Prints the name and size of each transcript.
+
+### Running the Script:
+
+Ensure you have a SQLite database file named `genome_annotation.db` in your working directory. Adjust the connection string if necessary to point to your actual database location.
+
+Run the script using Python, and it will print out the names and sizes of all transcript isoforms for the `XIST` gene.
+
+```sh
+python script_name.py
+```
+
+This approach ensures that you accurately retrieve and process the required information from the genome annotation database.

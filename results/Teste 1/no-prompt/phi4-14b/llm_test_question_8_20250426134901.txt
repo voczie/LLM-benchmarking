@@ -1,0 +1,75 @@
+To determine how many exons each transcript isoform of the BRCA1 gene has, you can follow these steps using SQL queries on your SQLite database. Here's a walkthrough:
+
+### Step 1: Identify the BRCA1 Gene
+
+First, we need to identify the IDs of all features related to the BRCA1 gene. This typically involves searching for the gene name in the `attributes` column.
+
+```sql
+SELECT id 
+FROM features 
+WHERE attributes LIKE '%gene_id "BRCA1"%';
+```
+
+This query will return the IDs of features that are associated with the BRCA1 gene.
+
+### Step 2: Find Transcript Isoforms Related to BRCA1
+
+Next, we need to find all transcript isoforms related to these BRCA1 gene IDs. This involves using the `relations` table to link genes to their transcripts.
+
+```sql
+SELECT DISTINCT child 
+FROM relations 
+WHERE parent IN (
+    SELECT id FROM features WHERE attributes LIKE '%gene_id "BRCA1"%'
+) AND level = 2;
+```
+
+This query retrieves all transcript isoform IDs that are children of the BRCA1 gene entries, assuming `level = 2` indicates a gene-to-transcript relationship.
+
+### Step 3: Retrieve Exon Counts for Each Transcript Isoform
+
+Now, we need to count the number of exons associated with each transcript isoform. This involves linking transcripts to their exons using the `relations` table again and counting the exon features.
+
+```sql
+SELECT 
+    t.child AS transcript_id,
+    f.attributes,
+    COUNT(e.id) AS exon_count
+FROM relations r1
+JOIN relations r2 ON r1.child = r2.parent AND r2.level = 3
+JOIN features f ON r1.child = f.id
+LEFT JOIN features e ON r2.child = e.id AND e.featuretype = 'exon'
+WHERE r1.parent IN (
+    SELECT id FROM features WHERE attributes LIKE '%gene_id "BRCA1"%'
+) 
+AND r1.level = 2
+GROUP BY t.child, f.attributes;
+```
+
+### Step 4: Extract Transcript Names
+
+Finally, extract the transcript names from the `attributes` column. This typically involves parsing the `transcript_name` attribute.
+
+```sql
+SELECT 
+    SUBSTR(attributes, INSTR(attributes, 'transcript_id "') + 15, INSTR(attributes, '"', INSTR(attributes, 'transcript_id "') + 15) - (INSTR(attributes, 'transcript_id "') + 15)) AS transcript_name,
+    COUNT(e.id) AS exon_count
+FROM relations r1
+JOIN relations r2 ON r1.child = r2.parent AND r2.level = 3
+JOIN features f ON r1.child = f.id
+LEFT JOIN features e ON r2.child = e.id AND e.featuretype = 'exon'
+WHERE r1.parent IN (
+    SELECT id FROM features WHERE attributes LIKE '%gene_id "BRCA1"%'
+) 
+AND r1.level = 2
+GROUP BY transcript_name;
+```
+
+### Explanation
+
+- **Step 1**: Identifies the BRCA1 gene entries.
+- **Step 2**: Finds all transcripts related to these genes.
+- **Step 3**: Counts exons for each transcript by linking them through the `relations` table.
+- **Step 4**: Extracts and prints the transcript names along with their exon counts.
+
+This approach assumes that the `attributes` column contains key-value pairs in a specific format, which is common in GFF/GTF files. Adjustments may be needed based on the exact format of your data.

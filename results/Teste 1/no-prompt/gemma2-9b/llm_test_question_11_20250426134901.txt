@@ -1,0 +1,53 @@
+Here's how you can find the chromosomes containing the genes NFKB1, NFKB2, REL, RELA, and RELB using your SQLite3 database:
+
+**SQL Query:**
+
+```sql
+SELECT DISTINCT seqid 
+FROM features
+WHERE featuretype = 'gene'
+  AND attributes LIKE '%NFKB1%'
+UNION ALL
+SELECT DISTINCT seqid 
+FROM features
+WHERE featuretype = 'gene'
+  AND attributes LIKE '%NFKB2%'
+UNION ALL
+SELECT DISTINCT seqid 
+FROM features
+WHERE featuretype = 'gene'
+  AND attributes LIKE '%REL%'
+UNION ALL
+SELECT DISTINCT seqid 
+FROM features
+WHERE featuretype = 'gene'
+  AND attributes LIKE '%RELA%'
+UNION ALL
+SELECT DISTINCT seqid 
+FROM features
+WHERE featuretype = 'gene'
+  AND attributes LIKE '%RELB%';
+```
+
+**Explanation:**
+
+1. **`SELECT DISTINCT seqid`**: This selects the unique chromosome identifiers (likely named like "chr1", "chr2", etc.) from your database.
+
+2. **`FROM features`**: We are querying the `features` table where gene annotations are stored.
+
+3. **`WHERE featuretype = 'gene'`**:  We filter for entries that represent genes.
+
+4. **`AND attributes LIKE '%NFKB1%' ...`**: These lines use the `LIKE` operator with wildcards (`%`) to search for genes containing the specific gene names within their attribute data. 
+
+5. **`UNION ALL`**: This combines the results from each individual query (for NFKB1, NFKB2, REL, RELA, and RELB) into a single result set, giving you all unique chromosomes where these genes are located.
+
+
+
+**Important Notes:**
+
+* **Attribute Format:** The success of this query depends on how gene names are stored within the `attributes` column.  Make sure the `LIKE` patterns accurately match the format used in your database.
+* **Case Sensitivity:** SQLite's `LIKE` operator is case-sensitive by default. If your attribute data isn't consistent in capitalization, you might need to adjust your queries (e.g., use `LOWER(attributes)` for case-insensitive matching).
+
+
+
+Let me know if you have any more questions or need further assistance!

@@ -1,0 +1,54 @@
+To find out the strands on which the HOTAIR, HOXC11, and HOXC12 genes are located in your SQLite database, you can execute a SQL query that selects the relevant information from the `features` table. Here’s a step-by-step guide on how to do this:
+
+### Step 1: Connect to the SQLite Database
+Make sure you have access to the SQLite database where your genome annotation data is stored. You can use a SQLite client or a programming language like Python with the `sqlite3` module.
+
+### Step 2: Write the SQL Query
+You need to write a SQL query that retrieves the `strand` information for the specified genes. The `features` table contains the necessary information, and you can filter the results based on the `featuretype` (which is typically "gene") and the `attributes` column (which contains the gene names).
+
+Here’s a sample SQL query:
+
+```sql
+SELECT seqid, featuretype, strand, attributes
+FROM features
+WHERE featuretype = 'gene' AND attributes LIKE '%HOTAIR%' OR attributes LIKE '%HOXC11%' OR attributes LIKE '%HOXC12%';
+```
+
+### Explanation of the Query:
+- `SELECT seqid, featuretype, strand, attributes`: This selects the sequence ID, feature type, strand, and attributes from the `features` table.
+- `FROM features`: This specifies the table to query.
+- `WHERE featuretype = 'gene'`: This filters the results to include only rows where the feature type is 'gene'.
+- `AND attributes LIKE '%HOTAIR%' OR attributes LIKE '%HOXC11%' OR attributes LIKE '%HOXC12%'`: This further filters the results to include only those genes that match HOTAIR, HOXC11, or HOXC12.
+
+### Step 3: Execute the Query
+Run the query in your SQLite environment. If you are using Python, it might look something like this:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')
+cursor = conn.cursor()
+
+# Execute the query
+query = """
+SELECT seqid, featuretype, strand, attributes
+FROM features
+WHERE featuretype = 'gene' AND (attributes LIKE '%HOTAIR%' OR attributes LIKE '%HOXC11%' OR attributes LIKE '%HOXC12%');
+"""
+cursor.execute(query)
+
+# Fetch and print the results
+results = cursor.fetchall()
+for row in results:
+    print(row)
+
+# Close the connection
+conn.close()
+```
+
+### Step 4: Interpret the Results
+The output will show you the sequence ID, feature type, strand, and attributes for each of the specified genes. The `strand` column will indicate whether each gene is located on the '+' (plus) or '-' (minus) strand of the DNA.
+
+### Conclusion
+By following these steps, you should be able to determine the strands on which the HOTAIR, HOXC11, and HOXC12 genes are located in your SQLite database.

@@ -1,0 +1,47 @@
+Let's break down how to generate a stacked bar plot representing the proportions of protein-coding, lncRNA, and miRNA genes on each chromosome using your SQLite database schema.
+
+**1. Data Extraction:**
+
+* **Identify Feature Types:** You need to filter your `features` table based on feature types:
+    *  `protein_coding`: Select features where `featuretype` is "gene" or a similar term indicating protein-coding genes.
+    *  `lncRNA`: Select features where `featuretype` is "lncRNA" or a similar term.
+    *  `miRNA`: Select features where `featuretype` is "miRNA" or a similar term.
+
+* **Group by Chromosome:** For each feature type, group the results by `seqid` (chromosome). This will give you counts of each gene type on each chromosome.
+
+**2. SQL Query:**
+
+```sql
+-- Calculate counts for each feature type per chromosome
+WITH FeatureCounts AS (
+    SELECT 
+        seqid,  -- Chromosome ID
+        CASE WHEN featuretype = 'protein_coding' THEN 1 ELSE 0 END AS protein_coding_count,
+        CASE WHEN featuretype = 'lncRNA' THEN 1 ELSE 0 END AS lncRNA_count,
+        CASE WHEN featuretype = 'miRNA' THEN 1 ELSE 0 END AS miRNA_count
+    FROM features
+    GROUP BY seqid
+)
+
+-- Select the data for plotting
+SELECT 
+    seqid,  -- Chromosome ID
+    SUM(protein_coding_count) AS total_protein_coding,
+    SUM(lncRNA_count) AS total_lncRNA,
+    SUM(miRNA_count) AS total_miRNA
+FROM FeatureCounts
+GROUP BY seqid;
+
+```
+
+**3. Data Visualization:**
+
+* **Choose a Tool:** Use a plotting library like Matplotlib (Python), ggplot2 (R), or similar to create the stacked bar plot.
+
+* **Input Data:** Pass the results of your SQL query as input to your visualization tool. Each row in the result set will represent a chromosome, and the columns (`total_protein_coding`, `total_lncRNA`, `total_miRNA`) will define the heights of the bars for each gene type.
+
+* **Customization:**  Customize the plot with labels, titles, colors, and legends to make it clear and informative.
+
+
+
+Let me know if you have any more questions or need help with a specific part of this process!

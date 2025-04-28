@@ -1,0 +1,33 @@
+Here's how you can find the genes located immediately before and after COL1A2 using SQL queries on your GFF/GTF database:
+
+**Understanding the Problem**
+
+We need to identify the genes that have a start position just before and after COL1A2.  Since gene annotations often include information about their start and end positions, we can use these values in our query.
+
+**SQL Query**
+
+```sql
+SELECT f1.featuretype AS "Gene Before COL1A2", f2.featuretype AS "Gene After COL1A2"
+FROM features AS f1
+JOIN features AS f2 ON f1.end < f2.start AND f2.id = 'COL1A2'
+WHERE f1.featuretype = 'gene'
+ORDER BY f1.end DESC, f2.start ASC; 
+```
+
+**Explanation:**
+
+1. **`SELECT f1.featuretype AS "Gene Before COL1A2", f2.featuretype AS "Gene After COL1A2"`**: This selects the `featuretype` column from both tables (`f1` and `f2`) and aliases them as "Gene Before COL1A2" and "Gene After COL1A2" for clarity.
+
+2. **`FROM features AS f1 JOIN features AS f2 ON f1.end < f2.start AND f2.id = 'COL1A2'`**:
+   - We use a `JOIN` to connect two instances of the `features` table (`f1` and `f2`). 
+   - The `ON` clause specifies the join condition:
+     -  `f1.end < f2.start`: Ensures that the end position of `f1` is less than the start position of `f2`, effectively finding genes before COL1A2.
+     - `f2.id = 'COL1A2'`:  Filters for rows where the gene ID in `f2` is 'COL1A2'.
+
+3. **`WHERE f1.featuretype = 'gene'`**: Filters to only include rows where the `featuretype` is 'gene', ensuring we are looking at genes.
+
+4. **`ORDER BY f1.end DESC, f2.start ASC`**: Orders the results first by the end position of `f1` in descending order (to get the closest gene before COL1A2) and then by the start position of `f2` in ascending order (to get the closest gene after COL1A2).
+
+
+
+Let me know if you have any other questions or need further assistance!

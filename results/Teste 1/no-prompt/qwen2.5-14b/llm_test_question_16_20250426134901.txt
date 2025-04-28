@@ -1,0 +1,77 @@
+To answer this question using the provided SQLite schema, we need to extract relevant data from the `features` table for each transcript isoform of the specified genes (XIST, MALAT1, BRCA1, NFKB1, COL1A2, HOTAIR, HOXC11, and HOXC12). We also need to join this information with other tables if necessary to get details like biotype.
+
+Here's a step-by-step guide on how you can achieve this:
+
+### Step 1: Identify the relevant features
+First, we need to identify all transcript isoforms for each gene. This involves querying the `features` table where `featuretype` is 'transcript' and `attributes` contain information about the gene name.
+
+### Step 2: Extract necessary details
+For each identified transcript, extract chromosomal location (`seqid`, `start`, `end`), size (calculated as `end - start + 1`), number of exons (by counting related features with `featuretype = 'exon'`), average exon size (sum of sizes of all exons divided by the number of exons), strand, and biotype.
+
+### Step 3: Organize information in a table
+Finally, organize this data into a structured format that can be saved as a new SQLite table or exported to another file format like CSV.
+
+Here's an example SQL query to achieve this:
+
+```sql
+WITH gene_transcripts AS (
+    SELECT 
+        seqid,
+        start,
+        end,
+        strand,
+        attributes,
+        (SELECT COUNT(*) FROM features WHERE parent = f.id AND featuretype = 'exon') as exon_count,
+        AVG((SELECT end - start + 1 FROM features WHERE parent = f.id AND featuretype = 'exon')) as avg_exon_size
+    FROM 
+        features AS f
+    WHERE 
+        featuretype = 'transcript' AND
+        attributes LIKE '%gene_id "XIST";%' OR
+        attributes LIKE '%gene_id "MALAT1";%' OR
+        attributes LIKE '%gene_id "BRCA1";%' OR
+        attributes LIKE '%gene_id "NFKB1";%' OR
+        attributes LIKE '%gene_id "COL1A2";%' OR
+        attributes LIKE '%gene_id "HOTAIR";%' OR
+        attributes LIKE '%gene_id "HOXC11";%' OR
+        attributes LIKE '%gene_id "HOXC12";%'
+),
+transcript_details AS (
+    SELECT 
+        gt.seqid,
+        gt.start,
+        gt.end,
+        (gt.end - gt.start + 1) as size,
+        gt.exon_count,
+        gt.avg_exon_size,
+        gt.strand,
+        SUBSTR(gt.attributes, INSTR(gt.attributes, 'transcript_biotype "') + 20, INSTR(gt.attributes, '"', INSTR(gt.attributes, 'transcript_biotype "')) - INSTR(gt.attributes, 'transcript_biotype "') - 20) as biotype
+    FROM 
+        gene_transcripts gt
+)
+SELECT * FROM transcript_details;
+```
+
+### Explanation:
+1. **gene_transcripts CTE**: This Common Table Expression (CTE) identifies all transcripts for the specified genes and calculates the number of exons and average exon size.
+   - `attributes LIKE '%gene_id "XIST";%'` checks if the gene ID is one of the specified genes.
+   - `(SELECT COUNT(*) FROM features WHERE parent = f.id AND featuretype = 'exon') as exon_count`: Counts the number of exons for each transcript.
+   - `AVG((SELECT end - start + 1 FROM features WHERE parent = f.id AND featuretype = 'exon')) as avg_exon_size`: Calculates the average size of exons.
+
+2. **transcript_details CTE**: This CTE extracts additional details such as chromosomal location, size (length), strand, and biotype.
+   - `SUBSTR(gt.attributes, INSTR(gt.attributes, 'transcript_biotype "') + 20, INSTR(gt.attributes, '"', INSTR(gt.attributes, 'transcript_biotype "')) - INSTR(gt.attributes, 'transcript_biotype "') - 20) as biotype`: Extracts the transcript biotype from `attributes`.
+
+3. **Final SELECT**: The final query selects all columns from `transcript_details` to display the required information.
+
+### Saving Results
+To save these results into a new SQLite table:
+
+```sql
+CREATE TABLE transcript_info AS SELECT * FROM transcript_details;
+```
+
+This will create a new table named `transcript_info` with the desired data. You can then export this table as needed (e.g., to CSV) or use it directly within your database.
+
+### Notes:
+- Ensure that the gene IDs in the query match exactly how they are stored in the `attributes` column.
+- The extraction of biotype assumes a specific format for storing attributes; adjust the substring extraction logic if necessary based on actual data structure.

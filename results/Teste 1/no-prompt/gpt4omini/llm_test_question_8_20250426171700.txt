@@ -1,0 +1,77 @@
+To answer the question of how many exons each transcript isoform of the BRCA1 gene has, you will need to perform a series of SQL queries on the SQLite database that contains the genome annotation data. Here’s a step-by-step guide to constructing the necessary SQL query:
+
+### Step 1: Identify the BRCA1 Gene
+First, you need to find the `id` of the BRCA1 gene in the `features` table. Typically, the gene will be represented as a feature type (e.g., "gene"). You can retrieve the gene's ID using the following query:
+
+```sql
+SELECT id 
+FROM features 
+WHERE featuretype = 'gene' 
+AND attributes LIKE '%BRCA1%';
+```
+
+### Step 2: Find Transcript Isoforms of BRCA1
+Once you have the gene ID for BRCA1, you can find its associated transcript isoforms. Transcript isoforms are usually represented as "mRNA" or "transcript" in the `featuretype` column. You can use the gene ID obtained from the previous query to find the transcript isoforms:
+
+```sql
+SELECT f.id AS transcript_id, f.attributes 
+FROM features f
+JOIN relations r ON f.id = r.child
+WHERE r.parent = '<BRCA1_gene_id>' 
+AND f.featuretype IN ('mRNA', 'transcript');
+```
+
+Replace `<BRCA1_gene_id>` with the actual ID you retrieved in Step 1.
+
+### Step 3: Count Exons for Each Transcript Isoform
+Now that you have the transcript isoforms, you can count the number of exons associated with each transcript. Exons are typically represented as "exon" in the `featuretype` column. You can use the transcript IDs obtained in Step 2 to count the exons:
+
+```sql
+SELECT t.attributes AS transcript_name, COUNT(e.id) AS exon_count
+FROM features e
+JOIN relations r ON e.id = r.child
+JOIN features t ON r.parent = t.id
+WHERE t.featuretype IN ('mRNA', 'transcript') 
+AND e.featuretype = 'exon'
+AND t.id IN (
+    SELECT f.id 
+    FROM features f
+    JOIN relations r ON f.id = r.child
+    WHERE r.parent = '<BRCA1_gene_id>' 
+    AND f.featuretype IN ('mRNA', 'transcript')
+)
+GROUP BY t.id;
+```
+
+### Final Query
+Combining all the steps, the final query to get the number of exons for each transcript isoform of the BRCA1 gene would look like this:
+
+```sql
+SELECT t.attributes AS transcript_name, COUNT(e.id) AS exon_count
+FROM features e
+JOIN relations r ON e.id = r.child
+JOIN features t ON r.parent = t.id
+WHERE t.featuretype IN ('mRNA', 'transcript') 
+AND e.featuretype = 'exon'
+AND t.id IN (
+    SELECT f.id 
+    FROM features f
+    JOIN relations r ON f.id = r.child
+    WHERE r.parent = (
+        SELECT id 
+        FROM features 
+        WHERE featuretype = 'gene' 
+        AND attributes LIKE '%BRCA1%'
+    ) 
+    AND f.featuretype IN ('mRNA', 'transcript')
+)
+GROUP BY t.id;
+```
+
+### Explanation of the Query
+- The inner query retrieves the ID of the BRCA1 gene.
+- The outer query counts the number of exons for each transcript isoform associated with the BRCA1 gene.
+- The results will include the transcript isoform names and the corresponding number of exons.
+
+### Execution
+You can execute this SQL query in your SQLite database environment to get the desired results. Make sure to replace any placeholders with actual values as needed.

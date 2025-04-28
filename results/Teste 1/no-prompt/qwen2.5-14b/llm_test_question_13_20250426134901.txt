@@ -1,0 +1,53 @@
+To retrieve the biotypes of specific genes from a GFF/GTF database structured as described above, you would need to query the `features` table. The biotype information is typically stored within the `attributes` column in the format of key-value pairs (e.g., "gene_biotype"). However, since the exact structure of this attribute can vary depending on how the GFF/GTF file was parsed and imported into the database, we'll assume that the gene biotypes are indeed stored under a similar key.
+
+Here's an example SQL query to retrieve the biotypes for the genes XIST, MALAT1, BRCA1, NFKB1, NFKB2, REL, RELA, RELB, and COL1A2:
+
+```sql
+SELECT id, attributes 
+FROM features 
+WHERE featuretype = 'gene' AND (id IN ('XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB', 'COL1A2'));
+```
+
+This query selects the `id` and `attributes` columns from the `features` table where the feature type is 'gene' and the gene ID matches one of the specified genes.
+
+To extract the biotype specifically, you would need to parse the `attributes` column. This can be done using SQL string functions if your database supports them (e.g., PostgreSQL or SQLite with custom functions), but it's often more straightforward to handle this in a programming language like Python after fetching the data from the database.
+
+Here is an example of how you might do this in Python:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')
+cursor = conn.cursor()
+
+# Query for gene features with specified IDs
+gene_ids = ['XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB', 'COL1A2']
+query = f"SELECT id, attributes FROM features WHERE featuretype = 'gene' AND id IN ({','.join(['?'] * len(gene_ids))})"
+cursor.execute(query, gene_ids)
+
+# Fetch all results
+results = cursor.fetchall()
+
+# Function to parse biotype from attributes string
+def get_biotype(attributes):
+    import json
+    try:
+        attrs_dict = dict(item.split('=') for item in attributes.split(';'))
+        return attrs_dict.get('gene_biotype', 'Unknown')
+    except Exception as e:
+        print(f"Error parsing attributes: {e}")
+        return "Unknown"
+
+# Print gene IDs and their biotypes
+for row in results:
+    gene_id, attributes = row
+    biotype = get_biotype(attributes)
+    print(f"{gene_id}: {biotype}")
+
+conn.close()
+```
+
+This script connects to the SQLite database, executes a query to fetch the relevant genes, parses the `attributes` column for each gene to extract the biotype, and prints out the results.
+
+Make sure you adjust the connection details (`your_database.db`) according to your actual database file path. Also, ensure that the parsing function matches how the attributes are stored in your specific database schema.

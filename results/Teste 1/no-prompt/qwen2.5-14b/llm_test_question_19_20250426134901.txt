@@ -1,0 +1,125 @@
+To generate a boxplot representing the comparison of `protein_coding`, `lncRNA`, and `miRNA` transcript sizes from your SQLite database, you'll need to follow these steps:
+
+1. **Extract Transcript Sizes**: First, extract the sizes (length) of transcripts for each type (`protein_coding`, `lncRNA`, `miRNA`). This involves querying the `features` table where the `featuretype` is one of those transcript types and calculating the length as `(end - start + 1)`.
+
+2. **Aggregate Data**: Aggregate the sizes by transcript type to prepare for plotting.
+
+3. **Export Data**: Export the aggregated data into a format that can be used with a plotting library (like pandas in Python).
+
+4. **Plotting**: Use a plotting library like matplotlib or seaborn to generate the boxplot.
+
+Here's how you could do it step-by-step:
+
+### Step 1: Extract Transcript Sizes
+
+First, let's write a query to extract transcript sizes for each type of transcript (`protein_coding`, `lncRNA`, and `miRNA`).
+
+```sql
+SELECT 
+    featuretype,
+    (end - start + 1) AS length
+FROM features
+WHERE featuretype IN ('transcript', 'mRNA') AND attributes LIKE '%transcript_type="protein_coding"%'
+UNION ALL
+SELECT 
+    featuretype,
+    (end - start + 1) AS length
+FROM features
+WHERE featuretype = 'lnc_RNA' OR attributes LIKE '%transcript_biotype="lncRNA"%'
+UNION ALL
+SELECT 
+    featuretype,
+    (end - start + 1) AS length
+FROM features
+WHERE featuretype IN ('miRNA', 'misc_RNA') AND attributes LIKE '%transcript_type="miRNA"%';
+```
+
+### Step 2: Aggregate Data
+
+Since the above query will return individual transcript lengths, you need to aggregate these lengths by type. You can do this in SQL or after exporting data into Python.
+
+```sql
+SELECT 
+    featuretype,
+    AVG(length) AS avg_length,
+    MIN(length) AS min_length,
+    MAX(length) AS max_length,
+    PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY length) OVER () AS q1,
+    PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY length) OVER () AS q3
+FROM (
+    SELECT 
+        featuretype,
+        (end - start + 1) AS length
+    FROM features
+    WHERE featuretype IN ('transcript', 'mRNA') AND attributes LIKE '%transcript_type="protein_coding"%'
+    UNION ALL
+    SELECT 
+        featuretype,
+        (end - start + 1) AS length
+    FROM features
+    WHERE featuretype = 'lnc_RNA' OR attributes LIKE '%transcript_biotype="lncRNA"%'
+    UNION ALL
+    SELECT 
+        featuretype,
+        (end - start + 1) AS length
+    FROM features
+    WHERE featuretype IN ('miRNA', 'misc_RNA') AND attributes LIKE '%transcript_type="miRNA"%'
+)
+GROUP BY featuretype;
+```
+
+### Step 3: Export Data
+
+Export the data from SQLite to a CSV file or directly into Python for plotting.
+
+```python
+import sqlite3
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Connect to your database
+conn = sqlite3.connect('your_database.db')
+
+# Query and load data into DataFrame
+query = """
+SELECT 
+    featuretype,
+    (end - start + 1) AS length
+FROM features
+WHERE featuretype IN ('transcript', 'mRNA') AND attributes LIKE '%transcript_type="protein_coding"%'
+UNION ALL
+SELECT 
+    featuretype,
+    (end - start + 1) AS length
+FROM features
+WHERE featuretype = 'lnc_RNA' OR attributes LIKE '%transcript_biotype="lncRNA"%'
+UNION ALL
+SELECT 
+    featuretype,
+    (end - start + 1) AS length
+FROM features
+WHERE featuretype IN ('miRNA', 'misc_RNA') AND attributes LIKE '%transcript_type="miRNA"%';
+"""
+df = pd.read_sql_query(query, conn)
+
+# Close the connection
+conn.close()
+
+# Aggregate data for boxplot
+box_data = df.groupby('featuretype')['length'].apply(list).reset_index(name='lengths')
+```
+
+### Step 4: Plotting
+
+Now that you have your data in a DataFrame, use seaborn to create a boxplot.
+
+```python
+sns.boxplot(x='featuretype', y='length', data=df)
+plt.title("Comparison of Transcript Sizes")
+plt.xlabel("Transcript Type")
+plt.ylabel("Length (bp)")
+plt.show()
+```
+
+This will generate a boxplot comparing the sizes of `protein_coding`, `lncRNA`, and `miRNA` transcripts. Adjust the SQL queries as necessary to fit your exact data schema and attributes if needed.

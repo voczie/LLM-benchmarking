@@ -1,0 +1,87 @@
+To calculate the average exon size of the BRCA1 transcript isoforms, we need to follow these steps:
+
+1. Identify all exons associated with the BRCA1 gene.
+2. Calculate the length of each exon.
+3. Compute the average exon size.
+
+Here's a step-by-step guide and the corresponding Python code using SQLite queries and the `sqlite3` module in Python:
+
+### Step 1: Identify All Exons Associated with BRCA1 Gene
+
+First, we need to find all exons that belong to the BRCA1 gene. We can do this by querying the database for exons that are children of the BRCA1 transcript.
+
+### Step 2: Calculate the Length of Each Exon
+
+Once we have identified the exons, we calculate their lengths using the `start` and `end` coordinates.
+
+### Step 3: Compute the Average Exon Size
+
+Finally, we compute the average length of these exons.
+
+Here's how you can implement this in Python:
+
+```python
+import sqlite3
+from collections import defaultdict
+
+# Connect to the SQLite database
+conn = sqlite3.connect('genome_annotation.db')
+db = conn.cursor()
+
+def get_exons_for_gene(gene_id):
+    # Find all transcript IDs associated with the gene ID
+    transcripts = db.execute(
+        "SELECT child FROM relations WHERE parent = ? AND level = 1",
+        (gene_id,)
+    ).fetchall()
+    
+    transcript_ids = [t[0] for t in transcripts]
+    
+    # Find all exons associated with these transcripts
+    exons = []
+    for transcript_id in transcript_ids:
+        exon_query = db.execute(
+            "SELECT id, seqid, start, end FROM features WHERE parent = ? AND featuretype = 'exon'",
+            (transcript_id,)
+        ).fetchall()
+        
+        exons.extend(exon_query)
+    
+    return exons
+
+def calculate_average_exon_size(gene_id):
+    # Get all exons for the gene
+    exons = get_exons_for_gene(gene_id)
+    
+    exon_lengths = []
+    for exon in exons:
+        length = exon[3] - exon[2] + 1  # Calculate exon length (end - start + 1)
+        exon_lengths.append(length)
+    
+    if not exon_lengths:
+        return None
+    
+    average_length = sum(exon_lengths) / len(exon_lengths)
+    return average_length
+
+# Example: BRCA1 gene ID
+brca1_gene_id = 'ENSG00000139607'  # Replace with the actual BRCA1 gene ID from your database
+
+average_exon_size = calculate_average_exon_size(brca1_gene_id)
+print(f"The average exon size of BRCA1 transcript isoforms is: {average_exon_size:.2f} bp")
+```
+
+### Explanation:
+
+1. **get_exons_for_gene**: This function retrieves all exons associated with a given gene ID by first finding the transcripts and then querying for exons that belong to these transcripts.
+   
+2. **calculate_average_exon_size**: This function calculates the average length of the exons retrieved from `get_exons_for_gene`.
+
+3. **brca1_gene_id**: Replace this with the actual BRCA1 gene ID in your database.
+
+### Notes:
+- Ensure you have the correct gene ID for BRCA1.
+- The exon lengths are calculated as `(end - start + 1)` to include both endpoints of the exon.
+- If there are no exons found, the function will return `None`.
+
+This script should give you the average exon size of the BRCA1 transcript isoforms in your genome annotation database.

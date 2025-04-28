@@ -1,0 +1,33 @@
+Here's how you can find the number of exons in the XIST gene using your SQLite3 database schema:
+
+**1. Understand the GFF/GTF Format:**
+
+* **featuretype:**  This column is crucial. Look for entries where `featuretype` is "exon". These represent individual exons within a gene.
+* **seqid:** This identifies the chromosome or sequence containing the gene. Make sure you're looking at the correct sequence (e.g., 'chrX' if XIST is on chromosome X).
+
+**2. The Query:**
+
+```sql
+SELECT COUNT(*) 
+FROM features
+WHERE seqid = 'chrX' -- Replace with the actual chromosome ID if different
+  AND featuretype = 'exon'
+  AND attributes LIKE '%gene_name "XIST"%'; -- Adjust attribute search as needed
+```
+
+**Explanation:**
+
+* **`SELECT COUNT(*)`:** This counts all rows that meet our criteria.
+* **`FROM features`:** We're querying the `features` table where gene annotation data is stored.
+* **`WHERE seqid = 'chrX'`:**  Filter for entries on the specific chromosome where XIST resides. Replace 'chrX' with the actual ID if it's different.
+* **`AND featuretype = 'exon'`:**  Select only rows representing exons.
+* **`AND attributes LIKE '%gene_name "XIST"%'`:** This part is crucial for specificity. It uses a pattern match (`LIKE`) to find entries where the `attributes` column contains the gene name "XIST". Adjust this based on how gene names are stored in your database.
+
+**3. Running the Query:**
+
+* Execute this query in your SQLite3 command-line interface or using a tool like DB Browser for SQLite.
+* The result will be a single number representing the total count of exons found for the XIST gene in your database.
+
+
+
+Let me know if you have any other questions about working with your genome annotation data!

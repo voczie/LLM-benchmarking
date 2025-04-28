@@ -1,0 +1,50 @@
+To determine how many exons the XIST gene has using the provided SQLite database schema, you can follow these steps:
+
+1. **Identify the XIST Gene**: First, you need to find the ID or attributes associated with the XIST gene in the `features` table. The `featuretype` for genes is typically "gene".
+
+2. **Find Exons Associated with the XIST Gene**: Once you have the ID of the XIST gene, you can query the `features` table again to count the number of exons associated with that gene. Exons are typically marked with the `featuretype` "exon".
+
+3. **Construct the SQL Queries**: You will need to write SQL queries to perform the above steps.
+
+Here’s how you can do it:
+
+### Step 1: Find the XIST Gene ID
+
+```sql
+SELECT id 
+FROM features 
+WHERE featuretype = 'gene' AND attributes LIKE '%XIST%';
+```
+
+This query will return the ID of the XIST gene. Make sure to check the `attributes` column for the exact name or identifier of the gene.
+
+### Step 2: Count the Exons for the XIST Gene
+
+Assuming you found the ID of the XIST gene (let's say it's `xist_gene_id`), you can now count the exons:
+
+```sql
+SELECT COUNT(*) AS exon_count 
+FROM features 
+WHERE featuretype = 'exon' AND attributes LIKE '%xist_gene_id%';
+```
+
+### Complete Walkthrough
+
+1. **Run the first query** to get the ID of the XIST gene.
+2. **Take note of the ID** returned from the first query.
+3. **Replace `xist_gene_id`** in the second query with the actual ID you retrieved.
+4. **Run the second query** to get the count of exons.
+
+### Example
+
+If the first query returns an ID like `gene_XIST_1`, your second query would look like this:
+
+```sql
+SELECT COUNT(*) AS exon_count 
+FROM features 
+WHERE featuretype = 'exon' AND attributes LIKE '%gene_XIST_1%';
+```
+
+### Final Note
+
+Make sure to adjust the `LIKE` clause in the queries based on how the attributes are formatted in your database. The `%` wildcard allows for partial matches, which is useful if the ID is part of a longer string.

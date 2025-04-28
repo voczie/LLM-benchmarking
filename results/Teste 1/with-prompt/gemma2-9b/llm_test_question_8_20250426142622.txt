@@ -1,0 +1,54 @@
+```python
+import sqlite3
+
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your actual database file
+cursor = conn.cursor()
+
+# Query to get the number of exons for each BRCA1 transcript isoform
+query = """
+SELECT 
+    f.attributes,
+    COUNT(DISTINCT c.id) AS exon_count
+FROM features f
+JOIN relations r ON f.id = r.parent
+JOIN features c ON r.child = c.id
+WHERE f.featuretype = 'transcript'
+  AND f.seqid = 'chr17' -- Assuming BRCA1 is on chromosome 17
+  AND f.attributes LIKE '%gene_name "BRCA1"%' -- Adjust the attribute search as needed
+GROUP BY f.attributes;
+"""
+
+cursor.execute(query)
+results = cursor.fetchall()
+
+# Process the results and print transcript name and exon count
+for row in results:
+    attributes = json.loads(row[0])  # Assuming attributes are JSON-formatted
+    transcript_name = attributes.get('transcript_name') 
+    exon_count = row[1]
+    print(f"Transcript Name: {transcript_name}, Exon Count: {exon_count}")
+
+conn.close()
+```
+
+**Explanation:**
+
+1. **Database Connection:** Establish a connection to your SQLite database using `sqlite3.connect()`. Replace 'your_database.db' with the actual filename.
+2. **Cursor:** Create a cursor object to execute SQL queries.
+3. **Query:** The core of this script is the SQL query:
+   - It joins the `features` table (containing gene/transcript information) with the `relations` table (representing parent-child relationships between features).
+   - It filters for transcripts (`featuretype = 'transcript'`) on chromosome 17 (`seqid = 'chr17'`). You might need to adjust this based on your database schema.
+   - The `LIKE '%gene_name "BRCA1"%'` clause helps identify BRCA1 transcripts by searching for the gene name in their attributes.  Make sure this attribute name is correct for your database.
+   - It counts distinct exons using `COUNT(DISTINCT c.id)`, grouping by transcript attributes to get exon counts per transcript.
+4. **Result Processing:**
+   - The query results are fetched using `cursor.fetchall()`. Each row contains the transcript attributes and the exon count.
+   - The code assumes that the `attributes` field is in JSON format. It uses `json.loads()` to parse it.
+   - It extracts the `transcript_name` from the parsed attributes and prints it along with the `exon_count`.
+
+**Important Notes:**
+
+- **Database Schema:** Adjust the query based on your specific database schema (table names, attribute names).
+- **Attribute Search:** The `LIKE` clause for finding BRCA1 transcripts might need modification depending on how gene names are stored in your attributes.
+
+
+

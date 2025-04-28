@@ -1,0 +1,64 @@
+```python
+import sqlite3
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Connect to the SQLite database
+conn = sqlite3.connect('genome_annotation.db')
+db = conn.cursor()
+
+def get_gene_lengths(chromosome):
+    # Query to select genes on a specific chromosome and calculate their lengths
+    query = """
+    SELECT id, start, end FROM features 
+    WHERE featuretype='gene' AND seqid=?;
+    """
+    
+    db.execute(query, (chromosome,))
+    genes = db.fetchall()
+    
+    gene_lengths = []
+    for gene in genes:
+        gene_id, start, end = gene
+        # Calculate the length of each gene
+        gene_length = end - start + 1
+        gene_lengths.append(gene_length)
+        
+    return gene_lengths
+
+# Get gene lengths on chromosome X
+gene_lengths_x = get_gene_lengths('X')
+
+# Plotting the scatterplot for gene sizes distribution on chromosome X
+plt.figure(figsize=(10, 6))
+plt.scatter(range(len(gene_lengths_x)), gene_lengths_x, alpha=0.5)
+plt.title('Distribution of Gene Sizes in Chromosome X')
+plt.xlabel('Gene Index')
+plt.ylabel('Gene Length (bp)')
+plt.grid(True)
+plt.show()
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation:
+
+1. **Database Connection**: Connect to the SQLite database using `sqlite3.connect`.
+
+2. **Function Definition**:
+   - Define a function `get_gene_lengths` that takes a chromosome identifier as an argument.
+   - Use SQL to query genes on the specified chromosome from the `features` table where `featuretype='gene'`.
+   - Calculate each gene's length by subtracting its start position from its end position and adding 1 (to account for inclusive indexing).
+
+3. **Data Retrieval**:
+   - Execute the query with the specific chromosome ('X') to get all genes on that chromosome.
+   - Fetch all results and calculate their lengths.
+
+4. **Plotting**:
+   - Use `matplotlib` to create a scatter plot of gene indices versus their lengths.
+   - Set appropriate labels for the axes and title for clarity.
+
+5. **Close Connection**: Close the database connection after retrieving data to free resources.
+
+This script will generate a scatterplot showing how gene sizes are distributed across chromosome X, providing insights into the variability in gene length on this chromosome.

@@ -1,0 +1,63 @@
+To determine the chromosomes where the genes `NFKB1`, `NFKB2`, `REL`, `RELA`, and `RELB` are located, you can use the following steps:
+
+1. Query the database to find all gene features with the specified names.
+2. Extract the chromosome (seqid) information for each of these genes.
+
+Here's a Python script that uses the SQLite3 database to retrieve this information:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database_file.db')
+cursor = conn.cursor()
+
+# List of gene names to search for
+gene_names = ['NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB']
+
+# Query to find genes by name and extract their chromosome information
+query = """
+SELECT seqid, attributes 
+FROM features 
+WHERE featuretype = 'gene' AND attributes LIKE '%{}%' 
+"""
+
+chromosome_info = {}
+
+for gene_name in gene_names:
+    cursor.execute(query.format(gene_name))
+    results = cursor.fetchall()
+    
+    for result in results:
+        chromosome = result[0]
+        attributes_str = result[1]
+        
+        # Parse the attributes string to extract the gene name
+        if 'gene_id' in attributes_str or 'Name' in attributes_str:
+            gene_info = {}
+            
+            # Split the attributes string into key-value pairs
+            for attr_pair in attributes_str.split(';'):
+                key, value = attr_pair.strip().split(' ', 1)
+                gene_info[key] = value
+            
+            if gene_name == gene_info.get('Name', '') or gene_name == gene_info.get('gene_id', ''):
+                chromosome_info[gene_name] = chromosome
+                break
+
+# Print the results
+for gene, chrom in chromosome_info.items():
+    print(f"Gene {gene} is located on chromosome {chrom}")
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation:
+1. **Database Connection**: The script connects to your SQLite database.
+2. **Query Construction**: For each gene name, a query is constructed to find genes with matching attributes (either `Name` or `gene_id`).
+3. **Attribute Parsing**: Each result's attribute string is parsed to extract the actual gene name and chromosome information.
+4. **Result Storage**: The chromosome information for each gene is stored in a dictionary.
+5. **Output**: Finally, the script prints out which chromosomes contain each of the specified genes.
+
+Make sure to replace `'your_database_file.db'` with the path to your SQLite database file. This script assumes that the attributes are formatted as `key value; key value; ...`. Adjust the parsing logic if your attribute format differs.

@@ -1,0 +1,49 @@
+```sql
+SELECT 
+    f.seqid AS chromosome,
+    f.start AS start_position,
+    f.end AS end_position,
+    (f.end - f.start + 1) AS transcript_size,
+    -- Count the number of exons (assuming 'exon' is a valid feature type in your data)
+    COUNT(DISTINCT CASE WHEN featuretype = 'exon' THEN f.id ELSE NULL END) AS num_exons,
+    -- Calculate average exon size
+    AVG(CASE WHEN featuretype = 'exon' THEN (f.end - f.start + 1) ELSE NULL END) AS avg_exon_size,
+    f.strand,
+    -- Extract biotype from the attributes column (adjust based on your attribute format)
+    SUBSTR(f.attributes, INSTR(f.attributes, 'biotype') + 8, INSTR(f.attributes, '"', INSTR(f.attributes, 'biotype') + 8) - INSTR(f.attributes, 'biotype') - 8) AS biotype
+FROM features f
+WHERE f.featuretype = 'transcript'
+AND f.seqid IN ('chrX', 'chr19', 'chr17', 'chr14', 'chr1', 'chr12', 'chr12', 'chr12') -- Replace with actual chromosome names for your genes
+AND SUBSTR(f.attributes, INSTR(f.attributes, 'gene_name') + 10, INSTR(f.attributes, '"', INSTR(f.attributes, 'gene_name') + 10) - INSTR(f.attributes, 'gene_name') - 10) IN ('XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'COL1A2', 'HOTAIR', 'HOXC11', 'HOXC12') -- Adjust based on your attribute format
+GROUP BY f.id;
+
+```
+
+**Explanation:**
+
+1. **SELECT Clause:**  Selects the desired information: chromosome, start and end positions, transcript size, number of exons, average exon size, strand, and biotype.
+2. **FROM Clause:** Specifies the `features` table as the source of data.
+3. **WHERE Clause:** Filters the results based on:
+   -  `featuretype = 'transcript'`: Selects only transcript features.
+   -  `seqid IN ('chrX', 'chr19', ...)`: Replace with the actual chromosome names for your genes of interest.
+   -  `SUBSTR(f.attributes, INSTR(f.attributes, 'gene_name') + 10, ...) IN ('XIST', 'MALAT1', ...)`: Extracts the gene name from the `attributes` column and filters based on the desired genes. Adjust this part based on your attribute format.
+4. **GROUP BY Clause:** Groups the results by `f.id` (transcript ID) to aggregate information for each transcript.
+
+**Important Notes:**
+
+* **Attribute Format:** The query assumes a specific format for the `attributes` column. You might need to adjust the `SUBSTR` expressions based on how gene names and biotypes are stored in your database.
+* **Exon Counting:** This query assumes that 'exon' is a valid feature type in your GFF/GTF data. If not, you'll need to modify the `COUNT` statement accordingly.
+
+
+**Saving the Results:**
+
+You can save the results of this query to a file using the `OUTPUT TO` clause in SQLite:
+
+```sql
+SELECT ... -- Your query here
+OUTPUT TO 'transcript_info.txt'; 
+```
+
+
+
+This will create a text file named "transcript_info.txt" containing the organized information about each transcript isoform.

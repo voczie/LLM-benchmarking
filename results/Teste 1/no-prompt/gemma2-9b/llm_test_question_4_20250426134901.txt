@@ -1,0 +1,26 @@
+Here's how you can find the number of miRNA genes on chromosome 10 using your SQLite3 database schema:
+
+**SQL Query:**
+
+```sql
+SELECT COUNT(*)
+FROM features
+WHERE seqid = 'chr10' AND featuretype = 'miRNA';
+```
+
+**Explanation:**
+
+1. **`SELECT COUNT(*)`**: This part of the query instructs SQLite to count all rows that meet the specified criteria.
+2. **`FROM features`**:  We are querying the `features` table, which stores information about genomic features.
+3. **`WHERE seqid = 'chr10'`**: This filters the results to include only features located on chromosome 10. Remember to adjust this if your database uses a different naming convention for chromosomes.
+4. **`AND featuretype = 'miRNA'`**: This further refines the results to count only features classified as 'miRNA'.
+
+**Walkthrough:**
+
+1. **Connect to your SQLite3 database.** Use a tool like `sqlite3` in your terminal or a GUI database client.
+2. **Execute the query:** Paste the SQL query into your database interface and run it.
+3. **Interpret the result:** The query will return a single number representing the total count of miRNA genes found on chromosome 10 in your database.
+
+
+
+Let me know if you have any other questions about querying your genome annotation database!

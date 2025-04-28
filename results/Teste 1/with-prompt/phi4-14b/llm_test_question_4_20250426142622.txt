@@ -1,0 +1,35 @@
+To determine how many miRNA genes exist on chromosome 10 using the provided SQLite database schema, you can follow these steps:
+
+1. **Understand the Database Schema**: The `features` table contains all genomic features, including genes and their types (e.g., protein-coding, miRNA). Each feature has attributes stored in a text format.
+
+2. **Identify Relevant Features**:
+   - You need to filter for features of type `'gene'`.
+   - Within these gene features, identify those with an attribute indicating they are miRNA genes. This is typically found in the `attributes` column, which might contain key-value pairs like `"gene_type" "miRNA"`.
+
+3. **Filter by Chromosome**:
+   - You need to filter these miRNA genes to only include those on chromosome 10. This can be done using the `seqid` column.
+
+4. **SQL Query Construction**:
+   - Use an SQL query to extract and count the relevant features based on the above criteria.
+
+Here is a step-by-step SQL query to achieve this:
+
+```sql
+SELECT COUNT(*) AS miRNA_gene_count
+FROM features
+WHERE featuretype = 'gene'
+  AND seqid = '10'
+  AND attributes LIKE '%gene_type "miRNA"%';
+```
+
+### Explanation of the Query:
+- `SELECT COUNT(*) AS miRNA_gene_count`: This counts all rows that match the criteria and labels the result as `miRNA_gene_count`.
+- `FROM features`: Specifies the table to query.
+- `WHERE featuretype = 'gene'`: Filters for gene features.
+- `AND seqid = '10'`: Ensures only genes on chromosome 10 are considered.
+- `AND attributes LIKE '%gene_type "miRNA"%';`: Checks if the `attributes` column contains a key-value pair indicating the gene is of type miRNA.
+
+### Execution:
+- Run this query in an SQLite environment where your database is loaded. The result will give you the count of miRNA genes on chromosome 10.
+
+This approach assumes that the `attributes` field uses a consistent format for storing gene types, which is common in GFF/GTF files. Adjust the attribute key if necessary based on the specific annotation file's conventions.

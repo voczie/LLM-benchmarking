@@ -1,0 +1,12 @@
+```python
+import gffutils
+
+# Connect to the existing database
+db = gffutils.FeatureDB('your_database.db')
+
+# Count protein-coding genes on chromosome 12
+protein_coding_genes = db.features_of_type('gene', seqid='12')
+count = sum(1 for gene in protein_coding_genes if 'protein_coding' in gene.attributes.get('gene_biotype', []))
+
+print(f'The number of protein-coding genes on chromosome 12 is: {count}')
+```

@@ -1,0 +1,46 @@
+<think>
+Okay, I need to figure out how to determine the number of protein-coding genes on chromosome 12 using the provided database schema and the given code structure tips. Let's start by understanding what each part does.
+
+First, I know that the features table contains all the genomic features like genes, exons, etc., with their attributes. So, I'll need to query this table specifically for 'gene' type features where the sequence ID is '12'.
+
+Next, not every gene is a protein-coding gene. I remember from the schema that there's a 'gene_biotype' attribute which can be used to filter biotypes like 'protein_coding'. So, I'll include this in my query.
+
+I should also consider that some genes might have multiple exons, but for counting, each gene is just one entry regardless of its exon count. So, using features_of_type('gene') will give me all the gene entries.
+
+Putting it together, I'll write a function that fetches all 'gene' features from chromosome 12 with the 'protein_coding' biotype and then count them. This should give the number of protein-coding genes on chromosome 12.
+</think>
+
+To determine how many protein-coding genes are on chromosome 12, we'll use a query that filters for 'gene' type features specifically on chromosome 12 with the 'protein_coding' biotype.
+
+### Solution Code
+```python
+def count_protein_coding_genes_on_chromosome_12():
+    db = sqlite3.connect('genome.db')
+    
+    # Query to get all protein-coding genes on chromosome 12
+    cursor = db.cursor()
+    cursor.execute("""
+        SELECT COUNT(*) 
+        FROM features 
+        WHERE featuretype = 'gene' 
+            AND seqid = '12' 
+            AND 'protein_coding' IN gene_biotype;
+    """)
+    
+    count = cursor.fetchone()[0]
+    print(f"Number of protein-coding genes on chromosome 12: {count}")
+    
+    db.close()
+```
+
+### Explanation
+1. **Database Connection**: We connect to the SQLite database using `sqlite3.connect('genome.db')`.
+2. **Query Execution**: We execute a SQL query that:
+   - Selects the count of features where:
+     - `featuretype` is 'gene' (to get all gene entries)
+     - `seqid` is '12' (to filter for chromosome 12)
+     - `'protein_coding'` is in the `gene_biotype` attribute (to filter protein-coding genes)
+3. **Result Handling**: The result is retrieved as a tuple, and we extract the count from it.
+4. **Output**: We print the number of protein-coding genes found on chromosome 12.
+
+This approach efficiently counts the desired features using direct filtering in the SQL query to ensure accuracy and performance.

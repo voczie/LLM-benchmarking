@@ -1,0 +1,58 @@
+To generate a scatterplot representing the distribution of gene sizes on the X chromosome using the `gffutils` library, you can follow these steps:
+
+1. **Connect to the SQLite database** that contains the genomic annotations.
+2. **Fetch the gene features** specifically for the X chromosome.
+3. **Calculate the real sizes of the genes** by summing the sizes of their unique exons.
+4. **Plot the gene sizes** using a scatterplot.
+
+Here’s a Python script that accomplishes this:
+
+```python
+import gffutils
+import matplotlib.pyplot as plt
+
+# Step 1: Connect to the SQLite database
+db_path = 'path_to_your_database.db'  # Replace with your database path
+db = gffutils.FeatureDB(db_path)
+
+# Step 2: Fetch gene features for the X chromosome
+genes_x = db.features_of_type('gene', seqid='X')
+
+# Step 3: Calculate the real sizes of the genes
+gene_sizes = []
+for gene in genes_x:
+    # Get all unique exons for the gene
+    exons = list(db.children(gene, featuretype='exon', order_by='start'))
+    
+    # Calculate the size of each unique exon
+    unique_exon_sizes = {exon.id: (exon.end - exon.start) for exon in exons}
+    
+    # Calculate the total gene size as the sum of unique exon sizes
+    total_gene_size = sum(unique_exon_sizes.values())
+    gene_sizes.append(total_gene_size)
+
+# Step 4: Generate a scatterplot
+plt.figure(figsize=(10, 6))
+plt.scatter(range(len(gene_sizes)), gene_sizes, alpha=0.6)
+plt.title('Distribution of Gene Sizes on the X Chromosome')
+plt.xlabel('Gene Index')
+plt.ylabel('Gene Size (bp)')
+plt.grid()
+plt.show()
+```
+
+### Explanation of the Code:
+- **Database Connection:** The script connects to the SQLite database using `gffutils.FeatureDB()`.
+- **Fetching Genes:** It retrieves all gene features located on the X chromosome using `db.features_of_type('gene', seqid='X')`.
+- **Calculating Gene Sizes:** For each gene, it fetches its child exons, calculates the size of each unique exon, and sums these sizes to get the total gene size.
+- **Plotting:** Finally, it uses `matplotlib` to create a scatterplot of the gene sizes.
+
+### Requirements:
+- Ensure you have the `gffutils` and `matplotlib` libraries installed. You can install them using pip if you haven't done so:
+  ```bash
+  pip install gffutils matplotlib
+  ```
+
+### Note:
+- Replace `'path_to_your_database.db'` with the actual path to your SQLite database file.
+- The scatterplot will show the distribution of gene sizes, with each point representing a gene on the X chromosome.

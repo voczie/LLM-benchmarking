@@ -1,0 +1,66 @@
+To find the chromosomal position of the BRCA1 gene from the SQLite database containing genome annotations, you will need to query the `features` table, which contains information about various genomic features, including genes. The BRCA1 gene will be represented in this table with its corresponding `seqid`, `start`, and `end` positions.
+
+Here’s a step-by-step guide on how to construct the SQL query:
+
+1. **Identify the Feature Type**: The BRCA1 gene is typically classified as a "gene" in the `featuretype` column. 
+
+2. **Search for the BRCA1 Gene**: You will need to filter the results to find the entry corresponding to the BRCA1 gene in the `attributes` column.
+
+3. **Select Relevant Columns**: You will want to select the `seqid`, `start`, and `end` columns to get the chromosomal position.
+
+### SQL Query
+
+Here’s the SQL query that you can use to retrieve the chromosomal position of the BRCA1 gene:
+
+```sql
+SELECT seqid, start, end
+FROM features
+WHERE featuretype = 'gene' AND attributes LIKE '%BRCA1%';
+```
+
+### Explanation of the Query
+
+- `SELECT seqid, start, end`: This part of the query specifies that you want to retrieve the chromosome identifier (`seqid`), the start position (`start`), and the end position (`end`) of the gene.
+- `FROM features`: This indicates that you are querying the `features` table.
+- `WHERE featuretype = 'gene'`: This condition filters the results to include only those entries that are classified as genes.
+- `AND attributes LIKE '%BRCA1%'`: This condition further filters the results to include only those entries where the `attributes` column contains the string "BRCA1".
+
+### Executing the Query
+
+You can execute this query using a SQLite client or a programming language that supports SQLite (like Python with the `sqlite3` module). 
+
+### Example in Python
+
+Here’s a simple example of how you might execute this query in Python:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database_name.db')
+cursor = conn.cursor()
+
+# Execute the query
+query = """
+SELECT seqid, start, end
+FROM features
+WHERE featuretype = 'gene' AND attributes LIKE '%BRCA1%';
+"""
+cursor.execute(query)
+
+# Fetch the results
+results = cursor.fetchall()
+
+# Print the results
+for row in results:
+    print(f"Chromosome: {row[0]}, Start: {row[1]}, End: {row[2]}")
+
+# Close the connection
+conn.close()
+```
+
+Replace `'your_database_name.db'` with the actual name of your SQLite database file.
+
+### Conclusion
+
+By executing the above query, you should be able to retrieve the chromosomal position of the BRCA1 gene, which will give you the chromosome it is located on, along with its start and end positions on that chromosome.

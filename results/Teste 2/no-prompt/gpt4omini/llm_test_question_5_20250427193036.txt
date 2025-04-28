@@ -1,0 +1,40 @@
+To calculate the sizes of each gene locus separately for the specified genes (XIST, MALAT1, BRCA1, COL1A2, NFKB1, NFKB2, REL, RELA, and RELB) from the SQLite database with the given schema, you can follow these steps:
+
+1. **Identify the Gene Features**: First, you need to identify the features in the `features` table that correspond to the genes of interest. Typically, gene features are represented by the `featuretype` column, which may contain values like "gene".
+
+2. **Calculate the Size of Each Gene Locus**: The size of a gene locus can be calculated as the difference between the `end` and `start` positions for each gene feature.
+
+3. **Write the SQL Query**: You can write a SQL query to select the relevant gene features and calculate their sizes.
+
+Here’s a SQL query that accomplishes this:
+
+```sql
+SELECT 
+    attributes,
+    (end - start + 1) AS size
+FROM 
+    features
+WHERE 
+    featuretype = 'gene' 
+    AND attributes IN ('gene_name "XIST"', 
+                       'gene_name "MALAT1"', 
+                       'gene_name "BRCA1"', 
+                       'gene_name "COL1A2"', 
+                       'gene_name "NFKB1"', 
+                       'gene_name "NFKB2"', 
+                       'gene_name "REL"', 
+                       'gene_name "RELA"', 
+                       'gene_name "RELB"');
+```
+
+### Explanation of the Query:
+- **SELECT**: We are selecting the `attributes` column (which should contain the gene names) and calculating the size of each gene locus using `(end - start + 1)`.
+- **FROM features**: We are querying the `features` table.
+- **WHERE**: We filter the results to include only those rows where the `featuretype` is 'gene' and the `attributes` match the gene names of interest.
+
+### Note:
+- The `attributes` field may contain additional information, so ensure that the format matches what is stored in your database. You might need to adjust the string in the `IN` clause based on the actual format of the `attributes` field.
+- If the gene names are stored differently (e.g., without quotes or with different formatting), you will need to modify the query accordingly.
+
+### Running the Query:
+You can run this query using any SQLite client or through a programming language that supports SQLite (like Python with the `sqlite3` module). The result will give you the sizes of the specified gene loci.

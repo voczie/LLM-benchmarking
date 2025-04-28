@@ -1,0 +1,60 @@
+To determine how many lncRNA genes are present on chromosome 7, you can use the SQLite database schema provided. The `features` table contains information about all features in the genome annotation, including gene types such as lncRNA.
+
+Here's a step-by-step guide to query the number of lncRNA genes on chromosome 7:
+
+1. **Identify the relevant feature type and attributes**: You need to filter for genes that are specifically annotated as lncRNAs.
+2. **Filter by chromosome**: Restrict the search to chromosome 7.
+
+Here's how you can write a SQL query to achieve this:
+
+```sql
+SELECT COUNT(*) AS num_lncrna_genes
+FROM features
+WHERE featuretype = 'gene'
+AND attributes LIKE '%lncRNA%'
+AND seqid = '7';
+```
+
+This query will count all genes on chromosome 7 that are annotated as lncRNAs.
+
+### Python Code Implementation
+
+To execute this SQL query using Python and the SQLite database, you can use the `sqlite3` module. Here's an example of how to do it:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database_file.db')
+cursor = conn.cursor()
+
+# Define the SQL query
+query = """
+SELECT COUNT(*) AS num_lncrna_genes
+FROM features
+WHERE featuretype = 'gene'
+AND attributes LIKE '%lncRNA%'
+AND seqid = '7';
+"""
+
+# Execute the query and fetch the result
+cursor.execute(query)
+result = cursor.fetchone()[0]
+
+# Print the number of lncRNA genes on chromosome 7
+print(f"Number of lncRNA genes on chromosome 7: {result}")
+
+# Close the connection
+conn.close()
+```
+
+### Explanation
+
+1. **Connecting to the Database**: The `sqlite3.connect` function is used to connect to your SQLite database file.
+2. **Executing the Query**: The SQL query is executed using `cursor.execute`.
+3. **Fetching and Printing the Result**: The result of the query (the count) is fetched using `fetchone()[0]`, which retrieves the first column of the first row returned by the query.
+4. **Closing the Connection**: Finally, the connection to the database is closed.
+
+Make sure to replace `'your_database_file.db'` with the actual path to your SQLite database file.
+
+This approach ensures that you accurately count the number of lncRNA genes on chromosome 7 using the provided genome annotation data stored in a SQLite database.

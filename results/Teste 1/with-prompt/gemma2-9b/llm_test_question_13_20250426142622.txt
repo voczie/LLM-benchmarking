@@ -1,0 +1,49 @@
+```python
+import sqlite3
+
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your actual database file
+cursor = conn.cursor()
+
+genes = ['XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB', 'COL1A2']
+
+for gene in genes:
+    query = f"SELECT attributes FROM features WHERE seqid='chrX' AND featuretype='gene' AND id='{gene}'"  # Adjust 'chrX' if the genes are on a different chromosome
+    cursor.execute(query)
+    result = cursor.fetchone()
+
+    if result:
+        attributes = result[0]
+        biotype = attributes.split(';')[0].split('=')[1]  # Assuming biotype is the first attribute
+        print(f"Biotype of {gene}: {biotype}")
+    else:
+        print(f"Gene '{gene}' not found in the database.")
+
+conn.close()
+```
+
+**Explanation:**
+
+1. **Connect to the Database:** Replace `'your_database.db'` with the actual filename of your SQLite database.
+2. **Define Genes:** Create a list `genes` containing the names of the genes you want to query.
+3. **Iterate Through Genes:** Loop through each gene in the `genes` list.
+4. **Construct SQL Query:** 
+   - Use an f-string to dynamically build a query that selects the `attributes` column from the `features` table.
+   - Filter by:
+     - `seqid`: The chromosome where the gene is located (e.g., 'chrX'). Adjust this if needed.
+     - `featuretype`: 'gene' to select only genes.
+     - `id`: The specific gene name you are looking for.
+5. **Execute Query:** Use `cursor.execute(query)` to run the SQL query.
+6. **Fetch Result:** Get the first row of the result using `cursor.fetchone()`. This will return a tuple containing the attributes of the gene.
+7. **Extract Biotype:** 
+   - Assume that the biotype is the first attribute in the `attributes` string.
+   - Split the `attributes` string by ';' to separate attributes.
+   - Take the first element and split it again by '=' to get the biotype value.
+8. **Print Result:** Display the gene name and its biotype.
+
+**Important Notes:**
+
+- This code assumes that the biotype is stored as a single attribute in the `attributes` column. If the format of attributes is different, you'll need to adjust the code accordingly.
+- Make sure to replace `'your_database.db'` with the correct filename for your database.
+
+
+

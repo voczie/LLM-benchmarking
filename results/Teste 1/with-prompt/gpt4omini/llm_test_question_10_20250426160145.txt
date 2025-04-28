@@ -1,0 +1,14 @@
+```python
+import gffutils
+
+# Connect to the existing database
+db = gffutils.FeatureDB('your_database.db')
+
+# Fetch the BRCA1 gene
+brca1_gene = db.features_of_type('gene', filter={'gene_id': 'BRCA1'}).next()
+
+# Get the chromosomal position
+chromosomal_position = (brca1_gene.seqid, brca1_gene.start, brca1_gene.end)
+
+print(f"Chromosomal position of BRCA1 gene: {chromosomal_position}")
+```

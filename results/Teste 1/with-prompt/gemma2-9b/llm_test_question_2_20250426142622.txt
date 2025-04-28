@@ -1,0 +1,50 @@
+```python
+import sqlite3
+
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your actual database file
+cursor = conn.cursor()
+
+query = """
+SELECT COUNT(*) 
+FROM features 
+WHERE seqid = '7' AND featuretype = 'gene' AND 'lncRNA' IN (attributes)
+"""
+
+cursor.execute(query)
+count = cursor.fetchone()[0]
+
+print(f"There are {count} lncRNA genes on chromosome 7.")
+
+conn.close()
+```
+
+**Walkthrough:**
+
+1. **Connect to the database:**
+   - Replace `'your_database.db'` with the actual filename of your SQLite database.
+   - `sqlite3.connect()` establishes a connection to the database.
+
+2. **Create a cursor object:**
+   - `conn.cursor()` creates a cursor object, which is used to execute SQL queries and fetch results.
+
+3. **Construct the SQL query:**
+   - `SELECT COUNT(*)`: Counts all rows that match the specified criteria.
+   - `FROM features`: Specifies the table to query (your feature table).
+   - `WHERE seqid = '7'`: Filters for features on chromosome 7.
+   - `AND featuretype = 'gene'`: Further filters for gene features.
+   - `AND 'lncRNA' IN (attributes)`: Checks if the 'attributes' column contains the string 'lncRNA', indicating an lncRNA gene.
+
+4. **Execute the query:**
+   - `cursor.execute(query)` runs the SQL query.
+
+5. **Fetch the result:**
+   - `cursor.fetchone()[0]` retrieves the first (and only) row returned by the query and extracts the count value from the first column.
+
+6. **Print the result:**
+   - The `print()` statement displays the number of lncRNA genes found on chromosome 7.
+
+7. **Close the connection:**
+   - `conn.close()` closes the database connection, releasing resources.
+
+
+

@@ -1,0 +1,61 @@
+To answer your question regarding the biotypes of the specified genes and the strands of the HOTAIR, HOXC11, and HOXC12 genes, you can use the `gffutils` library to query the database. Below is a Python script that demonstrates how to perform these queries.
+
+### Step-by-Step Walkthrough
+
+1. **Connect to the Database**: Use `gffutils.FeatureDB()` to connect to your SQLite database containing the genomic annotations.
+
+2. **Fetch Biotypes for Specified Genes**: Use the `db.features_of_type()` method to retrieve features of type 'gene' and filter them based on the gene names provided.
+
+3. **Fetch Strands for Specific Genes**: Similarly, retrieve the strand information for the specified genes (HOTAIR, HOXC11, HOXC12).
+
+### Python Script
+
+```python
+import gffutils
+
+# Connect to the GFF/GTF database
+db = gffutils.FeatureDB('your_database.db', keep_order=True)
+
+# List of genes to get biotypes
+gene_names = ['XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB', 'COL1A2']
+
+# Fetch biotypes for the specified genes
+biotype_results = []
+for gene_name in gene_names:
+    gene_features = db.features_of_type('gene', filter=lambda f: f.attributes['gene_id'][0] == gene_name)
+    for gene in gene_features:
+        biotype = gene.attributes.get('gene_biotype', ['Not available'])[0]
+        biotype_results.append((gene_name, biotype))
+
+# List of genes to get strand information
+strand_genes = ['HOTAIR', 'HOXC11', 'HOXC12']
+
+# Fetch strands for the specified genes
+strand_results = []
+for gene_name in strand_genes:
+    gene_features = db.features_of_type('gene', filter=lambda f: f.attributes['gene_id'][0] == gene_name)
+    for gene in gene_features:
+        strand = gene.strand
+        strand_results.append((gene_name, strand))
+
+# Print results
+print("Biotypes of specified genes:")
+print("|Gene|Biotype|")
+for gene, biotype in biotype_results:
+    print(f"|{gene}|{biotype}|")
+
+print("\nStrands of specified genes:")
+print("|Gene|Strand|")
+for gene, strand in strand_results:
+    print(f"|{gene}|{strand}|")
+```
+
+### Explanation of the Script
+
+- **Database Connection**: Replace `'your_database.db'` with the path to your actual database file.
+- **Gene Biotype Query**: The script iterates through the list of specified gene names, retrieves their features, and extracts the `gene_biotype` attribute.
+- **Gene Strand Query**: Similarly, it retrieves the strand information for the specified genes.
+- **Output**: The results are printed in a formatted table.
+
+### Note
+Make sure that the attribute names used in the script (like `gene_id` and `gene_biotype`) match those in your GFF/GTF file. Adjust them if necessary based on the specific schema of your annotations.

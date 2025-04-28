@@ -1,0 +1,49 @@
+```python
+import gffutils
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Connect to the existing GFF/GTF database
+db = gffutils.FeatureDB('your_database.db')
+
+# Function to count gene types on each chromosome
+def count_gene_types():
+    gene_counts = {}
+    gene_types = ['protein_coding', 'lncRNA', 'miRNA']
+    
+    for chromosome in db.all_seqids():
+        gene_counts[chromosome] = {gene_type: 0 for gene_type in gene_types}
+        genes = db.features_of_type('gene', seqid=chromosome)
+        
+        for gene in genes:
+            biotype = gene.attributes.get('gene_biotype', ['unknown'])[0]
+            if biotype in gene_counts[chromosome]:
+                gene_counts[chromosome][biotype] += 1
+    
+    return gene_counts
+
+# Count gene types
+gene_counts = count_gene_types()
+
+# Prepare data for stacked bar plot
+chromosomes = list(gene_counts.keys())
+protein_coding_counts = [gene_counts[chrom]['protein_coding'] for chrom in chromosomes]
+lncRNA_counts = [gene_counts[chrom]['lncRNA'] for chrom in chromosomes]
+miRNA_counts = [gene_counts[chrom]['miRNA'] for chrom in chromosomes]
+
+# Create a stacked bar plot
+bar_width = 0.5
+x = np.arange(len(chromosomes))
+
+plt.bar(x, protein_coding_counts, width=bar_width, label='Protein-coding', color='blue')
+plt.bar(x, lncRNA_counts, width=bar_width, bottom=protein_coding_counts, label='lncRNA', color='orange')
+plt.bar(x, miRNA_counts, width=bar_width, bottom=np.array(protein_coding_counts) + np.array(lncRNA_counts), label='miRNA', color='green')
+
+plt.xlabel('Chromosomes')
+plt.ylabel('Number of Genes')
+plt.title('Proportions of Gene Types on Each Chromosome')
+plt.xticks(x, chromosomes)
+plt.legend()
+plt.tight_layout()
+plt.show()
+```

@@ -1,0 +1,54 @@
+<think>
+Okay, so I need to figure out how to find the average exon size of the BRCA1 transcript isoforms using an SQLite database that contains GFF/GTF data. Let me break this down step by step.
+
+First, I know that GFF files store genomic features like exons, genes, etc., along with their attributes. In the provided schema, there's a table called 'features' which includes fields like id, seqid, source, featuretype, start, end, score, strand, frame, attributes, extra, and bin.
+
+The user is asking about BRCA1 isoforms, so I need to look for entries where the feature type is 'exon'. That means I'll query the features table where featuretype = 'exon' and id starts with 'BRCA1'. Wait, but in GFF files, each transcript can have multiple exons, right? So BRCA1 might be represented as a single transcript (id like 'BRCA1.2') containing multiple exons.
+
+So the first query should select all exons where the id starts with 'BRCA1' and featuretype is exon. That would give me each exon's start and end positions, which I can use to calculate their lengths.
+
+Once I have all the exons for BRCA1, I need to compute the average size. For each exon, the length is end - start + 1 (since both ends are inclusive). Then sum all these lengths and divide by the number of exons.
+
+I should also consider if there's a possibility that some exons might be duplicates or have issues with their attributes. Maybe I can use an ORDER BY clause to ensure they're in order, but since GFF files usually list them correctly, it might not be necessary.
+
+Wait, do I need to handle any potential issues like overlapping exons? In GFF/GTF, exons shouldn't overlap if properly annotated, so that should be fine. Also, the 'id' field for exons is unique per feature, but since we're selecting based on BRCA1, it's okay.
+
+Putting this together, I'll write a SELECT statement to get all exon features with id starting with 'BRCA1'. Then calculate each exon length and average them.
+</think>
+
+To determine the average exon size of the BRCA1 transcript isoforms using an SQLite database containing GFF/GTF data, follow these steps:
+
+### Step 1: Identify Exons for BRCA1 Isoforms
+First, query the `features` table to retrieve all exons associated with the BRCA1 transcript. This involves selecting entries where the feature type is 'exon' and the id starts with 'BRCA1'.
+
+```sql
+SELECT id, start, end FROM features 
+WHERE featuretype = 'exon' AND id LIKE 'BRCA1%';
+```
+
+### Step 2: Calculate Exon Lengths
+For each exon retrieved, calculate its length by subtracting the start position from the end position and adding one (to account for inclusive indexing).
+
+```sql
+SELECT (end - start + 1) AS length FROM (
+    SELECT id, start, end FROM features 
+    WHERE featuretype = 'exon' AND id LIKE 'BRCA1%'
+) AS exons;
+```
+
+### Step 3: Compute the Average Exon Size
+Aggregate the lengths of all BRCA1 exons and divide by the number of exons to find the average size.
+
+```sql
+SELECT AVG(end - start + 1) AS average_length FROM (
+    SELECT id, start, end FROM features 
+    WHERE featuretype = 'exon' AND id LIKE 'BRCA1%'
+) AS exons;
+```
+
+### Explanation
+- **Step 1** retrieves all exon records for BRCA1 isoforms.
+- **Step 2** calculates the length of each exon using basic arithmetic operations on the start and end positions.
+- **Step 3** computes the average of these lengths, providing the desired metric.
+
+This approach efficiently leverages SQL's aggregation capabilities to derive the average exon size from the genomic data stored in the database.

@@ -1,0 +1,46 @@
+To determine the strands of the HOTAIR, HOXC11, and HOXC12 genes from a GFF/GTF file stored in a SQLite database using the `gffutils` library, you can follow these steps:
+
+1. **Connect to the database**: Use `gffutils.FeatureDB()` to connect to your database.
+2. **Fetch the genes**: Use `db.features_of_type('gene')` to retrieve all gene features.
+3. **Filter for specific genes**: Use a list comprehension to filter for the genes of interest (HOTAIR, HOXC11, HOXC12).
+4. **Extract strand information**: Access the `strand` attribute of the filtered gene features.
+
+Here’s a Python script that implements these steps:
+
+```python
+import gffutils
+
+# Connect to the database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# List of genes to search for
+genes_of_interest = ['HOTAIR', 'HOXC11', 'HOXC12']
+
+# Fetch the strand information for the specified genes
+strand_info = {}
+for gene in db.features_of_type('gene'):
+    gene_id = gene.attributes.get('gene_id', [None])[0]
+    gene_name = gene.attributes.get('gene_name', [None])[0]
+    
+    if gene_name in genes_of_interest:
+        strand_info[gene_name] = gene.strand
+
+# Print the results
+for gene, strand in strand_info.items():
+    print(f"{gene}: {strand}")
+```
+
+### Explanation of the Code:
+- **Database Connection**: Replace `'path_to_your_database.db'` with the actual path to your SQLite database file.
+- **Gene Filtering**: The script checks if the `gene_name` attribute matches any of the genes of interest.
+- **Strand Extraction**: The strand information is stored in a dictionary for easy access and printing.
+
+### Output:
+The output will display the strand for each of the specified genes, formatted as follows:
+```
+HOTAIR: +
+HOXC11: -
+HOXC12: +
+```
+
+Make sure to run this script in an environment where the `gffutils` library is installed and the database is accessible.

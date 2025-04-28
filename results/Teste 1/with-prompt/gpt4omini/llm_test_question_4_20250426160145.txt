@@ -1,0 +1,12 @@
+```python
+import gffutils
+
+# Connect to the existing database
+db = gffutils.FeatureDB('your_database.db')
+
+# Count miRNA genes on chromosome 10
+miRNA_genes = list(db.features_of_type('gene', seqid='10', attributes={'gene_biotype': 'miRNA'}))
+miRNA_gene_count = len(miRNA_genes)
+
+print(f'The number of miRNA genes on chromosome 10 is: {miRNA_gene_count}')
+```

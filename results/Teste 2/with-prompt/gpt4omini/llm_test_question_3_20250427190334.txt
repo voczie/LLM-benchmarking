@@ -1,0 +1,32 @@
+To count the number of pseudogenes on the X chromosome using the `gffutils` library, you can follow these steps:
+
+1. **Connect to the Database**: First, you need to connect to your SQLite database that contains the genomic annotations.
+
+2. **Fetch Pseudogenes**: Use the `features_of_type()` method to retrieve features of type 'gene' and filter them based on the `gene_biotype` attribute to identify pseudogenes.
+
+3. **Count the Pseudogenes**: Filter the results to only include those located on the X chromosome and count them.
+
+Here’s a Python script that accomplishes this:
+
+```python
+import gffutils
+
+# Connect to the database
+db = gffutils.FeatureDB('your_database.db', keep_order=True)
+
+# Fetch pseudogenes on the X chromosome
+pseudogenes = db.features_of_type('gene', filter=lambda f: f.attributes.get('gene_biotype', [''])[0] == 'pseudogene' and f.seqid == 'X')
+
+# Count the number of pseudogenes
+pseudogene_count = sum(1 for _ in pseudogenes)
+
+print(f'The number of pseudogenes on the X chromosome: {pseudogene_count}')
+```
+
+### Explanation of the Code:
+- **Database Connection**: Replace `'your_database.db'` with the path to your actual database file.
+- **Feature Retrieval**: The `features_of_type('gene', filter=...)` method retrieves all gene features, and the filter checks if the `gene_biotype` is 'pseudogene' and if the `seqid` is 'X'.
+- **Counting**: The `sum(1 for _ in pseudogenes)` counts the number of pseudogenes by iterating through the generator.
+
+### Note:
+Make sure that the attribute names used in the filter (like `gene_biotype`) match those in your GFF/GTF file. If the attribute names differ, you may need to adjust them accordingly.

@@ -1,0 +1,69 @@
+To determine the chromosomes where the genes NFKB1, NFKB2, REL, RELA, and RELB are located using a SQLite database containing genome annotation data in GFF/GTF format, you can follow these steps:
+
+### Step-by-Step Guide
+
+1. **Connect to the Database:**
+   First, establish a connection to your SQLite database.
+
+   ```python
+   import sqlite3
+
+   # Connect to the SQLite database
+   conn = sqlite3.connect('your_database_file.db')
+   cursor = conn.cursor()
+   ```
+
+2. **Query for Gene Locations:**
+   Use SQL queries to find the `seqid` (chromosome) for each of the specified genes.
+
+   ```python
+   # List of gene names you are interested in
+   gene_names = ['NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB']
+
+   # Prepare a query to find the chromosome location of each gene
+   query_template = """
+   SELECT f.seqid 
+   FROM features AS f
+   WHERE f.featuretype = 'gene' AND f.attributes LIKE ?
+   """
+
+   # Dictionary to store results
+   gene_locations = {}
+
+   for gene in gene_names:
+       # Format the attribute condition to match the gene name
+       like_condition = f"%gene_name \"{gene}\"%"
+       
+       # Execute the query
+       cursor.execute(query_template, (like_condition,))
+       
+       # Fetch all matching records
+       rows = cursor.fetchall()
+       
+       # Extract chromosome information and store in dictionary
+       if rows:
+           gene_locations[gene] = [row[0] for row in rows]
+       else:
+           gene_locations[gene] = []
+
+   # Close the connection
+   conn.close()
+
+   # Print results
+   for gene, chromosomes in gene_locations.items():
+       print(f"Gene {gene} is located on chromosomes: {', '.join(chromosomes) if chromosomes else 'None'}")
+   ```
+
+### Explanation
+
+- **Database Connection:** We connect to the SQLite database using `sqlite3.connect()`.
+  
+- **Query Construction:** The query searches for features of type `'gene'` where the `attributes` column contains a specific gene name. The `LIKE` operator is used with wildcards (`%`) to match the attribute string format typically found in GFF/GTF files.
+
+- **Iterate Over Genes:** For each gene, we construct a condition to search for its name within the `attributes` field and execute the query.
+
+- **Fetch Results:** The results are fetched using `cursor.fetchall()`, which returns all matching rows. We extract the chromosome (`seqid`) from these rows.
+
+- **Store and Display Results:** Chromosome information is stored in a dictionary and printed out for each gene.
+
+This approach efficiently retrieves the required information by leveraging SQL queries to filter and extract data directly from the database. Adjust the database file path as needed.

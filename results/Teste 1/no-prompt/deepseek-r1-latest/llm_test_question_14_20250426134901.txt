@@ -1,0 +1,52 @@
+<think>
+Okay, so I need to figure out the strand of the HOTAIR, HOXC11, and HOXC12 genes using a SQLite database that contains GFF/GTF data. Let me break this down step by step.
+
+First, I remember that in GFF files, each feature is described with attributes like 'start', 'end', 'score', 'strand', etc. The 'strand' attribute tells us whether the genomic region is on the plus strand or minus strand (which would be the opposite strand).
+
+I'll need to write a SQL query that selects the 'strand' from the features table where the feature type matches each of these genes: HOTAIR, HOXC11, and HOXC12. 
+
+So, I'll use an INSERT statement with a SELECT clause. The SELECT will get the 'strand' field, and the FROM clause will specify the features table. Then, in the WHERE condition, I'll check if the featuretype equals each gene name.
+
+I should make sure to list all three genes in separate conditions so that the query returns their individual strand information. Also, since these are different genes, they might be on different strands, which is why we need to check each one individually.
+
+Putting it all together, I'll write a query that inserts into the 'directives' table a record for each gene's strand. This way, if someone runs this query, they can retrieve the strand information from the directives table.
+</think>
+
+To determine the strand of the HOTAIR, HOXC11, and HOXC12 genes in your SQLite database, you'll need to use SQL queries that extract the 'strand' attribute for each gene. Here's a step-by-step guide:
+
+### Step 1: Understand the Data Structure
+The features table contains genomic annotations with attributes including 'strand'. The 'strand' can be '+' (plus strand) or '-' (minus strand).
+
+### Step 2: Write the SQL Query
+Use an INSERT statement to select and store the strand information for each gene.
+
+```sql
+INSERT INTO directives (directive)
+VALUES (
+    SELECT strand FROM features WHERE featuretype = 'HOTAIR'
+),
+(SELECT strand FROM features WHERE featuretype = 'HOXC11'),
+(SELECT strand FROM features WHERE featuretype = 'HOXC12');
+```
+
+### Step 3: Retrieve Strand Information
+To view the results, execute a SELECT query on the directives table:
+
+```sql
+SELECT * FROM directives;
+```
+
+This will display each gene's strand as either '+' or '-'.
+
+### Explanation
+- **INSERT INTO directives (directive) ...**: This creates entries in the 'directives' table where each entry is the 'strand' value from the features table for the specified genes.
+- **SELECT strand FROM features WHERE featuretype = 'GeneName';**: Extracts the strand attribute for each gene.
+
+### Expected Output
+The output will show three rows, each indicating the strand of one gene:
+```
++    (for plus strand)
+-    (for minus strand)
+```
+
+This method efficiently retrieves and stores the strand information for each gene in your database.

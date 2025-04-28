@@ -1,0 +1,81 @@
+To find the names of the two genes located immediately before and after the gene COL1A2 in a GFF/GTF format stored in a SQLite database, you can follow these steps:
+
+1. **Identify the Start and End Positions of COL1A2**: First, you need to find the start and end positions of the gene COL1A2.
+
+2. **Find Genes Before and After**: Next, you will query the database to find the genes that are located immediately before and after the COL1A2 gene based on its start and end positions.
+
+Here’s how you can construct the SQL queries to achieve this:
+
+### Step 1: Find the Start and End Positions of COL1A2
+
+```sql
+SELECT start, end 
+FROM features 
+WHERE featuretype = 'gene' AND attributes LIKE '%COL1A2%';
+```
+
+### Step 2: Find the Two Genes Before and After COL1A2
+
+Assuming you have the start and end positions from the previous query, you can use those values to find the genes immediately before and after COL1A2. Let's say the start position is `start_pos` and the end position is `end_pos`.
+
+#### Query for Genes Before COL1A2
+
+```sql
+SELECT attributes 
+FROM features 
+WHERE featuretype = 'gene' 
+AND end < (SELECT start FROM features WHERE featuretype = 'gene' AND attributes LIKE '%COL1A2%') 
+ORDER BY end DESC 
+LIMIT 2;
+```
+
+#### Query for Genes After COL1A2
+
+```sql
+SELECT attributes 
+FROM features 
+WHERE featuretype = 'gene' 
+AND start > (SELECT end FROM features WHERE featuretype = 'gene' AND attributes LIKE '%COL1A2%') 
+ORDER BY start ASC 
+LIMIT 2;
+```
+
+### Complete Walkthrough
+
+1. **Run the first query** to get the start and end positions of COL1A2.
+2. **Store the results** (let's say `start_pos` and `end_pos`).
+3. **Run the second query** to get the two genes before COL1A2 using `start_pos`.
+4. **Run the third query** to get the two genes after COL1A2 using `end_pos`.
+
+### Example of Combining Queries
+
+If you want to combine everything into a single script, you can do it like this:
+
+```sql
+WITH col1a2 AS (
+    SELECT start, end 
+    FROM features 
+    WHERE featuretype = 'gene' AND attributes LIKE '%COL1A2%'
+),
+genes_before AS (
+    SELECT attributes 
+    FROM features 
+    WHERE featuretype = 'gene' 
+    AND end < (SELECT start FROM col1a2) 
+    ORDER BY end DESC 
+    LIMIT 2
+),
+genes_after AS (
+    SELECT attributes 
+    FROM features 
+    WHERE featuretype = 'gene' 
+    AND start > (SELECT end FROM col1a2) 
+    ORDER BY start ASC 
+    LIMIT 2
+)
+SELECT 'Before' AS position, attributes FROM genes_before
+UNION ALL
+SELECT 'After' AS position, attributes FROM genes_after;
+```
+
+This combined query will give you a result set with the names of the two genes before and after COL1A2, labeled accordingly.

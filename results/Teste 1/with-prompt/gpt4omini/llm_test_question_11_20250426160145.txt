@@ -1,0 +1,22 @@
+```python
+import gffutils
+
+# Connect to the existing database
+db = gffutils.FeatureDB('your_database.db')
+
+# List of gene names to search for
+gene_names = ['NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB']
+
+# Initialize a dictionary to store gene locations
+gene_locations = {}
+
+# Fetch genes and their locations
+for gene_name in gene_names:
+    genes = db.features_of_type('gene', filter=lambda f: f.attributes.get('gene_name', [None])[0] == gene_name)
+    for gene in genes:
+        gene_locations[gene_name] = gene.seqid
+
+# Print the results
+for gene, chromosome in gene_locations.items():
+    print(f"{gene} is located on chromosome {chromosome}.")
+```

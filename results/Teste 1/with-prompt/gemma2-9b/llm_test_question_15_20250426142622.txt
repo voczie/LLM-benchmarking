@@ -1,0 +1,55 @@
+```python
+import sqlite3
+
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your actual database file
+cursor = conn.cursor()
+
+# Find the IDs of HOXC11 and HOXC12 genes
+hoxc11_id = None  
+hoxc12_id = None 
+cursor.execute("SELECT id FROM features WHERE featuretype='gene' AND attributes LIKE '%HOXC11%'")
+for row in cursor.fetchall():
+    hoxc11_id = row[0]
+
+cursor.execute("SELECT id FROM features WHERE featuretype='gene' AND attributes LIKE '%HOXC12%'")
+for row in cursor.fetchall():
+    hoxc12_id = row[0]
+
+# Query for genes located between HOXC11 and HOXC12 on both strands
+cursor.execute("""
+SELECT f.id, f.featuretype 
+FROM features AS f
+JOIN relations AS r ON f.id = r.child
+WHERE r.parent IN (?, ?)  -- Parent IDs of HOXC11 and HOXC12
+AND f.strand IN ('+', '-') -- Filter by strand (+ or -)
+ORDER BY f.start;
+""", (hoxc11_id, hoxc12_id))
+
+results = cursor.fetchall()
+
+# Print the results
+for row in results:
+    print(f"Gene ID: {row[0]}, Gene Type: {row[1]}")
+
+conn.close()
+```
+
+**Explanation:**
+
+1. **Database Connection:** Establish a connection to your SQLite database using `sqlite3.connect()`. Replace 'your_database.db' with the actual filename.
+
+2. **Finding HOXC11 and HOXC12 IDs:** Use SQL queries to retrieve the IDs of the `HOXC11` and `HOXC12` genes from the `features` table based on their attributes (e.g., using `LIKE '%HOXC11%'`).
+
+3. **Querying for Intervening Genes:**
+   - Construct a SQL query that joins the `features` and `relations` tables. 
+   - Use `JOIN relations AS r ON f.id = r.child` to link child genes (the ones we're interested in) with their parent genes (HOXC11 or HOXC12).
+   - Filter by `r.parent IN (?, ?)` to include only relationships where the parent is either HOXC11 or HOXC12.
+   - Include `AND f.strand IN ('+', '-')` to consider both strands (+ and -).
+
+4. **Retrieving Results:** Execute the query using `cursor.execute()` and fetch the results with `cursor.fetchall()`.
+
+5. **Printing Output:** Iterate through the fetched results and print the gene IDs and types.
+
+
+
+Let me know if you have any more questions or need further assistance!

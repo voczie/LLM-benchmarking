@@ -1,0 +1,68 @@
+To answer the question "How many exons does each transcript isoform of the BRCA1 gene have?", you need to query your SQLite database in a way that links `features` with their relationships through the `relations` table. Here's how you can do it:
+
+### Step-by-Step Walkthrough
+
+1. **Identify Transcript and Exon Features:**
+   - First, identify all features of type "transcript" for the BRCA1 gene.
+   - Then, find all exons that are children of these transcripts.
+
+2. **Join Tables to Get Relationships:**
+   - Use the `relations` table to link each transcript with its child exons.
+   
+3. **Aggregate Data:**
+   - Count the number of exons for each transcript.
+   - Retrieve the transcript name from attributes.
+
+### SQL Query
+
+Here is a query that accomplishes this:
+
+```sql
+WITH brca1_transcripts AS (
+    SELECT id, attributes 
+    FROM features 
+    WHERE featuretype = 'transcript' AND seqid LIKE '%BRCA1%'
+),
+exon_relations AS (
+    SELECT r.child as exon_id, t.id as transcript_id
+    FROM relations r
+    JOIN brca1_transcripts t ON r.parent = t.id
+    WHERE r.level = 0 -- Assuming level 0 represents direct children (exons)
+),
+transcript_exon_counts AS (
+    SELECT 
+        tr.id as transcript_id,
+        COUNT(er.exon_id) as exon_count,
+        json_extract(tr.attributes, '$.transcript_name') as transcript_name
+    FROM brca1_transcripts tr
+    LEFT JOIN exon_relations er ON tr.id = er.transcript_id
+    GROUP BY tr.id
+)
+SELECT 
+    transcript_name,
+    exon_count
+FROM transcript_exon_counts;
+```
+
+### Explanation
+
+- **brca1_transcripts CTE:** This common table expression (CTE) selects all features of type "transcript" for the BRCA1 gene.
+  
+- **exon_relations CTE:** This CTE joins `relations` with `brca1_transcripts` to find exons that are direct children (`level = 0`) of each transcript.
+
+- **transcript_exon_counts CTE:** This CTE counts the number of exons for each transcript and extracts the transcript name from the attributes using JSON functions (assuming the attribute is stored in a JSON format).
+
+- The final `SELECT` statement retrieves the transcript names and their corresponding exon counts.
+
+### Notes
+
+1. **JSON Path Extraction:**
+   - If your database does not support JSON path extraction, you may need to adjust how you extract the `transcript_name`. For example, if attributes are stored as a string in key-value pairs, you might use string functions like `SUBSTR` and `INSTR`.
+
+2. **BRCA1 Gene Identification:**
+   - The query assumes that BRCA1 gene is uniquely identifiable by its sequence ID (`seqid`). If the gene name or other criteria need to be used for identification, adjust the WHERE clause accordingly.
+
+3. **Level Definition:**
+   - Ensure that `level = 0` correctly represents direct children (exons) in your data model. Adjust if necessary based on your specific schema and data structure.
+
+This query should give you a list of transcript names along with their exon counts for the BRCA1 gene.

@@ -1,0 +1,52 @@
+To determine how many genes and transcripts are present on chromosome 3, you can use the `gffutils` library to interact with the SQLite database. Here's a step-by-step guide to achieve this:
+
+1. **Install gffutils**: If you haven't already installed `gffutils`, you can do so using pip:
+   ```sh
+   pip install gffutils
+   ```
+
+2. **Load the Database**: Use `gffutils` to load your SQLite database.
+
+3. **Query for Genes and Transcripts on Chromosome 3**:
+    - Count genes of type 'gene' on chromosome 3.
+    - Count transcripts (which are typically features of type 'transcript') on chromosome 3.
+
+Here's the Python code to perform these steps:
+
+```python
+import gffutils
+
+# Load the database
+db = gffutils.FeatureDB('path_to_your_database.sqlite', keep_order=True)
+
+# Function to count genes and transcripts on a specific chromosome
+def count_genes_and_transcripts(chromosome):
+    # Count genes
+    gene_count = sum(1 for feature in db.features_of_type('gene') if feature.seqid == chromosome)
+    
+    # Count transcripts
+    transcript_count = sum(1 for feature in db.features_of_type('transcript') if feature.seqid == chromosome)
+    
+    return gene_count, transcript_count
+
+# Chromosome of interest
+chromosome = '3'
+
+# Get counts
+gene_count, transcript_count = count_genes_and_transcripts(chromosome)
+
+print(f"Number of genes on chromosome {chromosome}: {gene_count}")
+print(f"Number of transcripts on chromosome {chromosome}: {transcript_count}")
+```
+
+### Explanation:
+1. **Loading the Database**: The `gffutils.FeatureDB` function loads your SQLite database.
+2. **Counting Genes**:
+    - Use a generator expression to iterate over all genes (`features_of_type('gene')`) and count those on chromosome 3.
+3. **Counting Transcripts**:
+    - Similarly, use a generator expression to iterate over all transcripts (`features_of_type('transcript')`) and count those on chromosome 3.
+
+### Output:
+The script will print the number of genes and transcripts on chromosome 3.
+
+If you need further customization or additional details, feel free to ask!

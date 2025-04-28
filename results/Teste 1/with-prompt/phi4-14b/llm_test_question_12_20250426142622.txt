@@ -1,0 +1,101 @@
+To find the names of the two genes located immediately before and after the gene `COL1A2`, you can follow these steps using SQL queries with the SQLite database:
+
+### Step-by-Step Guide
+
+1. **Identify the Position of COL1A2:**
+   - First, retrieve the start position of the gene `COL1A2` on its chromosome.
+
+```sql
+SELECT start 
+FROM features 
+WHERE featuretype = 'gene' AND attributes LIKE '%ID="COL1A2"%';
+```
+
+2. **Find Genes Before COL1A2:**
+   - Retrieve genes that are located before `COL1A2` by comparing their end positions with the start position of `COL1A2`.
+   - Order them by their end position in descending order to get the closest ones first.
+   - Limit the results to 2.
+
+```sql
+SELECT attributes 
+FROM features 
+WHERE featuretype = 'gene' AND seqid = (
+    SELECT seqid FROM features WHERE attributes LIKE '%ID="COL1A2"%'
+) AND end < (SELECT start FROM features WHERE attributes LIKE '%ID="COL1A2"%' LIMIT 1)
+ORDER BY end DESC
+LIMIT 2;
+```
+
+3. **Find Genes After COL1A2:**
+   - Retrieve genes that are located after `COL1A2` by comparing their start positions with the end position of `COL1A2`.
+   - Order them by their start position in ascending order to get the closest ones first.
+   - Limit the results to 2.
+
+```sql
+SELECT attributes 
+FROM features 
+WHERE featuretype = 'gene' AND seqid = (
+    SELECT seqid FROM features WHERE attributes LIKE '%ID="COL1A2"%'
+) AND start > (SELECT end FROM features WHERE attributes LIKE '%ID="COL1A2"%' LIMIT 1)
+ORDER BY start ASC
+LIMIT 2;
+```
+
+4. **Extract Gene Names:**
+   - The `attributes` column contains the gene information in a key-value format. You need to parse this to extract the gene names.
+   - Use Python with SQLite to execute these queries and parse the results.
+
+### Python Code Example
+
+```python
+import sqlite3
+
+# Connect to the database
+conn = sqlite3.connect('genome_annotation.db')
+cursor = conn.cursor()
+
+# Query to find genes before COL1A2
+before_query = """
+SELECT attributes 
+FROM features 
+WHERE featuretype = 'gene' AND seqid = (
+    SELECT seqid FROM features WHERE attributes LIKE '%ID="COL1A2"%'
+) AND end < (SELECT start FROM features WHERE attributes LIKE '%ID="COL1A2"%' LIMIT 1)
+ORDER BY end DESC
+LIMIT 2;
+"""
+
+# Query to find genes after COL1A2
+after_query = """
+SELECT attributes 
+FROM features 
+WHERE featuretype = 'gene' AND seqid = (
+    SELECT seqid FROM features WHERE attributes LIKE '%ID="COL1A2"%'
+) AND start > (SELECT end FROM features WHERE attributes LIKE '%ID="COL1A2"%' LIMIT 1)
+ORDER BY start ASC
+LIMIT 2;
+"""
+
+# Execute queries
+before_genes = cursor.execute(before_query).fetchall()
+after_genes = cursor.execute(after_query).fetchall()
+
+# Function to extract gene name from attributes
+def extract_gene_name(attributes):
+    for attr in attributes.split(';'):
+        if 'ID' in attr:
+            return attr.split('"')[1]
+    return None
+
+# Extract and print gene names
+before_gene_names = [extract_gene_name(attr[0]) for attr in before_genes]
+after_gene_names = [extract_gene_name(attr[0]) for attr in after_genes]
+
+print("Genes before COL1A2:", before_gene_names)
+print("Genes after COL1A2:", after_gene_names)
+
+# Close the connection
+conn.close()
+```
+
+This script will print the names of the two genes located immediately before and after `COL1A2`. Adjust the database path as necessary.

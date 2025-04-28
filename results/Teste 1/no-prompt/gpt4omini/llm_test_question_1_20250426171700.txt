@@ -1,0 +1,36 @@
+To determine how many protein-coding genes are present on chromosome 12 using the provided SQLite database schema, you can execute a SQL query that counts the number of entries in the `features` table where the `featuretype` is 'gene' (or a similar designation for protein-coding genes) and the `seqid` is 'chr12' (or '12', depending on how chromosomes are labeled in your dataset).
+
+Here’s a step-by-step guide to formulating the query:
+
+1. **Identify the relevant feature type**: In GFF/GTF files, protein-coding genes are typically labeled as 'gene' or may have a specific attribute indicating they are protein-coding. You should confirm the exact value used in your database.
+
+2. **Formulate the SQL query**: You will want to count the number of rows in the `features` table that match your criteria.
+
+Here’s an example SQL query that you can use:
+
+```sql
+SELECT COUNT(*) AS protein_coding_gene_count
+FROM features
+WHERE seqid = 'chr12' AND featuretype = 'gene';
+```
+
+### Explanation of the Query:
+- `SELECT COUNT(*) AS protein_coding_gene_count`: This part of the query counts the total number of rows that meet the criteria and labels the result as `protein_coding_gene_count`.
+- `FROM features`: This specifies that we are querying the `features` table.
+- `WHERE seqid = 'chr12'`: This filters the results to only include entries from chromosome 12. Adjust 'chr12' to '12' if your database uses that format.
+- `AND featuretype = 'gene'`: This further filters the results to only include entries that are classified as genes.
+
+### Executing the Query:
+You can run this query using any SQLite database management tool or through a programming language that supports SQLite (like Python with the `sqlite3` module).
+
+### Additional Considerations:
+- If you need to specifically filter for protein-coding genes, you may need to check the `attributes` column for specific tags that indicate a gene is protein-coding. If so, you might need to adjust the query accordingly.
+- If you are unsure about the exact `featuretype` or how protein-coding genes are represented, you can first run a query to inspect the distinct feature types in the `features` table:
+
+```sql
+SELECT DISTINCT featuretype
+FROM features
+WHERE seqid = 'chr12';
+```
+
+This will help you identify the correct label for protein-coding genes.

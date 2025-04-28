@@ -1,0 +1,69 @@
+To determine how many genes for miRNA exist in chromosome 10, you can follow these steps:
+
+1. **Identify Genes**: First, identify all features of type 'gene' on chromosome 10.
+2. **Filter by Gene Type**: Filter the identified genes to find those that are specifically annotated as miRNA.
+
+Here's a step-by-step guide and Python code using SQLite3 and the `sqlite` module in Python:
+
+### Step-by-Step Guide
+
+1. **Connect to the Database**:
+   - Establish a connection to your SQLite database.
+   
+2. **Query for Genes on Chromosome 10**:
+   - Use SQL queries to fetch all genes located on chromosome 10.
+
+3. **Filter by miRNA Type**:
+   - Filter these genes based on their attributes to find those that are specifically annotated as miRNA.
+
+### Python Code
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')
+db = conn.cursor()
+
+# Query for all genes on chromosome 10
+query_genes_on_chromosome_10 = """
+SELECT id, attributes 
+FROM features 
+WHERE seqid = '10' AND featuretype = 'gene';
+"""
+
+# Execute the query and fetch results
+genes_on_chromosome_10 = db.execute(query_genes_on_chromosome_10).fetchall()
+
+# Filter genes to find miRNA genes
+miRNA_gene_count = 0
+
+for gene in genes_on_chromosome_10:
+    gene_id, attributes_str = gene
+    # Parse the attributes string into a dictionary
+    attributes_dict = dict(item.split("=") for item in attributes_str.split(";") if "=" in item)
+    
+    # Check if the gene is annotated as miRNA
+    if 'gene_biotype' in attributes_dict and attributes_dict['gene_biotype'] == 'miRNA':
+        miRNA_gene_count += 1
+
+# Print the count of miRNA genes on chromosome 10
+print(f"Number of miRNA genes on chromosome 10: {miRNA_gene_count}")
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation
+
+- **Connection**: Establish a connection to your SQLite database.
+- **Query Execution**: Execute a query to fetch all genes located on chromosome 10.
+- **Attribute Parsing**: Parse the attributes string of each gene to extract the `gene_biotype`.
+- **Filtering**: Check if the `gene_biotype` is 'miRNA' and count such genes.
+
+### Notes
+
+- Ensure that your database file path (`your_database.db`) is correct.
+- The attribute parsing assumes a specific format for the attributes field. Adjust the parsing logic if necessary based on the actual structure of your data.
+
+This approach will give you an accurate count of miRNA genes on chromosome 10 in your genome annotation database.

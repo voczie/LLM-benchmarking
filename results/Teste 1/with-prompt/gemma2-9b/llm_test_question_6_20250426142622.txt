@@ -1,0 +1,64 @@
+```python
+import sqlite3
+
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your actual database file
+cursor = conn.cursor()
+
+# Query to get transcript isoforms for the XIST gene
+query = """
+SELECT attributes 
+FROM features
+WHERE seqid = 'X' AND featuretype = 'gene' AND id = 'XIST'
+"""
+
+cursor.execute(query)
+gene_data = cursor.fetchone()
+
+# Parse the attributes to extract transcript isoforms
+transcript_isoforms = gene_data[0].split(';')  
+
+for transcript in transcript_isoforms:
+    if "transcript_name" in transcript:
+        transcript_name = transcript.split('"')[1]
+        print(f"Transcript Name: {transcript_name}") 
+
+
+conn.close()
+```
+
+
+
+**Explanation:**
+
+1. **Connect to the Database:**
+   - Replace `'your_database.db'` with the actual name of your SQLite database file.
+   - The code establishes a connection to the database using `sqlite3.connect()`.
+
+2. **Execute the Query:**
+   - The SQL query `SELECT attributes FROM features ...` is designed to retrieve the `attributes` column from the `features` table. 
+   - It filters for records where:
+     - `seqid = 'X'`:  The chromosome is X (assuming this is how your database stores chromosomes).
+     - `featuretype = 'gene'`: The feature type is a gene.
+     - `id = 'XIST'`: The specific gene ID is 'XIST'.
+
+3. **Process the Results:**
+   - `cursor.fetchone()` fetches the first (and likely only) matching row from the query result.
+   - `gene_data[0]` accesses the `attributes` value from the retrieved row. This value often contains semicolon-separated key-value pairs describing the gene's features.
+
+4. **Parse Transcript Information:**
+   - The code splits the `attributes` string by semicolons (`;`) to separate individual transcript isoforms. 
+   - It then iterates through each split attribute and looks for those containing "transcript_name".  The value after "transcript_name" is assumed to be the transcript name.
+
+5. **Print Transcript Details:**
+   - The code prints the extracted `transcript_name` for each identified transcript isoform.
+
+
+
+**Important Notes:**
+
+- **Database Schema:** This code assumes your database schema matches the provided example. Adjust the table and column names if necessary.
+- **Attribute Format:** The way attributes are stored in your database might vary. You may need to modify the parsing logic based on your specific format. 
+- **Error Handling:** Consider adding error handling (e.g., `try...except` blocks) to gracefully handle potential issues like missing data or incorrect database connections.
+
+
+

@@ -1,0 +1,51 @@
+To determine which strand the HOTAIR, HOXC11, and HOXC12 genes are located on using the provided SQLite database schema, you can write a SQL query to extract this information from the `features` table. The `strand` column in the `features` table contains the strand information for each feature.
+
+Here's how you could structure your query:
+
+```sql
+SELECT id, strand 
+FROM features 
+WHERE id IN ('HOTAIR', 'HOXC11', 'HOXC12');
+```
+
+This SQL statement selects the gene IDs and their corresponding strands from the `features` table where the ID matches one of the genes you're interested in (HOTAIR, HOXC11, or HOXC12).
+
+### Steps to Execute the Query
+
+1. **Connect to the SQLite Database:**
+   You need to connect to your SQLite database using a tool like `sqlite3`, Python with `sqlite3` module, or any other SQL client that supports SQLite.
+
+2. **Run the Query:**
+
+```sql
+-- Connect to the database (example command for sqlite3)
+$ sqlite3 my_genome_annotation.db
+
+-- Execute the query
+SELECT id, strand 
+FROM features 
+WHERE id IN ('HOTAIR', 'HOXC11', 'HOXC12');
+```
+
+### Example Output Interpretation:
+
+If you run this query and get results like:
+
+```plaintext
+ID         STRAND
+---------- -------
+HOTAIR     +
+HOXC11     -
+HOXC12     -
+```
+
+This means:
+- The HOTAIR gene is located on the positive strand (+).
+- Both HOXC11 and HOXC12 genes are located on the negative strand (-).
+
+### Additional Notes:
+
+- Ensure that the IDs in your query exactly match those stored in the database.
+- If you have a large dataset, consider indexing the `id` column for faster queries.
+
+This should give you the information about which strands these specific genes are located on.

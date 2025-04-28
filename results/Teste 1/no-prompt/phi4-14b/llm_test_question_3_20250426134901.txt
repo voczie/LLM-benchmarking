@@ -1,0 +1,35 @@
+To determine how many pseudogenes are located on the X chromosome using your SQLite database, you can follow these steps:
+
+### Step-by-Step Guide
+
+1. **Understand the Schema**: 
+   - The `features` table contains genomic features with attributes such as `seqid`, `featuretype`, and others.
+   - For this query, we are interested in:
+     - `seqid`: This represents the chromosome or scaffold name (e.g., "X" for the X chromosome).
+     - `featuretype`: This indicates the type of feature (e.g., "pseudogene").
+
+2. **Formulate the Query**:
+   - You need to count entries in the `features` table where `seqid` is "X" and `featuretype` is "pseudogene".
+
+3. **Write the SQL Query**:
+   ```sql
+   SELECT COUNT(*) AS pseudogene_count
+   FROM features
+   WHERE seqid = 'X' AND featuretype = 'pseudogene';
+   ```
+
+4. **Execute the Query**:
+   - Use an SQLite client or a programming language with SQLite support (e.g., Python, R) to execute this query against your database.
+
+### Explanation
+
+- `SELECT COUNT(*) AS pseudogene_count`: This part of the query counts all rows that match the specified conditions and labels the result as `pseudogene_count`.
+- `FROM features`: Specifies the table from which to retrieve data.
+- `WHERE seqid = 'X' AND featuretype = 'pseudogene'`: Filters the rows to include only those where the chromosome is "X" and the feature type is "pseudogene".
+
+### Additional Considerations
+
+- **Case Sensitivity**: Ensure that the values for `seqid` and `featuretype` match exactly with how they are stored in your database. If there's any inconsistency, you might need to adjust the query (e.g., using `LOWER()` function).
+- **Data Integrity**: Verify that the data is correctly populated in the `features` table, especially the `seqid` and `featuretype` columns.
+
+By following these steps, you should be able to determine how many pseudogenes are present on the X chromosome in your dataset.

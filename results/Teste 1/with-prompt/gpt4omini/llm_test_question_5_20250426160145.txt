@@ -1,0 +1,23 @@
+```python
+import gffutils
+
+# Connect to the existing database
+db = gffutils.FeatureDB('your_database.db')
+
+# List of gene names to calculate locus sizes
+gene_names = ['XIST', 'MALAT1', 'BRCA1', 'COL1A2', 'NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB']
+
+# Function to calculate gene locus size
+def calculate_gene_locus_size(gene_name):
+    gene = db.features_of_type('gene', filter={'gene_name': gene_name})
+    for g in gene:
+        locus_size = g.end - g.start + 1
+        return gene_name, locus_size
+
+# Calculate sizes for each gene
+locus_sizes = [calculate_gene_locus_size(gene) for gene in gene_names]
+
+# Print results
+for gene, size in locus_sizes:
+    print(f'Gene: {gene}, Locus Size: {size}')
+```

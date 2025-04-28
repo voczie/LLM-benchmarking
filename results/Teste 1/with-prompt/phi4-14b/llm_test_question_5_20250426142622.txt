@@ -1,0 +1,74 @@
+To calculate the sizes of each specified gene locus (XIST, MALAT1, BRCA1, COL1A2, NFKB1, NFKB2, REL, RELA, and RELB) from a genome annotation stored in a SQLite database, you can follow these steps:
+
+### Step-by-Step Guide
+
+1. **Connect to the Database:**
+   First, establish a connection to your SQLite database using Python's `sqlite3` module.
+
+2. **Query Gene Features:**
+   Retrieve the gene features for each specified gene by querying the `features` table. You will need to filter based on the `featuretype` and `attributes`.
+
+3. **Calculate Locus Size:**
+   For each gene, calculate the locus size as the difference between the `end` and `start` positions of the gene feature.
+
+4. **Output Results:**
+   Print or store the results for each gene.
+
+Here's a Python script that implements these steps:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database_file.db')
+cursor = conn.cursor()
+
+# List of genes to query
+genes_of_interest = ['XIST', 'MALAT1', 'BRCA1', 'COL1A2', 'NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB']
+
+# Function to calculate gene locus size
+def get_gene_locus_size(gene_name):
+    # Query the database for the specified gene
+    query = """
+    SELECT start, end FROM features 
+    WHERE featuretype='gene' AND attributes LIKE ?
+    """
+    
+    # Execute the query with a wildcard search in the attributes column
+    cursor.execute(query, (f"%{gene_name}%",))
+    result = cursor.fetchone()
+    
+    if result:
+        start, end = result
+        locus_size = end - start + 1
+        return locus_size
+    else:
+        return None
+
+# Calculate and print the size of each gene locus
+for gene in genes_of_interest:
+    size = get_gene_locus_size(gene)
+    if size is not None:
+        print(f"The size of the {gene} locus is: {size} base pairs")
+    else:
+        print(f"Gene {gene} not found in the database.")
+
+# Close the connection
+conn.close()
+```
+
+### Explanation
+
+- **Database Connection:** The script connects to the SQLite database using `sqlite3.connect()`.
+  
+- **Query Execution:** For each gene, it executes a SQL query that searches for genes with matching names in the `attributes` column. The `%` wildcard is used to match any attributes containing the gene name.
+
+- **Locus Size Calculation:** If a gene is found, its locus size is calculated as `end - start + 1`.
+
+- **Output:** The script prints the locus size for each specified gene or indicates if a gene was not found.
+
+### Notes
+
+- Ensure that your database file path (`your_database_file.db`) is correct.
+- This approach assumes that the gene names are stored in the `attributes` column of the `features` table. Adjust the query if the schema differs.
+- The script handles cases where genes might not be present in the database by checking if a result was returned from the query.

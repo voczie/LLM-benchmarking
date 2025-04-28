@@ -1,0 +1,40 @@
+To find the chromosomal position of the BRCA1 gene using the `gffutils` library, you can follow these steps:
+
+1. **Connect to the database**: First, you need to connect to the SQLite database that contains the genomic annotations.
+
+2. **Fetch the BRCA1 gene**: Use the `features_of_type()` method to retrieve the gene feature for BRCA1.
+
+3. **Extract the chromosomal position**: Once you have the gene feature, you can access its `start` and `end` attributes to determine its chromosomal position.
+
+Here’s a Python script that accomplishes this:
+
+```python
+import gffutils
+
+# Step 1: Connect to the database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# Step 2: Fetch the BRCA1 gene
+brca1_gene = next(db.features_of_type('gene', filter={'gene_id': 'BRCA1'}, limit=1))
+
+# Step 3: Extract the chromosomal position
+chromosomal_position = {
+    'seqid': brca1_gene.seqid,
+    'start': brca1_gene.start,
+    'end': brca1_gene.end,
+    'strand': brca1_gene.strand
+}
+
+# Print the chromosomal position of the BRCA1 gene
+print(f"Chromosomal position of BRCA1 gene:")
+print(f"Chromosome: {chromosomal_position['seqid']}, Start: {chromosomal_position['start']}, End: {chromosomal_position['end']}, Strand: {chromosomal_position['strand']}")
+```
+
+### Explanation of the Code:
+- **Importing gffutils**: This library is essential for working with GFF/GTF files.
+- **Connecting to the database**: Replace `'path_to_your_database.db'` with the actual path to your SQLite database file.
+- **Fetching the BRCA1 gene**: The `features_of_type()` method is used to filter for the gene with the ID `BRCA1`. The `limit=1` ensures that we only get one result.
+- **Extracting the chromosomal position**: The `seqid`, `start`, `end`, and `strand` attributes are accessed to provide the complete chromosomal position of the BRCA1 gene.
+- **Printing the result**: The final output displays the chromosome, start, end, and strand information.
+
+Make sure to adjust the `gene_id` filter according to the actual identifier used in your database if it differs from `BRCA1`.

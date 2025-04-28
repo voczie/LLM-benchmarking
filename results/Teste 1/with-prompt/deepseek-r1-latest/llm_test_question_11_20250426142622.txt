@@ -1,0 +1,65 @@
+<think>
+Okay, so I need to figure out how to find out on which chromosomes the genes NFKB1, NFKB2, REL, RELA, and RELB are located using a SQLite database that contains GFF/GTF data. Let me break this down step by step.
+
+First, I know that each gene in the database is represented as a feature with an 'id' attribute. The features table includes information like start and end positions, strand, etc. So, for each of these genes, I need to check their 'seqid' field to determine the chromosome they're on.
+
+I think I should write a Python function that iterates over each gene in the database. For each gene with one of those specific IDs, I'll extract its 'seqid'. Then, I can collect all unique chromosomes where these genes are located.
+
+Wait, but how do I efficiently get all the features by their ID? Oh right, using the sqlite3 library, I can query the database to fetch all rows from the 'features' table where the 'id' matches any of the target gene IDs. That makes sense.
+
+So, first, I'll create a list of the gene IDs: ['NFKB1', 'NFKB2', 'RELA', 'RELB', 'RELA']—wait, no, RELA appears twice here. Maybe it's better to have each ID once, so perhaps I should use a set to avoid duplicates.
+
+Next, for each gene in this list, I'll execute a SQL query on the database. The query will select the 'seqid' from the features table where 'id' is in the provided list. Using a prepared statement with placeholders might be more efficient and safer than concatenating strings, especially if the IDs are long.
+
+Once I have all the seqids (chromosomes), I'll store them in a set to ensure uniqueness. Then, I can print out each chromosome found along with the number of genes present on that chromosome.
+
+I should also handle any potential errors, like if a gene doesn't exist or if there's an issue connecting to the database. But for now, assuming the data is correct and accessible, maybe those checks are optional unless specified otherwise.
+
+Putting it all together, I'll write a function that takes the list of gene IDs as input, queries the database, collects the chromosomes, and prints them out. This should give me the answer to where these genes are located on the chromosomes.
+</think>
+
+To determine the chromosomes containing specific genes (NFKB1, NFKB2, REL, RELA, RELB) from a SQLite database storing GFF/GTF data, follow this approach:
+
+### Solution Code
+```python
+import sqlite3
+
+def find_genes_on_chromosomes(gene_ids):
+    conn = sqlite3.connect('genome.db')
+    cursor = conn.cursor()
+    
+    # Prepare the list of gene IDs to search for
+    target_genes = set(gene_ids)
+    
+    # SQL query to get all features with the target genes and their chromosome (seqid)
+    cursor.execute("""
+        SELECT DISTINCT f.seqid 
+        FROM features f 
+        WHERE f.id IN (%s)
+        """, tuple(target_genes))
+    
+    # Fetch all results
+    chromosomes = set(cursor.fetchall())
+    
+    for chrom in sorted(chromosomes):
+        print(f"Gene(s) {', '.join(target_genes)} are located on chromosome(s): {chrom}")
+
+# List of gene IDs to find
+gene_ids_to_find = ['NFKB1', 'NFKB2', 'RELA', 'RELB']
+
+# Call the function
+find_genes_on_chromosomes(gene_ids_to_find)
+```
+
+### Explanation
+1. **Database Connection**: The code connects to the SQLite database using `sqlite3.connect('genome.db')`.
+
+2. **Gene IDs List**: It defines a list of gene IDs whose chromosome locations we want to find.
+
+3. **SQL Query**: A query is executed to select all unique chromosomes (`seqid`) where any of the target genes are found. The use of `DISTINCT` ensures each chromosome is listed only once, even if multiple genes are on the same chromosome.
+
+4. **Result Handling**: The results are stored in a set to avoid duplicates and then sorted for consistent output order.
+
+5. **Output**: For each chromosome found, it prints out which genes are located there.
+
+This approach efficiently retrieves the required information using SQL queries optimized with prepared statements for performance and safety.

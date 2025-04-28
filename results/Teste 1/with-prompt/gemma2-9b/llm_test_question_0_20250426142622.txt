@@ -1,0 +1,34 @@
+```python
+import sqlite3
+
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your database file
+cursor = conn.cursor()
+
+# Count genes on chromosome 3
+gene_count = cursor.execute(
+    "SELECT COUNT(*) FROM features WHERE seqid='3' AND featuretype='gene'"
+).fetchone()[0]
+
+# Count transcripts on chromosome 3
+transcript_count = cursor.execute(
+    "SELECT COUNT(*) FROM features WHERE seqid='3' AND featuretype='transcript'"
+).fetchone()[0]
+
+print(f"Number of genes on chromosome 3: {gene_count}")
+print(f"Number of transcripts on chromosome 3: {transcript_count}")
+
+conn.close()
+```
+
+**Explanation:**
+
+1. **Connect to the database:** Replace `'your_database.db'` with the actual name of your SQLite database file.
+2. **Execute queries:**
+   - The first query selects all features from the `features` table where `seqid` is '3' (chromosome 3) and `featuretype` is 'gene'. It then counts the results using `COUNT(*)`.
+   - The second query does the same but for transcripts (`featuretype='transcript'`).
+3. **Fetch and print results:**
+   - `.fetchone()` retrieves a single row (the result of the count) from the cursor.
+   - `[0]` accesses the first element (the count value) within that row.
+   - The results are printed using f-strings for clear output.
+
+**Remember:** This assumes your database schema is exactly as provided in the prompt. If it differs, you'll need to adjust the queries accordingly.

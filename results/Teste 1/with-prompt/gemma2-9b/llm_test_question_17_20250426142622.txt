@@ -1,0 +1,48 @@
+```python
+import sqlite3
+import matplotlib.pyplot as plt
+
+# Connect to your SQLite database
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your actual database file
+cursor = conn.cursor()
+
+# Query to retrieve gene sizes on chromosome X
+cursor.execute("""
+    SELECT 
+        end - start + 1 AS gene_size 
+    FROM features 
+    WHERE seqid = 'X' AND featuretype = 'gene'
+""")
+
+# Fetch the results
+gene_sizes = [row[0] for row in cursor.fetchall()]
+
+# Create a scatter plot
+plt.scatter(range(len(gene_sizes)), gene_sizes)
+plt.xlabel('Gene Index')
+plt.ylabel('Gene Size (bp)')
+plt.title('Distribution of Gene Sizes on Chromosome X')
+plt.show()
+
+# Close the database connection
+conn.close()
+```
+
+**Walkthrough:**
+
+1. **Connect to Database:** Establish a connection to your SQLite database using `sqlite3.connect()`. Replace 'your_database.db' with the actual filename of your database.
+
+2. **Execute Query:** Use `cursor.execute()` to run a SQL query that selects the gene sizes from the `features` table for chromosome X (`seqid = 'X'`) and where the feature type is 'gene'. The query calculates the size by subtracting the start position from the end position and adding 1.
+
+3. **Fetch Results:** Retrieve the results of the query using `cursor.fetchall()`. This returns a list of tuples, where each tuple contains the gene size. Extract the gene sizes into a list called `gene_sizes`.
+
+4. **Create Scatter Plot:** Use `matplotlib.pyplot.scatter()` to create a scatter plot. The x-axis represents the index of each gene (using `range(len(gene_sizes))`), and the y-axis represents the gene size (`gene_sizes`).
+
+5. **Set Labels and Title:** Add labels to the x and y axes using `plt.xlabel()` and `plt.ylabel()`. Set the title of the plot using `plt.title()`.
+
+6. **Display Plot:** Show the plot using `plt.show()`.
+
+7. **Close Connection:** Close the database connection using `conn.close()`.
+
+
+

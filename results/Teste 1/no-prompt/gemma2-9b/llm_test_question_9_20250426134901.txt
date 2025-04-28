@@ -1,0 +1,40 @@
+Here's how you can find the average exon size for BRCA1 transcript isoforms using your SQLite3 database:
+
+**1. Identify Relevant Features:**
+
+*   You need to focus on features with `featuretype` equal to "exon". 
+*   Filter these exons by their associated transcripts, ensuring they belong to the BRCA1 gene. This might involve looking at the `attributes` field for transcript identifiers or using a separate table linking genes and transcripts.
+
+**2. Calculate Exon Sizes:**
+
+*   For each exon, subtract its `start` coordinate from its `end` coordinate (`end - start`) to get the exon size.
+
+**3. Average the Exon Sizes:**
+
+*   Sum up all the calculated exon sizes.
+*   Divide the sum by the total number of exons identified for BRCA1 transcripts.
+
+**SQL Query Example (Conceptual):**
+
+```sql
+-- This is a conceptual query, you might need to adjust it based on your specific attribute names and data structure.
+
+SELECT AVG(end - start) AS average_exon_size
+FROM features
+WHERE featuretype = 'exon'
+  AND attributes LIKE '%BRCA1 transcript%' -- Adjust this condition based on how transcripts are identified in your attributes field; 
+```
+
+**Walkthrough:**
+
+1.  **Identify BRCA1 Transcripts:** Determine the specific identifiers used for BRCA1 transcripts within your `attributes` field. This might involve searching for keywords like "BRCA1" or using transcript IDs.
+
+2.  **Filter Exons:** Use a WHERE clause to select only features with `featuretype = 'exon'` and attributes containing the identified BRCA1 transcript identifiers.
+
+3.  **Calculate Exon Sizes:** Use the expression `end - start` within the SELECT statement to calculate the size of each exon.
+
+4.  **Average the Sizes:** Apply the AVG() function to the calculated exon sizes to get the average value.
+
+
+
+Let me know if you have any more questions or need further assistance with your query!

@@ -1,0 +1,114 @@
+To determine how many exons each transcript isoform of the BRCA1 gene has, we need to follow these steps:
+
+1. Identify the BRCA1 gene in the database.
+2. Retrieve all transcript isoforms associated with the BRCA1 gene.
+3. Count the number of exons for each transcript isoform.
+
+Here's a step-by-step walkthrough using Python and SQLite queries to achieve this:
+
+### Step 1: Connect to the Database
+First, ensure you have a connection to your SQLite database containing the genome annotation data.
+
+```python
+import sqlite3
+
+# Connect to the database
+conn = sqlite3.connect('genome_annotation.db')
+db = conn.cursor()
+```
+
+### Step 2: Retrieve BRCA1 Gene ID
+Find the gene ID for BRCA1 using its name or other attributes.
+
+```python
+brca1_gene_id = None
+for row in db.execute("SELECT id FROM features WHERE featuretype='gene' AND attributes LIKE '%\"Name\":\"BRCA1\"%'"):
+    brca1_gene_id = row[0]
+    break
+
+if not brca1_gene_id:
+    print("BRCA1 gene not found.")
+else:
+    print(f"Found BRCA1 gene ID: {brca1_gene_id}")
+```
+
+### Step 3: Retrieve Transcript Isoforms
+Retrieve all transcript isoforms associated with the BRCA1 gene.
+
+```python
+transcripts = []
+for row in db.execute("SELECT id FROM features WHERE featuretype='transcript' AND attributes LIKE '%\"Parent\":\"{}\"%'".format(brca1_gene_id)):
+    transcripts.append(row[0])
+```
+
+### Step 4: Count Exons for Each Transcript Isoform
+For each transcript isoform, count the number of exons.
+
+```python
+from collections import defaultdict
+
+exon_counts = defaultdict(int)
+
+for transcript in transcripts:
+    exon_count = db.execute("SELECT COUNT(*) FROM features WHERE featuretype='exon' AND attributes LIKE '%\"Parent\":\"{}\"%'".format(transcript)).fetchone()[0]
+    exon_counts[transcript] = exon_count
+```
+
+### Step 5: Retrieve Transcript Names and Print Results
+Retrieve the transcript names from the database and print the results.
+
+```python
+for transcript_id, exon_count in exon_counts.items():
+    for row in db.execute("SELECT attributes FROM features WHERE id='{}'".format(transcript_id)):
+        attributes = dict(item.split(':"') for item in row[0].split(';'))
+        transcript_name = attributes.get('transcript_name', 'Unknown')
+        print(f"Transcript: {transcript_name}, Exons: {exon_count}")
+```
+
+### Full Script
+Combining all the steps into a single script:
+
+```python
+import sqlite3
+
+# Connect to the database
+conn = sqlite3.connect('genome_annotation.db')
+db = conn.cursor()
+
+# Step 2: Retrieve BRCA1 Gene ID
+brca1_gene_id = None
+for row in db.execute("SELECT id FROM features WHERE featuretype='gene' AND attributes LIKE '%\"Name\":\"BRCA1\"%'"):
+    brca1_gene_id = row[0]
+    break
+
+if not brca1_gene_id:
+    print("BRCA1 gene not found.")
+else:
+    print(f"Found BRCA1 gene ID: {brca1_gene_id}")
+
+# Step 3: Retrieve Transcript Isoforms
+transcripts = []
+for row in db.execute("SELECT id FROM features WHERE featuretype='transcript' AND attributes LIKE '%\"Parent\":\"{}\"%'".format(brca1_gene_id)):
+    transcripts.append(row[0])
+
+# Step 4: Count Exons for Each Transcript Isoform
+from collections import defaultdict
+
+exon_counts = defaultdict(int)
+
+for transcript in transcripts:
+    exon_count = db.execute("SELECT COUNT(*) FROM features WHERE featuretype='exon' AND attributes LIKE '%\"Parent\":\"{}\"%'".format(transcript)).fetchone()[0]
+    exon_counts[transcript] = exon_count
+
+# Step 5: Retrieve Transcript Names and Print Results
+for transcript_id, exon_count in exon_counts.items():
+    for row in db.execute("SELECT attributes FROM features WHERE id='{}'".format(transcript_id)):
+        attributes = dict(item.split(':"') for item in row[0].split(';'))
+        transcript_name = attributes.get('transcript_name', 'Unknown')
+        print(f"Transcript: {transcript_name}, Exons: {exon_count}")
+
+# Close the database connection
+conn.close()
+```
+
+This script will output the number of exons for each transcript isoform of the BRCA1 gene, along with their names.

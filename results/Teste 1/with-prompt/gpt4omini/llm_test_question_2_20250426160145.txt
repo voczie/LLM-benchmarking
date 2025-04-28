@@ -1,0 +1,12 @@
+```python
+import gffutils
+
+# Connect to the existing database
+db = gffutils.FeatureDB('your_database.db')
+
+# Count lncRNA genes on chromosome 7
+lncRNA_genes = db.features_of_type('gene', filter={'gene_biotype': 'lncRNA', 'seqid': '7'})
+lncRNA_count = sum(1 for _ in lncRNA_genes)
+
+print(f'The number of lncRNA genes on chromosome 7 is: {lncRNA_count}')
+```

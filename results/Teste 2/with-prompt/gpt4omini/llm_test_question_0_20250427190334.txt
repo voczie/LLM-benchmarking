@@ -1,0 +1,39 @@
+To answer the question of how many genes and transcripts are present on chromosome 3 using the `gffutils` library, you can follow these steps:
+
+1. **Connect to the Database**: First, you need to connect to the SQLite database that contains the genomic annotations.
+
+2. **Fetch Features**: Use the `features_of_type()` method to retrieve the genes and transcripts specifically for chromosome 3.
+
+3. **Count the Features**: Count the number of unique genes and transcripts.
+
+Here’s a Python script that implements these steps:
+
+```python
+import gffutils
+
+# Connect to the existing database
+db = gffutils.FeatureDB('your_database.db', keep_order=True)
+
+# Fetch genes and transcripts on chromosome 3
+chromosome = '3'
+genes = list(db.features_of_type('gene', seqid=chromosome))
+transcripts = list(db.features_of_type('transcript', seqid=chromosome))
+
+# Count the number of unique genes and transcripts
+num_genes = len(genes)
+num_transcripts = len(transcripts)
+
+# Output the results
+print(f"Number of genes on chromosome {chromosome}: {num_genes}")
+print(f"Number of transcripts on chromosome {chromosome}: {num_transcripts}")
+```
+
+### Explanation of the Code:
+- **Import the Library**: The script starts by importing the `gffutils` library.
+- **Connect to the Database**: Replace `'your_database.db'` with the path to your actual database file.
+- **Fetch Features**: The `features_of_type()` method is used to get all genes and transcripts on chromosome 3.
+- **Count Features**: The lengths of the lists containing genes and transcripts are calculated to get the counts.
+- **Print Results**: Finally, the results are printed to the console.
+
+### Note:
+Make sure you have the `gffutils` library installed and that your database is correctly set up with the appropriate annotations. Adjust the `seqid` parameter if your chromosome naming convention differs.

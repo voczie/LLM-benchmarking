@@ -1,0 +1,50 @@
+To calculate the average exon size of the BRCA1 transcript isoforms using the `gffutils` library, you can follow these steps:
+
+1. **Connect to the Database**: First, you need to connect to your SQLite database that contains the genomic annotations.
+
+2. **Fetch Exons for BRCA1**: Retrieve all exons associated with the BRCA1 transcript isoforms.
+
+3. **Calculate Exon Sizes**: For each exon, calculate its size using the formula `exon_size = end - start`.
+
+4. **Compute the Average Size**: Sum the exon sizes and divide by the number of exons to get the average size.
+
+Here’s a Python script that implements these steps:
+
+```python
+import gffutils
+
+# Step 1: Connect to the database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# Step 2: Fetch all BRCA1 transcript isoforms
+brca1_transcripts = db.features_of_type('transcript', filter={'gene_id': 'BRCA1'})
+
+# Step 3: Initialize a list to store exon sizes
+exon_sizes = []
+
+# Step 4: Iterate through each BRCA1 transcript and fetch its exons
+for transcript in brca1_transcripts:
+    # Fetch exons for the current transcript
+    exons = db.children(transcript.id, featuretype='exon', order_by='start')
+    
+    # Calculate exon sizes and append to the list
+    for exon in exons:
+        exon_size = exon.end - exon.start
+        exon_sizes.append(exon_size)
+
+# Step 5: Calculate the average exon size
+if exon_sizes:
+    average_exon_size = sum(exon_sizes) / len(exon_sizes)
+    print(f"The average exon size of the BRCA1 transcript isoforms is: {average_exon_size:.2f} base pairs.")
+else:
+    print("No exons found for BRCA1 transcript isoforms.")
+```
+
+### Explanation of the Code:
+- **Database Connection**: Replace `'path_to_your_database.db'` with the actual path to your SQLite database.
+- **Fetching Transcripts**: The `features_of_type` method retrieves all transcript features associated with the BRCA1 gene.
+- **Calculating Sizes**: For each exon, the size is calculated and stored in the `exon_sizes` list.
+- **Average Calculation**: Finally, the average size is computed and printed.
+
+### Note:
+Make sure that the `gene_id` for BRCA1 matches the attribute used in your database. If the attribute name is different, adjust the filter accordingly.

@@ -1,0 +1,81 @@
+To determine how many protein-coding genes are on chromosome 12, you can use the SQLite database schema provided and query it using Python with the `sqlite3` module or a more convenient ORM like SQLAlchemy. Below is an example of how to achieve this using Python and the `sqlite3` module.
+
+First, ensure that your genome annotation data is loaded into the SQLite database as described in the schema. Then, you can write a script to query the number of protein-coding genes on chromosome 12.
+
+Here's a step-by-step guide:
+
+### Step 1: Connect to the Database
+Connect to the SQLite database using Python and the `sqlite3` module.
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('genome_annotation.db')
+cursor = conn.cursor()
+```
+
+### Step 2: Query for Protein-Coding Genes on Chromosome 12
+Write a query to count the number of protein-coding genes on chromosome 12. The `features` table contains information about each feature, and you can filter by `featuretype`, `seqid`, and attributes.
+
+```python
+# SQL query to count protein-coding genes on chromosome 12
+query = """
+SELECT COUNT(*)
+FROM features
+WHERE seqid = 'chr12'
+AND featuretype = 'gene'
+AND 'protein_coding' IN (SELECT value FROM json_each(attributes) WHERE key = 'gene_biotype');
+"""
+
+# Execute the query and fetch the result
+cursor.execute(query)
+result = cursor.fetchone()[0]
+
+print(f"Number of protein-coding genes on chromosome 12: {result}")
+```
+
+### Step 3: Close the Database Connection
+After fetching the results, close the database connection.
+
+```python
+conn.close()
+```
+
+### Full Script Example
+
+Here is a complete script that connects to the SQLite database and queries for the number of protein-coding genes on chromosome 12:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('genome_annotation.db')
+cursor = conn.cursor()
+
+# SQL query to count protein-coding genes on chromosome 12
+query = """
+SELECT COUNT(*)
+FROM features
+WHERE seqid = 'chr12'
+AND featuretype = 'gene'
+AND 'protein_coding' IN (SELECT value FROM json_each(attributes) WHERE key = 'gene_biotype');
+"""
+
+# Execute the query and fetch the result
+cursor.execute(query)
+result = cursor.fetchone()[0]
+
+print(f"Number of protein-coding genes on chromosome 12: {result}")
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation
+
+- **`seqid = 'chr12'`**: Filters features to only those located on chromosome 12.
+- **`featuretype = 'gene'`**: Ensures that we are counting genes, not other types of features like transcripts or exons.
+- **`AND 'protein_coding' IN (SELECT value FROM json_each(attributes) WHERE key = 'gene_biotype')`**: This part checks if the gene is protein-coding by looking for the `gene_biotype` attribute in the JSON-formatted attributes column.
+
+This script will output the number of protein-coding genes on chromosome 12. Adjust the database file path and other parameters as necessary to fit your specific setup.
