@@ -1,3 +1,4 @@
+chromadb
 langchain
 langchain_community
 langchain_openai
@@ -7,3 +8,5 @@ ipykernel
 dotenv
 gffutils
 seaborn
+sentence-transformers
+hf_xet

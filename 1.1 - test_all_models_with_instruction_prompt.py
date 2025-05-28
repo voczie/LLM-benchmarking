@@ -3,6 +3,22 @@ from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_ollama.llms import OllamaLLM
 import os
+import chromadb
+
+collection = chromadb.PersistentClient(path="databases/").get_collection(name="questions_code_examples_python")
+
+def get_code_examples(question_query, n = 3):
+    results = collection.query(
+        query_texts=[question_query],
+        n_results=3,
+        include=['metadatas', 'documents']
+    )
+
+    dict_results = {}
+    for i, doc in enumerate(results['documents'][0]):
+        dict_results.update({doc:results['metadatas'][0][i]['code_example']})
+
+    return dict_results
 
 if os.path.exists('results/') == False:
     os.mkdir('results/')
@@ -83,9 +99,9 @@ questions = [
 ]
 
 models = [
-    "gemma2",
+    "gemma2:9b",
     "qwen2.5:14b",
-    "phi4",
+    "phi4:14b",
     "deepseek-r1:14b"
 ]
 
@@ -97,6 +113,8 @@ for model_name in models:
         os.mkdir(f'results/with-prompt/{model_name_path}')
 
     for ix, question in enumerate(questions):
+        questions_codes = get_code_examples(question)
+
         TEMPLATE = '''
         {context}
 
@@ -108,6 +126,11 @@ for model_name in models:
         <user_question>
         Guide me with a query or a walkthrough based on to answer the following question: {question}
         </user_question>
+
+        Here's some code examples in Python 3 that might help:
+        <code_examples>
+        {questions_codes}
+        </code_examples>
         '''
 
         # Instantiating the model
@@ -116,7 +139,7 @@ for model_name in models:
                 )
 
         prompt = PromptTemplate(
-            input_variables=["context", "schema", "question"], template=TEMPLATE
+            input_variables=["context", "schema", "question", "question_codes"], template=TEMPLATE
         )
 
         chain = prompt | llm | StrOutputParser()
@@ -125,7 +148,8 @@ for model_name in models:
         res = chain.invoke({
             "context": context,
             "schema": schema,
-            "question": questions[0]
+            "question": questions,
+            "question_codes": questions_codes
         })
 
         with open(f'results/with-prompt/{model_name_path}/llm_test_question_{ix}_{current_time}.txt', 'w') as f:
