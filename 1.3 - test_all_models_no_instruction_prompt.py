@@ -28,49 +28,34 @@ if os.path.exists('results/no-prompt') == False:
 
 
 # The db description
-schema = '''CREATE TABLE features (
-    id text,
-    seqid text,
-    source text,
-    featuretype text,
-    start int,
-    end int,
-    score text,
-    strand text,
-    frame text,
-    attributes text,
-    extra text,
-    bin int,
-    primary key (id)
-    );
-
-CREATE TABLE relations (
-    parent text,
-    child text,
-    level int,
-    primary key (parent, child, level)
-    );
-
-CREATE TABLE meta (
-    dialect text,
-    version text
-    );
-
-CREATE TABLE directives (
-    directive text
-    );
-
-CREATE TABLE autoincrements (
-    base text,
-    n int,
-    primary key (base)
-    );
-
-CREATE TABLE duplicates (
-    idspecid text,
-    newid text,
-    primary key (newid)
-    );'''
+ddl = '''table_name,field_name,field_type,field_description
+features,id,text,Primary key for features. The content of this field is determined by the user and the file format at creation time
+features,seqid,text,Chromosome or contig ID
+features,source,text,The source of the annotation (e.g. Ensembl; GENCODE)
+features,featuretype,text,The type of feature (e.g. gene; transcript; exon)
+features,start,int,The start coordinate of the feature
+features,end,int,The end coordinate of the feature
+features,score,text,A score associated with the feature (if available)
+features,strand,text,The strand of the feature (+; -; or .)
+features,frame,text,The coding frame of the feature (0; 1; or 2)
+features,attributes,text,A string containing semicolon-separated attribute-value pairs
+features,extra,text,A JSON-serialized list of non-standard extra fields. These are sometimes added by analysis tools (e.g. BEDTools). For standard GFF/GTF this field will be empty
+features,bin,int,The genomic bin according to the UCSC binning strategy
+features,primary key,(id),Same as the field id. Primary key for features
+relations,parent,text,Foreign key to features.id – a gene for example
+relations,child,text,Foreign key to feature.id – an mRNA or an exon for example
+relations,level,int,In graph terms the number of edges between child and parent. In biological terms if parent=gene and child=mRNA then level=1. If parent=gene and child=exon then level=2
+relations,primary key,(parent, child, level),Composite key using the fields parent; child and level. Composed of two foreign keys and one integer
+meta,dialect,text,A JSON-serialized version of the dialect empirically determined when parsing the original file
+meta,version,text,The gffutils version used to create the database
+directives,directive,text,String directive without the leading ##
+autoincrements,base,text,By default the feature type (gene; exon; etc) but can also be the value of any GFF field or attribute (e.g. the seqid or “GENE_1” (in the case of multiple features with ID=”GENE_1”)
+autoincrements,n,int,Current extent of autoincrementing – add 1 to this when autoincrementing next time
+autoincrements,primary key,(base),Same as the field base. Primary key for autoincrements
+duplicates,idspecid,text,ID of the identified duplicated feature
+duplicates,newid,text,New ID for the duplicated feature
+duplicates,primary key,(newid),Same as the field newid. Primary key for duplicates
+'''
 
 # LLM part
 questions = [
@@ -114,10 +99,10 @@ for model_name in models:
         questions_codes = get_code_examples(question)
 
         TEMPLATE = '''
-        ### Given a genome annotation in a GFF/GTF format and all of its data is stored in a sqlite3 database with the following SCHEMA: 
-        <schema>
-        {schema}
-        </schema>
+        ### Given a genome annotation in a GFF/GTF format, and all of its data is stored in a SQLite3 database, whose fields are described within the DDL: 
+        <ddl>
+        {ddl}
+        </ddl>
 
         <user_question>
         Guide me with a query or a walkthrough based on to answer the following question: {question}
@@ -135,14 +120,14 @@ for model_name in models:
                 )
 
         prompt = PromptTemplate(
-            input_variables=["schema", "question", "question_codes"], template=TEMPLATE
+            input_variables=["ddl", "question", "question_codes"], template=TEMPLATE
         )
 
         chain = prompt | llm | StrOutputParser()
 
         # Running
         res = chain.invoke({
-            "schema": schema,
+            "ddl": ddl,
             "question": questions,
             "question_codes": questions_codes
         })
