@@ -1,0 +1,48 @@
+To find the chromosomal position of the BRCA1 gene using the SQLite3 database that contains the genome annotation in GFF/GTF format, you can follow these steps:
+
+1. **Connect to the SQLite3 Database**: First, ensure you have a connection to your SQLite3 database where the genome annotations are stored.
+
+2. **Query the Database**: You will need to query the `features` table to find the entry corresponding to the BRCA1 gene. The relevant fields are `seqid`, `start`, and `end`.
+
+3. **Extract the Chromosomal Position**: Once you have the relevant feature, you can extract the chromosomal position using the `start` and `end` fields.
+
+Here’s a Python code snippet that demonstrates how to do this:
+
+```python
+import sqlite3
+
+# Connect to the SQLite3 database
+db_path = 'path_to_your_database.db'  # Replace with your database path
+conn = sqlite3.connect(db_path)
+cursor = conn.cursor()
+
+# Query to find the BRCA1 gene
+query = """
+SELECT seqid, start, end 
+FROM features 
+WHERE featuretype = 'gene' AND attributes LIKE '%BRCA1%'
+"""
+
+# Execute the query
+cursor.execute(query)
+result = cursor.fetchone()
+
+# Check if the result is found and print the chromosomal position
+if result:
+    seqid, start, end = result
+    print(f"Chromosomal position of BRCA1: {seqid}:{start}-{end}")
+else:
+    print("BRCA1 gene not found.")
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation of the Code:
+- **Database Connection**: The code connects to the SQLite3 database using the `sqlite3` library.
+- **SQL Query**: The SQL query selects the `seqid`, `start`, and `end` fields from the `features` table where the `featuretype` is 'gene' and the `attributes` contain 'BRCA1'.
+- **Fetching Results**: The `fetchone()` method retrieves the first matching record.
+- **Output**: If a record is found, it prints the chromosomal position in the format `seqid:start-end`. If not, it indicates that the BRCA1 gene was not found.
+- **Closing Connection**: Finally, the database connection is closed.
+
+Make sure to replace `'path_to_your_database.db'` with the actual path to your SQLite database file.

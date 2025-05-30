@@ -1,0 +1,60 @@
+To find the names of the two genes located immediately before and after the gene COL1A2, we can follow these steps:
+
+1. Retrieve the COL1A2 gene from the database.
+2. Get the chromosome and strand information for COL1A2.
+3. Find the gene immediately before COL1A2 by filtering genes on the same chromosome with an end coordinate less than COL1A2's start coordinate.
+4. Find the gene immediately after COL1A2 by filtering genes on the same chromosome with a start coordinate greater than COL1A2's end coordinate.
+5. Print the names of the identified genes.
+
+Here's the Python script that implements this logic using the `gffutils` library:
+
+```python
+import gffutils
+
+# Connect to the GFF/GTF database
+db = gffutils.FeatureDB('your_database.db', keep_order=True)
+
+# Step 1: Find the COL1A2 gene
+col1a2 = next(filter(lambda x: x.attributes.get('gene_name', [''])[0] == 'COL1A2',
+                     db.features_of_type('gene')))
+
+# Step 2: Get the chromosome and strand of COL1A2
+chromosome = col1a2.seqid
+strand = col1a2.strand
+
+# Step 3: Find the gene immediately before COL1A2
+gene_before = next(filter(lambda x: x.seqid == chromosome and x.end < col1a2.start,
+                          sorted(db.features_of_type('gene'), key=lambda x: -x.end)), None)
+
+# Step 4: Find the gene immediately after COL1A2
+gene_after = next(filter(lambda x: x.seqid == chromosome and x.start > col1a2.end,
+                         sorted(db.features_of_type('gene'), key=lambda x: x.start)), None)
+
+# Function to get gene info
+def get_gene_info(gene):
+    gene_id = gene.attributes.get('gene_id', ['Unknown'])[0]
+    gene_name = gene.attributes.get('gene_name', ['Unknown'])[0]
+    return f"{gene_name} (ID: {gene_id})"
+
+# Step 5: Print the results
+print(f"COL1A2 Gene: {get_gene_info(col1a2)}")
+if gene_before:
+    print(f"Gene before COL1A2: {get_gene_info(gene_before)}")
+else:
+    print("No gene found before COL1A2.")
+
+if gene_after:
+    print(f"Gene after COL1A2: {get_gene_info(gene_after)}")
+else:
+    print("No gene found after COL1A2.")
+```
+
+### Explanation of the Code:
+- **Database Connection:** We connect to the GFF/GTF database using `gffutils.FeatureDB()`.
+- **Finding COL1A2:** We filter through the genes to find the one with the name 'COL1A2'.
+- **Chromosome and Strand:** We extract the chromosome and strand information from the COL1A2 gene.
+- **Finding Neighboring Genes:** We use sorted filtering to find the gene immediately before and after COL1A2 based on their start and end coordinates.
+- **Gene Information Function:** A helper function `get_gene_info` is defined to format the output for gene names and IDs.
+- **Output:** Finally, we print the results, including COL1A2 and its neighboring genes.
+
+Make sure to replace `'your_database.db'` with the actual path to your GFF/GTF database file.

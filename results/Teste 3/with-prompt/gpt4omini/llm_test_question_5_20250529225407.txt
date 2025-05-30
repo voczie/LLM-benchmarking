@@ -1,0 +1,48 @@
+To calculate the sizes of each gene locus for the specified genes (XIST, MALAT1, BRCA1, COL1A2, NFKB1, NFKB2, REL, RELA, and RELB), we will follow these steps:
+
+1. Connect to the GFF/GTF database using `gffutils`.
+2. Retrieve the gene features for the specified gene names.
+3. Calculate the size of each gene locus using the formula: `size = end - start + 1`.
+4. Print the results.
+
+Here’s the Python script that accomplishes this:
+
+```python
+import gffutils
+
+# Connect to the GFF/GTF database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# List of genes to calculate sizes for
+genes_list = ["XIST", "MALAT1", "BRCA1", "COL1A2", "NFKB1", "NFKB2", "REL", "RELA", "RELB"]
+
+# Iterate through each gene name in the list
+for gene_name in genes_list:
+    # Fetch all gene features from the database
+    genes = db.features_of_type('gene', order_by='start')
+    gene_found = False
+    
+    # Search for the specific gene
+    for gene in genes:
+        # Check if the gene_name matches the current gene's attributes
+        if gene_name in gene.attributes.get('gene_name', []):
+            # Calculate the size of the gene locus
+            size = gene.end - gene.start + 1
+            print(f"{gene_name} locus size: {size} bp")
+            gene_found = True
+            break
+    
+    # If the gene was not found, print a message
+    if not gene_found:
+        print(f"Gene {gene_name} not found in the database")
+```
+
+### Explanation of the Code:
+- **Database Connection:** We connect to the GFF/GTF database using `gffutils.FeatureDB()`. Make sure to replace `'path_to_your_database.db'` with the actual path to your database file.
+- **Gene List:** We define a list of gene names for which we want to calculate the sizes.
+- **Gene Retrieval:** We retrieve all gene features using `db.features_of_type('gene', order_by='start')`.
+- **Size Calculation:** For each gene, we check if its name matches the current gene in the loop. If it matches, we calculate the size of the gene locus using the formula `size = end - start + 1` and print the result.
+- **Error Handling:** If a gene is not found in the database, we print a message indicating that.
+
+### Note:
+Make sure you have the `gffutils` library installed and that your database is correctly set up with the relevant gene annotations. Adjust the database path as necessary.

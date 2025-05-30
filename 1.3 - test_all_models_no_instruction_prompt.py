@@ -120,7 +120,7 @@ for model_name in models:
                 )
 
         prompt = PromptTemplate(
-            input_variables=["ddl", "question", "question_codes"], template=TEMPLATE
+            input_variables=["ddl", "question", "questions_codes"], template=TEMPLATE
         )
 
         chain = prompt | llm | StrOutputParser()
@@ -129,7 +129,7 @@ for model_name in models:
         res = chain.invoke({
             "ddl": ddl,
             "question": questions,
-            "question_codes": questions_codes
+            "questions_codes": questions_codes
         })
 
         with open(f'results/no-prompt/{model_name_path}/llm_test_question_{ix}_{current_time}.txt', 'w') as f:

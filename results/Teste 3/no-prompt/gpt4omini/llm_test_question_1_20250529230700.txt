@@ -1,0 +1,50 @@
+To determine how many protein-coding genes are on chromosome 12 using the SQLite3 database that contains your genome annotation, you can follow these steps:
+
+1. **Connect to the SQLite3 Database**: First, you need to establish a connection to your SQLite3 database.
+
+2. **Query the Database**: You will need to query the `features` table to count the number of features that are of type `gene`, located on `seqid` (chromosome) `12`, and have an attribute indicating that they are of the `protein_coding` biotype.
+
+3. **Count the Results**: Finally, you will count the results of your query.
+
+Here’s a Python code snippet that accomplishes this:
+
+```python
+import sqlite3
+
+# Connect to the SQLite3 database
+db_connection = sqlite3.connect('your_database_name.db')  # Replace with your database name
+cursor = db_connection.cursor()
+
+# Define the query to count protein-coding genes on chromosome 12
+query = """
+SELECT COUNT(*) 
+FROM features 
+WHERE featuretype = 'gene' 
+AND seqid = '12' 
+AND attributes LIKE '%gene_biotype=protein_coding%'
+"""
+
+# Execute the query
+cursor.execute(query)
+
+# Fetch the result
+protein_coding_gene_count = cursor.fetchone()[0]
+
+# Print the result
+print(f"Number of protein-coding genes on chromosome 12: {protein_coding_gene_count}")
+
+# Close the database connection
+cursor.close()
+db_connection.close()
+```
+
+### Explanation of the Code:
+- **Database Connection**: The code connects to the SQLite database using `sqlite3.connect()`.
+- **SQL Query**: The SQL query counts the number of rows in the `features` table where:
+  - `featuretype` is `'gene'`
+  - `seqid` is `'12'`
+  - The `attributes` field contains the string `gene_biotype=protein_coding`. This is done using the `LIKE` operator to check for the presence of the substring.
+- **Execute and Fetch**: The query is executed, and the result is fetched using `fetchone()`, which retrieves the first row of the result set.
+- **Output**: Finally, the count is printed, and the database connection is closed.
+
+Make sure to replace `'your_database_name.db'` with the actual name of your SQLite database file.

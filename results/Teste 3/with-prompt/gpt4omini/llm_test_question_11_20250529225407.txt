@@ -1,0 +1,37 @@
+To determine the chromosomes on which the genes NFKB1, NFKB2, REL, RELA, and RELB are located, we can use the `gffutils` library to query the database for these specific genes. The following Python script accomplishes this by iterating through the gene features in the database and checking if their names match the target genes.
+
+Here's the complete script:
+
+```python
+import gffutils
+
+# Connect to the existing GFF/GTF database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# List of target genes to search for
+target_genes = ['NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB']
+
+# Iterate through all gene features in the database
+for feature in db.features_of_type('gene'):
+    # Get the gene name from the attributes
+    gene_name = feature.attributes.get('gene_name', [''])[0]
+    
+    # Check if the gene name is in the list of target genes
+    if gene_name in target_genes:
+        # Print the gene name and its corresponding chromosome
+        print(f"{gene_name}: chromosome {feature.seqid}")
+```
+
+### Explanation of the Code:
+1. **Import the gffutils library**: This is necessary to interact with the GFF/GTF database.
+2. **Connect to the database**: Replace `'path_to_your_database.db'` with the actual path to your GFF/GTF database file.
+3. **Define the target genes**: A list of gene names we are interested in.
+4. **Iterate through gene features**: Using `db.features_of_type('gene')`, we retrieve all gene features from the database.
+5. **Access gene names**: For each gene feature, we access the `gene_name` attribute.
+6. **Check for matches**: If the gene name matches one of our target genes, we print the gene name along with its chromosome (`seqid`).
+
+### Usage:
+- Ensure you have the `gffutils` library installed and your database created from a GFF/GTF file.
+- Run the script in a Python environment where the database is accessible.
+
+This script will output the chromosomes for the specified genes, allowing you to easily identify their locations in the genome.

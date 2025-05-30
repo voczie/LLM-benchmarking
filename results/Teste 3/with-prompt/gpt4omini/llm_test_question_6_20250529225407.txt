@@ -1,0 +1,51 @@
+To answer the question about how many transcript isoforms the XIST gene has, along with their names and sizes, we can use the `gffutils` library to query the database. Below is a Python script that accomplishes this task:
+
+```python
+import gffutils
+
+# Connect to the GFF/GTF database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# Initialize a counter for the number of transcript isoforms
+transcript_count = 0
+
+# Create a list to store transcript information
+transcript_info = []
+
+# Fetch all transcripts associated with the XIST gene
+xist_transcripts = (feature for feature in db.features_of_type('transcript') 
+                    if 'XIST' in feature.attributes.get('gene_name', []))
+
+# Iterate through the transcripts and collect their names and sizes
+for transcript in xist_transcripts:
+    transcript_count += 1
+    # Calculate the size of the transcript
+    transcript_size = transcript.end - transcript.start + 1
+    # Append the transcript name and size to the list
+    transcript_info.append((transcript.attributes.get('transcript_name', ['Unknown'])[0], transcript_size))
+
+# Print the results
+for name, size in transcript_info:
+    print(f"Transcript name: {name}, Size: {size} bp")
+
+# Print the total number of transcript isoforms
+print(f"\nThe XIST gene has {transcript_count} transcript isoforms.")
+```
+
+### Explanation of the Code:
+1. **Database Connection**: The script connects to the GFF/GTF database using `gffutils.FeatureDB()`. Make sure to replace `'path_to_your_database.db'` with the actual path to your database file.
+
+2. **Transcript Fetching**: It uses a generator expression to filter for transcripts where the `gene_name` attribute contains 'XIST'.
+
+3. **Transcript Size Calculation**: For each transcript, it calculates the size by subtracting the start coordinate from the end coordinate and adding 1 (to include both endpoints).
+
+4. **Data Storage**: The transcript names and sizes are stored in a list called `transcript_info`.
+
+5. **Output**: Finally, the script prints each transcript's name and size, followed by the total count of transcript isoforms for the XIST gene.
+
+### Note:
+- Ensure that the `gffutils` library is installed in your Python environment. You can install it using pip if it's not already installed:
+  ```bash
+  pip install gffutils
+  ```
+- Adjust the database path as necessary to point to your specific GFF/GTF database file.

@@ -1,0 +1,59 @@
+To calculate the sizes of each gene locus separately for the specified genes (XIST, MALAT1, BRCA1, COL1A2, NFKB1, NFKB2, REL, RELA, and RELB) using a SQLite3 database that stores genome annotations in GFF/GTF format, you can follow the steps outlined below. The provided Python code examples will help you implement this.
+
+### Step-by-Step Walkthrough
+
+1. **Connect to the SQLite Database**: First, you need to establish a connection to your SQLite database where the genome annotations are stored.
+
+2. **Define the List of Genes**: Create a list containing the names of the genes for which you want to calculate the sizes.
+
+3. **Query the Database**: For each gene in your list, query the database to find the corresponding gene feature. You will need to extract the `start` and `end` coordinates to calculate the size.
+
+4. **Calculate the Size**: The size of the gene locus can be calculated using the formula:
+   \[
+   \text{Size} = \text{end} - \text{start} + 1
+   \]
+
+5. **Output the Results**: Print the size of each gene locus or handle cases where a gene is not found.
+
+### Example Python Code
+
+Here’s how you can implement the above steps in Python:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+db_path = 'path_to_your_database.db'  # Replace with your database path
+conn = sqlite3.connect(db_path)
+cursor = conn.cursor()
+
+# List of genes to calculate sizes for
+genes_list = ["XIST", "MALAT1", "BRCA1", "COL1A2", "NFKB1", "NFKB2", "REL", "RELA", "RELB"]
+
+# Iterate through each gene and calculate its size
+for gene_name in genes_list:
+    # Query to find the gene feature
+    cursor.execute("SELECT start, end FROM features WHERE featuretype = 'gene' AND attributes LIKE ?", ('%gene_name="%s"' % gene_name,))
+    gene = cursor.fetchone()
+    
+    if gene:
+        start, end = gene
+        size = end - start + 1
+        print(f"{gene_name} size: {size} bp")
+    else:
+        print(f"Gene {gene_name} not found in the database")
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation of the Code
+
+- **Database Connection**: The code connects to the SQLite database using `sqlite3.connect()`.
+- **Gene List**: A list of gene names is defined.
+- **SQL Query**: The SQL query retrieves the `start` and `end` coordinates for each gene based on its `featuretype` and `attributes`. The `LIKE` clause is used to match the gene name within the attributes.
+- **Size Calculation**: If the gene is found, the size is calculated and printed. If not found, a message is printed indicating that the gene is not in the database.
+- **Closing the Connection**: Finally, the database connection is closed to free up resources.
+
+### Note
+Make sure to replace `'path_to_your_database.db'` with the actual path to your SQLite database file. Also, ensure that the attribute format in the SQL query matches how gene names are stored in your database. Adjust the query as necessary based on your specific database schema.

@@ -1,0 +1,31 @@
+To count the number of protein-coding genes on chromosome 12 using the `gffutils` library, you can follow the steps outlined in the provided code examples. Below is a structured Python script that accomplishes this task:
+
+```python
+import gffutils
+
+# Connect to the existing GFF/GTF database
+db = gffutils.FeatureDB('your_database.db', keep_order=True)
+
+# Define a generator expression to filter for protein-coding genes on chromosome 12
+genes_chr12 = (
+    feature for feature in db.features_of_type('gene')
+    if feature.seqid == '12' and feature.attributes.get('gene_biotype', [''])[0] == 'protein_coding'
+)
+
+# Count the number of protein-coding genes
+num_protein_coding_genes_chr12 = sum(1 for _ in genes_chr12)
+
+# Print the result
+print(f"Number of protein-coding genes on chromosome 12: {num_protein_coding_genes_chr12}")
+```
+
+### Explanation of the Code:
+1. **Import the gffutils Library**: This library is essential for interacting with GFF/GTF databases.
+2. **Connect to the Database**: Replace `'your_database.db'` with the path to your actual database file.
+3. **Filter for Protein-Coding Genes**:
+   - Use `db.features_of_type('gene')` to retrieve all gene features.
+   - Filter these features to include only those on chromosome 12 (`feature.seqid == '12'`) and with a `gene_biotype` of `protein_coding`.
+4. **Count the Genes**: The generator expression iterates through the filtered features, and `sum(1 for _)` counts them.
+5. **Output the Result**: Finally, the script prints the total count of protein-coding genes on chromosome 12.
+
+Make sure to have the `gffutils` library installed and your database properly set up before running this script.

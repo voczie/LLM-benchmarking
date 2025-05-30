@@ -1,0 +1,36 @@
+To answer the question about the strands of the HOTAIR, HOXC11, and HOXC12 genes, we can use the `gffutils` library to query the database for these specific genes and retrieve their strand information. Below is a Python script that accomplishes this task.
+
+```python
+import gffutils
+
+# Connect to the existing GFF/GTF database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# List of gene names to query
+gene_names = ['HOTAIR', 'HOXC11', 'HOXC12']
+
+# Iterate through the list of gene names and retrieve strand information
+for gene_name in gene_names:
+    # Fetch the gene feature from the database
+    gene = next(db.features_of_type('gene', order_by='start', limit=None, 
+                                     filter=lambda f: f.attributes.get('gene_name', [''])[0] == gene_name), 
+                None)
+    
+    # Check if the gene was found and print the strand information
+    if gene:
+        print(f"{gene_name} strand: {gene.strand}")
+    else:
+        print(f"{gene_name} not found in the database.")
+```
+
+### Explanation of the Code:
+1. **Import the gffutils library**: This library is essential for interacting with GFF/GTF databases.
+2. **Connect to the database**: Replace `'path_to_your_database.db'` with the actual path to your GFF/GTF database file.
+3. **Define the list of gene names**: We specify the genes we are interested in: HOTAIR, HOXC11, and HOXC12.
+4. **Iterate through the gene names**: For each gene name, we use `db.features_of_type()` to find the corresponding gene feature.
+   - We filter the features to match the `gene_name` attribute.
+5. **Check if the gene was found**: If the gene is found, we print its strand; otherwise, we indicate that the gene was not found.
+
+### Note:
+- Ensure that the database is correctly set up and that the attribute names match those in your GFF/GTF file.
+- This script assumes that the `gene_name` attribute is present in the attributes of the gene features. Adjust the attribute name if necessary based on your specific GFF/GTF format.

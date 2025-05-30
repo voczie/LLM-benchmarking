@@ -1,0 +1,89 @@
+To find the names of the two genes located immediately before and after the gene `COL1A2`, you can follow these steps using Python and the SQLite3 database. Below is a detailed walkthrough along with the code to achieve this.
+
+### Step-by-Step Walkthrough
+
+1. **Connect to the SQLite Database**: First, you need to connect to your SQLite database where the GFF/GTF data is stored.
+
+2. **Retrieve the COL1A2 Gene**: Query the database to find the gene `COL1A2` and get its chromosome (seqid), start, and end positions.
+
+3. **Find the Gene Immediately Before COL1A2**: Query the database for genes that are on the same chromosome and have an end position less than the start position of `COL1A2`. Sort these results by the end position in descending order to get the closest gene before `COL1A2`.
+
+4. **Find the Gene Immediately After COL1A2**: Similarly, query for genes that are on the same chromosome and have a start position greater than the end position of `COL1A2`. Sort these results by the start position in ascending order to get the closest gene after `COL1A2`.
+
+5. **Print the Results**: Finally, print the names of the genes found in the previous steps.
+
+### Python Code Example
+
+Here is the complete code that implements the above steps:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')  # Replace with your database file
+cursor = conn.cursor()
+
+# Step 1: Retrieve the COL1A2 gene
+cursor.execute("SELECT * FROM features WHERE featuretype = 'gene' AND attributes LIKE '%gene_name=COL1A2%'")
+col1a2 = cursor.fetchone()
+
+if col1a2:
+    col1a2_id, col1a2_seqid, col1a2_source, col1a2_featuretype, col1a2_start, col1a2_end, col1a2_score, col1a2_strand, col1a2_frame, col1a2_attributes, col1a2_extra, col1a2_bin = col1a2
+
+    # Step 2: Find the gene immediately before COL1A2
+    cursor.execute("""
+        SELECT * FROM features 
+        WHERE featuretype = 'gene' 
+        AND seqid = ? 
+        AND end < ? 
+        ORDER BY end DESC 
+        LIMIT 1
+    """, (col1a2_seqid, col1a2_start))
+    gene_before = cursor.fetchone()
+
+    # Step 3: Find the gene immediately after COL1A2
+    cursor.execute("""
+        SELECT * FROM features 
+        WHERE featuretype = 'gene' 
+        AND seqid = ? 
+        AND start > ? 
+        ORDER BY start ASC 
+        LIMIT 1
+    """, (col1a2_seqid, col1a2_end))
+    gene_after = cursor.fetchone()
+
+    # Function to extract gene name from attributes
+    def get_gene_name(attributes):
+        for attr in attributes.split(';'):
+            if 'gene_name' in attr:
+                return attr.split('=')[1]
+        return 'Unknown'
+
+    # Print the results
+    if gene_before:
+        gene_before_name = get_gene_name(gene_before[9])  # attributes field
+        print(f"Gene before COL1A2: {gene_before_name}")
+    else:
+        print("No gene found before COL1A2.")
+
+    if gene_after:
+        gene_after_name = get_gene_name(gene_after[9])  # attributes field
+        print(f"Gene after COL1A2: {gene_after_name}")
+    else:
+        print("No gene found after COL1A2.")
+else:
+    print("COL1A2 gene not found in the database.")
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation of the Code
+
+- **Database Connection**: The code connects to the SQLite database using `sqlite3.connect()`.
+- **Querying for COL1A2**: It retrieves the `COL1A2` gene using a SQL query that filters by `featuretype` and checks the `attributes` for the gene name.
+- **Finding Neighboring Genes**: It executes two separate queries to find the gene before and after `COL1A2`, using appropriate conditions and sorting.
+- **Extracting Gene Names**: A helper function `get_gene_name` is defined to parse the `attributes` field and extract the gene name.
+- **Output**: Finally, it prints the names of the genes found before and after `COL1A2`.
+
+Make sure to replace `'your_database.db'` with the actual path to your SQLite database file.

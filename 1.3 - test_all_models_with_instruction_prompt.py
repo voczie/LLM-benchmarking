@@ -26,7 +26,7 @@ if os.path.exists('results/') == False:
 if os.path.exists('results/with-prompt') == False:
     os.mkdir('results/with-prompt')
 
-with open("prompt.txt", "r") as f:
+with open("1.2 - prompt.md", "r") as f:
     context = f.read()
 
 # The db description
@@ -124,7 +124,7 @@ for model_name in models:
                 )
 
         prompt = PromptTemplate(
-            input_variables=["context", "ddl", "question", "question_codes"], template=TEMPLATE
+            input_variables=["context", "ddl", "question", "questions_codes"], template=TEMPLATE
         )
 
         chain = prompt | llm | StrOutputParser()
@@ -134,7 +134,7 @@ for model_name in models:
             "context": context,
             "ddl": ddl,
             "question": questions,
-            "question_codes": questions_codes
+            "questions_codes": questions_codes
         })
 
         with open(f'results/with-prompt/{model_name_path}/llm_test_question_{ix}_{current_time}.txt', 'w') as f:

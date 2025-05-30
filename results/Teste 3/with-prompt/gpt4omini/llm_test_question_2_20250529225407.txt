@@ -1,0 +1,28 @@
+To determine how many lncRNA genes are present on chromosome 7 using the `gffutils` library, we can follow a straightforward approach. We will create a query that filters the features of type 'gene' based on the specified chromosome and the gene biotype.
+
+Here's a Python script that accomplishes this task:
+
+```python
+import gffutils
+
+# Connect to the existing GFF/GTF database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# Count lncRNA genes on chromosome 7
+lncRNA_count = sum(1 for feature in db.features_of_type('gene')
+                   if feature.seqid == '7' and feature.attributes.get('gene_biotype', [''])[0] == 'lncRNA')
+
+# Print the result
+print(f"Number of lncRNA genes on chromosome 7: {lncRNA_count}")
+```
+
+### Explanation of the Code:
+1. **Import the gffutils library**: This is necessary to interact with the GFF/GTF database.
+2. **Connect to the database**: Replace `'path_to_your_database.db'` with the actual path to your GFF/GTF database file.
+3. **Count lncRNA genes**:
+   - We use a generator expression to iterate over all features of type 'gene'.
+   - We filter these features to check if they are located on chromosome '7' and if their `gene_biotype` attribute is 'lncRNA'.
+   - The `sum()` function counts how many features meet these criteria.
+4. **Print the result**: Finally, we output the count of lncRNA genes found on chromosome 7.
+
+Make sure to have the `gffutils` library installed and the database created from your GFF/GTF file before running this script.

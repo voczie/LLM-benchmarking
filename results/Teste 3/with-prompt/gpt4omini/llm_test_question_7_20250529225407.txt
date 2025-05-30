@@ -1,0 +1,28 @@
+To determine how many exons the XIST gene has, we can utilize the `gffutils` library to query the database for features of type 'exon' that are associated with the XIST gene. The following Python script accomplishes this task:
+
+```python
+import gffutils
+
+# Connect to the existing GFF/GTF database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# Fetch the exons associated with the XIST gene
+exons = (feature for feature in db.features_of_type('exon') if 'XIST' in feature.attributes.get('gene_name', []))
+
+# Use a set to store unique exon IDs to avoid counting duplicates
+exon_set = set(exon.attributes['exon_id'][0] for exon in exons if 'exon_id' in exon.attributes)
+
+# Print the number of unique exons for the XIST gene
+print(f"The XIST gene has {len(exon_set)} exons.")
+```
+
+### Explanation of the Code:
+1. **Import the Library**: We start by importing the `gffutils` library.
+2. **Connect to the Database**: We connect to the GFF/GTF database using `gffutils.FeatureDB()`. Make sure to replace `'path_to_your_database.db'` with the actual path to your database file.
+3. **Fetch Exons**: We create a generator expression that iterates over all features of type 'exon'. We filter these features to include only those where the `gene_name` attribute contains 'XIST'.
+4. **Store Unique Exon IDs**: We use a set comprehension to collect unique exon IDs from the filtered exons. This ensures that we do not count any exon more than once.
+5. **Output the Result**: Finally, we print the count of unique exons associated with the XIST gene.
+
+### Note:
+- Ensure that the attribute name used in `feature.attributes.get('gene_name', [])` matches the actual attribute name in your GFF/GTF file. If the attribute is named differently (e.g., `gene_id`), adjust the code accordingly.
+- This script assumes that the database has been created and populated correctly from a GFF/GTF file.

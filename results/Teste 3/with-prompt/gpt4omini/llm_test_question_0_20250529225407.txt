@@ -1,0 +1,28 @@
+To answer the question of how many genes and transcripts are present on chromosome 3, we can utilize the `gffutils` library to query the database. Below is a Python script that accomplishes this task by counting the number of features of type 'gene' and 'transcript' specifically located on chromosome 3.
+
+```python
+import gffutils
+
+# Connect to the existing GFF/GTF database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# Count the number of genes on chromosome 3
+genes_chr3 = sum(1 for feature in db.features_of_type('gene') if feature.seqid == '3')
+
+# Count the number of transcripts on chromosome 3
+transcripts_chr3 = sum(1 for feature in db.features_of_type('transcript') if feature.seqid == '3')
+
+# Print the results
+print(f"Genes on chromosome 3: {genes_chr3}")
+print(f"Transcripts on chromosome 3: {transcripts_chr3}")
+```
+
+### Explanation of the Code:
+1. **Import the gffutils library**: This library is essential for interacting with GFF/GTF databases.
+2. **Connect to the database**: Replace `'path_to_your_database.db'` with the actual path to your GFF/GTF database file.
+3. **Count genes**: We use a generator expression to iterate over all features of type 'gene' and check if their `seqid` (chromosome identifier) is '3'. The `sum()` function counts how many times this condition is true.
+4. **Count transcripts**: Similarly, we count the number of features of type 'transcript' on chromosome 3.
+5. **Print results**: Finally, we print the counts of genes and transcripts found on chromosome 3.
+
+### Note:
+Make sure that the database is correctly set up and that the chromosome identifiers match the expected format in your GFF/GTF file. In this case, we are assuming that chromosome 3 is represented simply as '3'. Adjust the `seqid` check if your database uses a different format.

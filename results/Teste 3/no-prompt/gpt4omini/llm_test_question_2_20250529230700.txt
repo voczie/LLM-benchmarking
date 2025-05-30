@@ -1,0 +1,47 @@
+To determine how many lncRNA genes are on chromosome 7 using the SQLite3 database that contains your genome annotation, you can follow these steps:
+
+1. **Connect to the SQLite3 Database**: First, ensure you have a connection to your SQLite3 database where the GFF/GTF data is stored.
+
+2. **Query the Database**: You will need to query the `features` table to count the number of features that are classified as lncRNA genes on chromosome 7.
+
+3. **Filter by Feature Type and Attributes**: Since you are interested in lncRNA genes, you will filter for features of type 'gene' and check the `attributes` field for the `gene_biotype` that indicates it is an lncRNA.
+
+Here’s a Python code snippet that accomplishes this:
+
+```python
+import sqlite3
+import json
+
+# Connect to the SQLite database
+db_path = 'path_to_your_database.db'  # Replace with your database path
+conn = sqlite3.connect(db_path)
+cursor = conn.cursor()
+
+# Query to count lncRNA genes on chromosome 7
+query = """
+SELECT COUNT(*) FROM features
+WHERE featuretype = 'gene' AND seqid = '7'
+AND json_extract(attributes, '$.gene_biotype') = 'lncRNA';
+"""
+
+# Execute the query
+cursor.execute(query)
+lncRNA_count = cursor.fetchone()[0]
+
+# Print the result
+print(f"Number of lncRNA genes on chromosome 7: {lncRNA_count}")
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation of the Code:
+- **Database Connection**: The code connects to the SQLite database using `sqlite3.connect()`.
+- **SQL Query**: The SQL query counts the number of rows in the `features` table where:
+  - `featuretype` is 'gene'
+  - `seqid` is '7' (indicating chromosome 7)
+  - The `attributes` field contains a JSON object where the `gene_biotype` is 'lncRNA'. The `json_extract` function is used to access the `gene_biotype` attribute.
+- **Fetch and Print Result**: The result is fetched using `fetchone()` and printed.
+- **Close Connection**: Finally, the database connection is closed.
+
+Make sure to replace `'path_to_your_database.db'` with the actual path to your SQLite database file. This code will give you the count of lncRNA genes on chromosome 7.

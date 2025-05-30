@@ -1,0 +1,39 @@
+To answer your question about the biotype of the genes XIST, MALAT1, BRCA1, NFKB1, NFKB2, REL, RELA, RELB, and COL1A2, we can use the `gffutils` library to query the database for these specific genes and retrieve their biotype information. Below is a Python script that accomplishes this task.
+
+```python
+import gffutils
+
+# Connect to the GFF/GTF database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# List of gene names to query
+gene_names = ['XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB', 'COL1A2']
+
+# Iterate over the gene names and fetch their biotypes
+for gene_name in gene_names:
+    # Fetch all genes of type 'gene'
+    genes = db.features_of_type('gene')
+    
+    # Find the gene with the specified name
+    for gene in genes:
+        # Check if the gene name matches
+        if gene_name in gene.attributes.get('gene_name', []):
+            # Retrieve the biotype
+            biotype = gene.attributes.get('gene_biotype', ['Unknown'])[0]
+            print(f"{gene_name}: {biotype}")
+            break
+    else:
+        print(f"{gene_name}: Gene not found in the database.")
+```
+
+### Explanation of the Code:
+1. **Import the Library**: We start by importing the `gffutils` library.
+2. **Connect to the Database**: We create a connection to the GFF/GTF database using `gffutils.FeatureDB()`. Make sure to replace `'path_to_your_database.db'` with the actual path to your database file.
+3. **Define Gene Names**: We define a list of gene names that we want to query.
+4. **Iterate Over Gene Names**: For each gene name, we fetch all features of type 'gene' from the database.
+5. **Check for Matching Gene**: We check if the current gene's name matches the one we are looking for. If it does, we retrieve the biotype using `gene.attributes.get('gene_biotype', ['Unknown'])[0]`.
+6. **Print Results**: Finally, we print the gene name along with its biotype. If a gene is not found, we print a corresponding message.
+
+### Note:
+- Ensure that the attribute names used in the script (like `gene_name` and `gene_biotype`) match those in your specific GFF/GTF database schema.
+- This script assumes that the `gene_name` attribute is a list. If it is a single string, you may need to adjust the condition accordingly.

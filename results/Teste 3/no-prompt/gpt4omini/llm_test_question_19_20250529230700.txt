@@ -1,0 +1,79 @@
+To generate a boxplot comparing the sizes of protein-coding, lncRNA, and miRNA transcripts using the data stored in your SQLite3 database, you can follow these steps:
+
+1. **Query the Database**: You need to extract the relevant features (transcripts) from the database. This involves querying the `features` table to get the start and end coordinates of the transcripts of interest.
+
+2. **Calculate Transcript Sizes**: For each transcript, calculate its size by subtracting the start coordinate from the end coordinate and adding 1 (to account for inclusive counting).
+
+3. **Organize the Data**: Store the sizes along with their corresponding gene types (protein-coding, lncRNA, miRNA) in a format suitable for plotting.
+
+4. **Create the Boxplot**: Use a plotting library like Matplotlib or Seaborn to create the boxplot.
+
+Here’s a complete example in Python that demonstrates these steps:
+
+```python
+import sqlite3
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')  # Replace with your database file
+
+# Query to get the relevant features
+query = """
+SELECT 
+    f.start, 
+    f.end, 
+    f.attributes 
+FROM 
+    features f 
+WHERE 
+    f.featuretype = 'transcript' 
+    AND (f.attributes LIKE '%gene_biotype=protein_coding%' 
+         OR f.attributes LIKE '%gene_biotype=lncRNA%' 
+         OR f.attributes LIKE '%gene_biotype=miRNA%')
+"""
+
+# Load the data into a DataFrame
+df = pd.read_sql_query(query, conn)
+
+# Close the database connection
+conn.close()
+
+# Prepare the data for plotting
+data = []
+for index, row in df.iterrows():
+    size = row['end'] - row['start'] + 1  # Calculate transcript size
+    # Extract gene biotype from attributes
+    attributes = row['attributes']
+    if 'gene_biotype=protein_coding' in attributes:
+        gene_type = 'Protein-Coding'
+    elif 'gene_biotype=lncRNA' in attributes:
+        gene_type = 'lncRNA'
+    elif 'gene_biotype=miRNA' in attributes:
+        gene_type = 'miRNA'
+    else:
+        continue  # Skip if not one of the types of interest
+    data.append((size, gene_type))
+
+# Create a DataFrame for plotting
+size_df = pd.DataFrame(data, columns=['Size', 'Gene Type'])
+
+# Generate the boxplot
+plt.figure(figsize=(10, 6))
+sns.boxplot(x='Gene Type', y='Size', data=size_df)
+plt.title('Comparison of Transcript Sizes')
+plt.xlabel('Gene Type')
+plt.ylabel('Transcript Size (bp)')
+plt.show()
+```
+
+### Explanation of the Code:
+- **Database Connection**: The code connects to the SQLite database where your GFF/GTF data is stored.
+- **SQL Query**: It retrieves the start and end positions of transcripts along with their attributes, filtering for the relevant gene biotypes.
+- **Data Preparation**: It calculates the size of each transcript and categorizes it based on its gene biotype.
+- **Boxplot Creation**: Finally, it uses Seaborn to create a boxplot that visually compares the sizes of the different transcript types.
+
+### Note:
+- Make sure to replace `'your_database.db'` with the actual path to your SQLite database file.
+- Ensure that the attributes in the `attributes` field are formatted correctly to extract the `gene_biotype`. Adjust the string matching if necessary based on your actual data format.

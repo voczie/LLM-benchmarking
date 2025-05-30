@@ -1,0 +1,35 @@
+To find the chromosomal position of the BRCA1 gene using the `gffutils` library, you can follow the steps outlined in the provided code examples. Below is a complete Python script that connects to the GFF/GTF database, retrieves the BRCA1 gene, and prints its chromosomal position.
+
+```python
+import gffutils
+
+# Connect to the existing GFF/GTF database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# Initialize a variable to store the chromosomal position of BRCA1
+brca1_position = None
+
+# Iterate through all gene features in the database
+for feature in db.features_of_type('gene'):
+    # Check if the gene name matches 'BRCA1'
+    if 'BRCA1' in feature.attributes.get('gene_name', []):
+        # Store the start and end positions
+        brca1_position = (feature.start, feature.end)
+        break  # Exit the loop once BRCA1 is found
+
+# Print the chromosomal position of BRCA1
+if brca1_position:
+    print(f"Chromosomal position of BRCA1: {brca1_position[0]}-{brca1_position[1]}")
+else:
+    print("BRCA1 gene not found in the database.")
+```
+
+### Explanation of the Code:
+1. **Import the gffutils library**: This library is essential for interacting with GFF/GTF databases.
+2. **Connect to the database**: Replace `'path_to_your_database.db'` with the actual path to your GFF/GTF database file.
+3. **Initialize a variable**: `brca1_position` is set to `None` initially to store the position once found.
+4. **Iterate through gene features**: The script loops through all features of type 'gene' in the database.
+5. **Check for BRCA1**: It checks if 'BRCA1' is present in the `gene_name` attribute of the feature.
+6. **Store and print the position**: If found, it stores the start and end positions and prints them. If not found, it informs the user.
+
+Make sure to have the `gffutils` library installed and the database created from your GFF/GTF file before running this script.

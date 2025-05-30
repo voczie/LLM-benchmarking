@@ -1,0 +1,64 @@
+To answer the question of how many exons each transcript isoform of the BRCA1 gene has, you can follow these steps using Python and the SQLite3 database that contains your GFF/GTF data. Below is a detailed walkthrough along with the code you can use.
+
+### Step-by-Step Walkthrough
+
+1. **Connect to the SQLite Database**: First, you need to connect to your SQLite database where the GFF/GTF data is stored.
+
+2. **Query for Exons**: You will need to retrieve all exon features associated with the BRCA1 gene. This can be done by filtering the features based on the `featuretype` and the `gene_name` attribute.
+
+3. **Count Exons per Transcript**: For each exon, you will extract the `transcript_name` and count how many exons correspond to each transcript.
+
+4. **Print Results**: Finally, print the transcript isoform names along with their corresponding exon counts.
+
+### Example Code
+
+Here’s how you can implement the above steps in Python:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+db = sqlite3.connect('your_database_name.db')  # Replace with your database name
+cursor = db.cursor()
+
+# Dictionary to hold the count of exons for each transcript
+brca1_exon_counts = {}
+
+# Query to get all exons related to the BRCA1 gene
+cursor.execute("""
+    SELECT features.attributes
+    FROM features
+    WHERE features.featuretype = 'exon'
+""")
+
+# Iterate through the results
+for row in cursor.fetchall():
+    attributes = row[0]
+    # Parse the attributes to extract gene_name and transcript_name
+    attr_dict = dict(item.split('=') for item in attributes.split(';') if '=' in item)
+    
+    # Check if the gene_name is BRCA1
+    if 'gene_name' in attr_dict and attr_dict['gene_name'] == 'BRCA1':
+        transcript_name = attr_dict.get('transcript_name', None)
+        if transcript_name:
+            # Increment the count of exons for this transcript
+            brca1_exon_counts[transcript_name] = brca1_exon_counts.get(transcript_name, 0) + 1
+
+# Print the results
+for transcript_name, exon_count in brca1_exon_counts.items():
+    print(f"{transcript_name}: {exon_count}")
+
+# Close the database connection
+db.close()
+```
+
+### Explanation of the Code
+
+- **Database Connection**: The code connects to the SQLite database using `sqlite3.connect()`.
+- **SQL Query**: It retrieves all exon features from the `features` table.
+- **Attribute Parsing**: The attributes string is split into key-value pairs to extract `gene_name` and `transcript_name`.
+- **Counting Exons**: A dictionary (`brca1_exon_counts`) is used to count the number of exons for each transcript isoform.
+- **Output**: Finally, it prints the transcript names along with their exon counts.
+
+### Note
+Make sure to replace `'your_database_name.db'` with the actual name of your SQLite database file. Also, ensure that the attribute parsing logic matches the format of your attributes in the database.

@@ -1,0 +1,43 @@
+To determine how many genes and transcripts are present on chromosome 3 using the SQLite3 database that contains your genome annotation, you can follow these steps:
+
+1. **Connect to the SQLite3 Database**: First, ensure you have a connection to your SQLite3 database where the GFF/GTF data is stored.
+
+2. **Query the Database**: You will need to query the `features` table to count the number of entries for genes and transcripts specifically for chromosome 3.
+
+3. **Count the Features**: Use SQL queries to count the number of genes and transcripts.
+
+Here’s a Python code snippet that demonstrates how to do this:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+db_path = 'path_to_your_database.db'  # Replace with your database path
+conn = sqlite3.connect(db_path)
+cursor = conn.cursor()
+
+# Query to count genes on chromosome 3
+cursor.execute("SELECT COUNT(*) FROM features WHERE featuretype = 'gene' AND seqid = '3'")
+genes_chr3 = cursor.fetchone()[0]
+
+# Query to count transcripts on chromosome 3
+cursor.execute("SELECT COUNT(*) FROM features WHERE featuretype = 'transcript' AND seqid = '3'")
+transcripts_chr3 = cursor.fetchone()[0]
+
+# Print the results
+print(f"Genes on chromosome 3: {genes_chr3}")
+print(f"Transcripts on chromosome 3: {transcripts_chr3}")
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation of the Code:
+- **Database Connection**: The code connects to the SQLite database using `sqlite3.connect()`.
+- **Counting Genes**: The first SQL query counts the number of rows in the `features` table where `featuretype` is 'gene' and `seqid` is '3'.
+- **Counting Transcripts**: The second SQL query counts the number of rows in the `features` table where `featuretype` is 'transcript' and `seqid` is '3'.
+- **Fetching Results**: The results are fetched using `fetchone()`, which retrieves the first row of the result set.
+- **Output**: Finally, the counts are printed to the console.
+- **Closing Connection**: The database connection is closed to free up resources.
+
+Make sure to replace `'path_to_your_database.db'` with the actual path to your SQLite database file. This code will give you the number of genes and transcripts on chromosome 3 as requested.

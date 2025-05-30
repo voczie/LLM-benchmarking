@@ -1,0 +1,76 @@
+To determine how many transcript isoforms the XIST gene has and to print the transcript isoform names along with their sizes, you can follow these steps using Python and the SQLite3 database containing your genome annotation data.
+
+Here's a step-by-step guide along with the code:
+
+1. **Connect to the SQLite3 Database**: First, you need to connect to your SQLite3 database where the GFF/GTF data is stored.
+
+2. **Query for the XIST Gene**: You will need to find the transcripts associated with the XIST gene. This typically involves querying the `features` table for entries where the `featuretype` is 'transcript' and the `attributes` contain the gene name 'XIST'.
+
+3. **Calculate Sizes**: For each transcript, calculate the size by subtracting the start coordinate from the end coordinate and adding 1 (to account for inclusive counting).
+
+4. **Print Results**: Finally, print the transcript names and their sizes.
+
+Here’s how you can implement this in Python:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+db_connection = sqlite3.connect('your_database_name.db')
+cursor = db_connection.cursor()
+
+# Query to find all transcript isoforms for the XIST gene
+query = """
+SELECT id, start, end, attributes 
+FROM features 
+WHERE featuretype = 'transcript' 
+AND attributes LIKE '%gene_name=XIST%'
+"""
+
+# Execute the query
+cursor.execute(query)
+
+# Fetch all results
+transcripts = cursor.fetchall()
+
+# Initialize a count for the number of isoforms
+count = 0
+
+# Print the transcript names and sizes
+for transcript in transcripts:
+    transcript_id = transcript[0]
+    start = transcript[1]
+    end = transcript[2]
+    attributes = transcript[3]
+
+    # Extract transcript_name from attributes
+    # Assuming attributes are in the format: "key1=value1;key2=value2;..."
+    attr_dict = dict(item.split("=") for item in attributes.split(";") if "=" in item)
+    transcript_name = attr_dict.get('transcript_name', 'Unknown')
+
+    # Calculate size
+    size = end - start + 1
+
+    # Print the transcript name and size
+    print(f"Transcript name: {transcript_name}, Size: {size} bp")
+    
+    # Increment the count
+    count += 1
+
+# Print the total number of transcript isoforms
+print(f"\nThe XIST gene has {count} transcript isoforms.")
+
+# Close the database connection
+db_connection.close()
+```
+
+### Explanation of the Code:
+- **Database Connection**: The code connects to the SQLite database using `sqlite3.connect()`.
+- **SQL Query**: The SQL query selects the `id`, `start`, `end`, and `attributes` fields from the `features` table where the `featuretype` is 'transcript' and the `attributes` contain 'gene_name=XIST'.
+- **Fetching Results**: The results are fetched and iterated over.
+- **Attribute Parsing**: The attributes are parsed to extract the `transcript_name`.
+- **Size Calculation**: The size of each transcript is calculated and printed.
+- **Count**: The total number of transcript isoforms is counted and printed at the end.
+- **Closing Connection**: Finally, the database connection is closed.
+
+Make sure to replace `'your_database_name.db'` with the actual name of your SQLite database file.

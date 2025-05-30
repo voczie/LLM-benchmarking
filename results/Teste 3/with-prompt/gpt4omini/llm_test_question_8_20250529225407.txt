@@ -1,0 +1,43 @@
+To answer the question of how many exons each transcript isoform of the BRCA1 gene has, we can utilize the `gffutils` library to query the database for exon features associated with the BRCA1 gene. We will count the number of exons for each transcript isoform and print the results.
+
+Here's a structured Python script that accomplishes this task:
+
+```python
+import gffutils
+
+# Connect to the existing GFF/GTF database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# Initialize a dictionary to hold the exon counts for each transcript isoform
+brca1_exon_counts = {}
+
+# Iterate over all exon features in the database
+for feature in db.features_of_type('exon'):
+    # Get the gene name from the attributes
+    gene_name = feature.attributes.get('gene_name', [''])[0]
+    
+    # Check if the gene name is BRCA1
+    if gene_name == 'BRCA1':
+        # Get the transcript name from the attributes
+        transcript_name = feature.attributes.get('transcript_name', [''])[0]
+        
+        # Increment the count of exons for this transcript
+        brca1_exon_counts[transcript_name] = brca1_exon_counts.get(transcript_name, 0) + 1
+
+# Print the results
+print("Transcript isoform names and their corresponding number of exons for BRCA1:")
+for transcript_name, exon_count in brca1_exon_counts.items():
+    print(f"{transcript_name}: {exon_count}")
+```
+
+### Explanation of the Code:
+1. **Import the gffutils library**: This library is essential for interacting with the GFF/GTF database.
+2. **Connect to the database**: Replace `'path_to_your_database.db'` with the actual path to your GFF/GTF database file.
+3. **Initialize a dictionary**: This will store the count of exons for each transcript isoform of the BRCA1 gene.
+4. **Iterate through exon features**: We loop through all features of type 'exon' in the database.
+5. **Check the gene name**: For each exon, we check if it belongs to the BRCA1 gene.
+6. **Count exons per transcript**: We retrieve the transcript name and update the count in our dictionary.
+7. **Print the results**: Finally, we print out each transcript isoform along with its corresponding number of exons.
+
+### Note:
+Make sure to have the `gffutils` library installed and the database created from your GFF/GTF file before running this script. Adjust the database path as necessary.

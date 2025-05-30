@@ -1,0 +1,61 @@
+To calculate the average exon size of the BRCA1 transcript isoforms using the SQLite3 database that contains the genome annotation in GFF/GTF format, you can follow these steps in Python. The provided code examples give a good starting point, but I'll provide a complete walkthrough for clarity.
+
+### Step-by-Step Walkthrough
+
+1. **Connect to the SQLite Database**: First, you need to connect to your SQLite database where the GFF/GTF data is stored.
+
+2. **Retrieve Exons for BRCA1**: You will query the database to get all exon features that belong to the BRCA1 gene.
+
+3. **Calculate Exon Sizes**: For each exon, calculate its size by subtracting the start coordinate from the end coordinate and adding 1 (to account for inclusive counting).
+
+4. **Compute the Average Exon Size**: Sum the sizes of all exons and divide by the number of exons to get the average size.
+
+### Example Code
+
+Here’s how you can implement this in Python:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+db_path = 'path_to_your_database.db'  # Replace with your database path
+conn = sqlite3.connect(db_path)
+cursor = conn.cursor()
+
+# Step 1: Get all exons for BRCA1
+cursor.execute("""
+    SELECT start, end, attributes 
+    FROM features 
+    WHERE featuretype = 'exon' AND attributes LIKE '%gene_name=BRCA1%'
+""")
+brca1_exons = cursor.fetchall()
+
+# Step 2: Calculate total exon size and count
+total_exon_size = 0
+num_brca1_exons = len(brca1_exons)
+
+for exon in brca1_exons:
+    start, end, attributes = exon
+    exon_size = end - start + 1  # Calculate exon size
+    total_exon_size += exon_size  # Accumulate total size
+
+# Step 3: Calculate average exon size
+if num_brca1_exons > 0:
+    average_exon_size = total_exon_size / num_brca1_exons
+    print(f"Average exon size of BRCA1 transcript isoforms: {average_exon_size:.2f} bp")
+else:
+    print("No exons found for BRCA1")
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation of the Code
+
+- **Database Connection**: The code connects to the SQLite database using `sqlite3.connect()`.
+- **SQL Query**: The SQL query retrieves the `start`, `end`, and `attributes` fields for all exons where the `attributes` field contains the gene name "BRCA1". The `LIKE` operator is used to match the gene name within the attributes string.
+- **Exon Size Calculation**: For each exon, the size is calculated as `end - start + 1`, and the total size is accumulated.
+- **Average Calculation**: If there are any exons found, the average size is computed and printed. If no exons are found, a message is printed indicating that.
+- **Closing the Connection**: Finally, the database connection is closed to free up resources.
+
+Make sure to replace `'path_to_your_database.db'` with the actual path to your SQLite database file. This code should give you the average exon size for the BRCA1 transcript isoforms.

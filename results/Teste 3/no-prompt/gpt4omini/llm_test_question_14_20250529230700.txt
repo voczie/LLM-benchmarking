@@ -1,0 +1,45 @@
+To find out the strand information for the HOTAIR, HOXC11, and HOXC12 genes from your SQLite3 database containing genome annotations, you can use the following Python code snippet. This code assumes you have a database connection established and are using a library like `gffutils` to interact with the database.
+
+Here's a step-by-step guide along with the code:
+
+1. **Connect to the SQLite3 Database**: Make sure you have a connection to your SQLite3 database where the GFF/GTF data is stored.
+
+2. **Query the Features**: Use the `features_of_type` method to retrieve all gene features from the database.
+
+3. **Check for Specific Genes**: Loop through the gene features and check if the `gene_name` attribute matches HOTAIR, HOXC11, or HOXC12.
+
+4. **Print the Strand Information**: For each of the genes found, print out the strand information.
+
+Here’s the complete code:
+
+```python
+import gffutils
+
+# Connect to the SQLite3 database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# List of genes to check
+genes_to_check = ['HOTAIR', 'HOXC11', 'HOXC12']
+
+# Loop through the genes and print their strand information
+for feature in db.features_of_type('gene'):
+    gene_name = feature.attributes.get('gene_name', [''])[0]  # Get the gene name
+    if gene_name in genes_to_check:
+        print(f"{gene_name} strand: {feature.strand}")
+```
+
+### Explanation of the Code:
+- **Importing gffutils**: This library is used to interact with GFF/GTF databases.
+- **Connecting to the Database**: Replace `'path_to_your_database.db'` with the actual path to your SQLite3 database file.
+- **Defining Genes to Check**: A list of gene names you are interested in.
+- **Looping Through Gene Features**: The code retrieves all features of type 'gene' and checks if their `gene_name` matches any in the `genes_to_check` list.
+- **Printing the Strand**: If a match is found, it prints the strand information for that gene.
+
+### Note:
+Make sure you have the `gffutils` library installed in your Python environment. You can install it using pip if you haven't done so:
+
+```bash
+pip install gffutils
+```
+
+This code will give you the strand information for the specified genes directly from your database.

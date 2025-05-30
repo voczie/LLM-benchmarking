@@ -1,0 +1,77 @@
+To retrieve the requested information about the transcript isoforms of the specified genes (XIST, MALAT1, BRCA1, NFKB1, COL1A2, HOTAIR, HOXC11, and HOXC12), we will use the `gffutils` library to access the database and gather the necessary details. The information we need includes chromosomal location, position, size, number of exons, average exon size, strand, and biotype.
+
+Here's a structured Python script that accomplishes this task:
+
+```python
+import gffutils
+import pandas as pd
+
+# Connect to the GFFUtils database
+db = gffutils.FeatureDB('your_database.db', keep_order=True)
+
+# List of gene names to query
+gene_names = ['XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'COL1A2', 'HOTAIR', 'HOXC11', 'HOXC12']
+
+# Initialize a list to store transcript data
+transcript_data = []
+
+# Iterate over each gene name
+for gene_name in gene_names:
+    # Find the gene in the database
+    genes = list(db.features_of_type('gene'))
+    gene = next((g for g in genes if g.attributes.get('gene_name', [''])[0] == gene_name), None)
+
+    if gene is None:
+        print(f"Gene {gene_name} not found in the database.")
+        continue
+
+    # Get all transcripts for this gene
+    for transcript in db.children(gene, featuretype='transcript'):
+        # Get exons for this transcript
+        exons = list(db.children(transcript, featuretype='exon'))
+        num_exons = len(exons)
+
+        # Calculate total exon size and average exon size
+        if num_exons > 0:
+            total_exon_size = sum(exon.end - exon.start + 1 for exon in exons)
+            avg_exon_size = total_exon_size / num_exons
+        else:
+            avg_exon_size = 0
+
+        # Append transcript information to the list
+        transcript_data.append({
+            'Transcript Name': transcript.attributes.get('transcript_name', [transcript.id])[0],
+            'Transcript ID': transcript.id,
+            'Chromosomal Location': transcript.seqid,
+            'Position': f"{transcript.start} - {transcript.end}",
+            'Size': transcript.end - transcript.start + 1,
+            'Number of Exons': num_exons,
+            'Average Exon Size': round(avg_exon_size, 2),
+            'Strand': transcript.strand,
+            'Biotype': transcript.attributes.get('transcript_biotype', ['Unknown'])[0]
+        })
+
+# Create a DataFrame from the transcript data
+df = pd.DataFrame(transcript_data)
+
+# Save the DataFrame to a CSV file
+df.to_csv('transcript_info.csv', index=False)
+
+# Display the DataFrame
+print(df)
+```
+
+### Explanation of the Code:
+1. **Database Connection**: We connect to the GFFUtils database using `gffutils.FeatureDB()`.
+2. **Gene List**: We define a list of gene names for which we want to retrieve transcript information.
+3. **Data Collection**: For each gene, we:
+   - Retrieve the gene feature from the database.
+   - Fetch all associated transcript features.
+   - For each transcript, we gather information about its exons, including the number of exons, total size, and average exon size.
+4. **Data Storage**: We store the collected information in a list of dictionaries.
+5. **DataFrame Creation**: We convert the list of dictionaries into a Pandas DataFrame for easy manipulation and saving.
+6. **CSV Output**: Finally, we save the DataFrame to a CSV file named `transcript_info.csv` and print the DataFrame to the console.
+
+### Note:
+- Make sure to replace `'your_database.db'` with the actual path to your GFFUtils database file.
+- Ensure that the `pandas` library is installed in your Python environment to handle DataFrame operations. You can install it using `pip install pandas`.

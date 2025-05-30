@@ -1,0 +1,52 @@
+To find the genes located between the HOXC11 and HOXC12 genes on both the + and - strands, we can follow these steps:
+
+1. **Retrieve the HOXC11 and HOXC12 genes** to get their genomic coordinates and strand information.
+2. **Determine the genomic region** between these two genes based on their start and end coordinates.
+3. **Query the database** for genes that fall within this region, ensuring they are not HOXC11 or HOXC12 themselves.
+4. **Print the results**, including the gene ID, name, and strand.
+
+Here's a Python script using the `gffutils` library to accomplish this:
+
+```python
+import gffutils
+
+# Connect to the GFF/GTF database
+db = gffutils.FeatureDB('your_database.db', keep_order=True)
+
+# Step 1: Find HOXC11 and HOXC12 genes
+hoxc11 = next(gene for gene in db.features_of_type('gene') if gene.attributes.get('gene_name', [''])[0] == 'HOXC11')
+hoxc12 = next(gene for gene in db.features_of_type('gene') if gene.attributes.get('gene_name', [''])[0] == 'HOXC12')
+
+# Step 2: Determine the region between HOXC11 and HOXC12
+start = min(hoxc11.start, hoxc12.start)
+end = max(hoxc11.end, hoxc12.end)
+chromosome = hoxc11.seqid  # Assuming both genes are on the same chromosome
+
+# Step 3: Find genes between HOXC11 and HOXC12
+genes_between = []
+for gene in db.features_of_type('gene'):
+    if (gene.seqid == chromosome and
+        start < gene.start < end and
+        gene.id not in [hoxc11.id, hoxc12.id]):
+        gene_id = gene.id
+        gene_name = gene.attributes.get('gene_name', [''])[0]
+        gene_strand = gene.strand
+        genes_between.append((gene_id, gene_name, gene_strand))
+
+# Step 4: Print the results
+print("Genes between HOXC11 and HOXC12:")
+for gene_id, gene_name, gene_strand in genes_between:
+    if gene_name:
+        print(f"Gene ID: {gene_id}, Gene Name: {gene_name}, Strand: {gene_strand}")
+    else:
+        print(f"Gene ID: {gene_id}, Strand: {gene_strand}")
+```
+
+### Explanation of the Code:
+- **Database Connection**: The script connects to the GFF/GTF database using `gffutils.FeatureDB()`.
+- **Gene Retrieval**: It retrieves the HOXC11 and HOXC12 genes using a generator expression that filters by gene name.
+- **Region Calculation**: The start and end coordinates are determined to define the genomic region of interest.
+- **Gene Filtering**: It iterates through all genes in the database, checking if they fall within the defined region and are not HOXC11 or HOXC12.
+- **Output**: Finally, it prints the IDs, names, and strands of the genes found between HOXC11 and HOXC12.
+
+Make sure to replace `'your_database.db'` with the actual path to your GFF/GTF database file.

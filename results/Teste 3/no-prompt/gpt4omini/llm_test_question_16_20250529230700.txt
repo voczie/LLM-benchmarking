@@ -1,0 +1,112 @@
+To retrieve the requested information about the transcript isoforms of the specified genes (XIST, MALAT1, BRCA1, NFKB1, COL1A2, HOTAIR, HOXC11, and HOXC12) from a SQLite3 database containing genome annotations in GFF/GTF format, you can follow the steps outlined below. This will involve querying the database to gather the necessary details and then organizing the results into a table.
+
+### Step-by-Step Guide
+
+1. **Connect to the SQLite Database**: Use the `sqlite3` library to connect to your database.
+
+2. **Define the Genes of Interest**: Create a list of the gene names you want to query.
+
+3. **Query for Gene Information**: For each gene, find its corresponding transcripts and gather the required information.
+
+4. **Calculate Exon Information**: For each transcript, retrieve the associated exons to calculate the number of exons and average exon size.
+
+5. **Store Results in a DataFrame**: Use `pandas` to create a DataFrame to store and organize the results.
+
+6. **Save the DataFrame**: Save the DataFrame to a file (e.g., CSV or Excel).
+
+### Example Code
+
+Here’s a Python code snippet that implements the above steps:
+
+```python
+import sqlite3
+import pandas as pd
+
+# Connect to the SQLite database
+db_path = 'path_to_your_database.db'  # Update with your database path
+conn = sqlite3.connect(db_path)
+
+# Define the genes of interest
+gene_names = ['XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'COL1A2', 'HOTAIR', 'HOXC11', 'HOXC12']
+
+# Prepare a list to hold transcript data
+transcript_data = []
+
+# Loop through each gene name
+for gene_name in gene_names:
+    # Query to find the gene
+    gene_query = f"""
+    SELECT id, seqid, start, end, attributes
+    FROM features
+    WHERE featuretype = 'gene' AND attributes LIKE '%gene_name={gene_name}%'
+    """
+    gene = conn.execute(gene_query).fetchone()
+    
+    if gene is None:
+        print(f"Gene {gene_name} not found in the database.")
+        continue
+
+    gene_id, seqid, gene_start, gene_end, gene_attributes = gene
+
+    # Get all transcripts for this gene
+    transcript_query = f"""
+    SELECT id, start, end, attributes, strand
+    FROM features
+    WHERE featuretype = 'transcript' AND parent = '{gene_id}'
+    """
+    transcripts = conn.execute(transcript_query).fetchall()
+
+    for transcript in transcripts:
+        transcript_id, transcript_start, transcript_end, transcript_attributes, strand = transcript
+        
+        # Get exons for this transcript
+        exon_query = f"""
+        SELECT start, end
+        FROM features
+        WHERE featuretype = 'exon' AND parent = '{transcript_id}'
+        """
+        exons = conn.execute(exon_query).fetchall()
+        
+        num_exons = len(exons)
+        total_exon_size = sum(end - start + 1 for start, end in exons) if exons else 0
+        avg_exon_size = total_exon_size / num_exons if num_exons > 0 else 0
+        
+        # Extract biotype from transcript attributes
+        biotype = next((attr.split('=')[1] for attr in transcript_attributes.split(';') if 'transcript_biotype' in attr), 'Unknown')
+
+        # Append the transcript data
+        transcript_data.append({
+            'Transcript Name': transcript.attributes.get('transcript_name', [transcript_id])[0],
+            'Transcript ID': transcript_id,
+            'Chromosomal Location': seqid,
+            'Position': f"{transcript_start} - {transcript_end}",
+            'Size': transcript_end - transcript_start + 1,
+            'Number of Exons': num_exons,
+            'Average Exon Size': round(avg_exon_size, 2),
+            'Strand': strand,
+            'Biotype': biotype
+        })
+
+# Create a DataFrame from the transcript data
+df = pd.DataFrame(transcript_data)
+
+# Save the DataFrame to a CSV file
+df.to_csv('transcript_info.csv', index=False)
+
+# Close the database connection
+conn.close()
+
+# Display the DataFrame
+print(df)
+```
+
+### Explanation of the Code
+
+- **Database Connection**: The code connects to the SQLite database using `sqlite3.connect()`.
+- **Gene Query**: It retrieves the gene information based on the gene name.
+- **Transcript Query**: For each gene, it retrieves all associated transcripts.
+- **Exon Query**: For each transcript, it retrieves the associated exons to calculate the number of exons and average exon size.
+- **Data Storage**: The results are stored in a list of dictionaries, which is then converted to a pandas DataFrame.
+- **File Saving**: Finally, the DataFrame is saved to a CSV file for further analysis or reporting.
+
+Make sure to replace `'path_to_your_database.db'` with the actual path to your SQLite database file.

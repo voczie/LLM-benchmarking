@@ -1,0 +1,40 @@
+To calculate the average exon size of the BRCA1 transcript isoforms using the `gffutils` library, we will follow these steps:
+
+1. Retrieve all exons associated with the BRCA1 gene.
+2. Calculate the total size of these exons.
+3. Count the number of exons.
+4. Compute the average exon size by dividing the total size by the number of exons.
+
+Here's the Python script that accomplishes this:
+
+```python
+import gffutils
+
+# Connect to the existing GFF/GTF database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# Step 1: Get all exons for BRCA1
+brca1_exons = list(feature for feature in db.features_of_type('exon')
+                   if 'BRCA1' in feature.attributes.get('gene_name', []))
+
+# Step 2: Calculate total exon size and count
+total_exon_size = sum(feature.end - feature.start + 1 for feature in brca1_exons)
+num_brca1_exons = len(brca1_exons)
+
+# Step 3: Calculate average exon size
+if num_brca1_exons > 0:
+    average_exon_size = total_exon_size / num_brca1_exons
+    print(f"Average exon size of BRCA1 transcript isoforms: {average_exon_size:.2f} bp")
+else:
+    print("No exons found for BRCA1")
+```
+
+### Explanation of the Code:
+- **Importing the Library:** We start by importing the `gffutils` library.
+- **Connecting to the Database:** We connect to the GFF/GTF database using `gffutils.FeatureDB()`. Make sure to replace `'path_to_your_database.db'` with the actual path to your database file.
+- **Retrieving Exons:** We use a list comprehension to filter and retrieve all exons that belong to the BRCA1 gene. The `gene_name` attribute is checked to ensure we are only getting exons related to BRCA1.
+- **Calculating Total Size:** We calculate the total size of the exons by summing the lengths of each exon (calculated as `end - start + 1`).
+- **Counting Exons:** We count the number of exons retrieved.
+- **Calculating Average Size:** If there are exons found, we compute the average size and print it. If no exons are found, we print a message indicating that.
+
+This script will provide you with the average exon size of the BRCA1 transcript isoforms based on the data in your GFF/GTF database.

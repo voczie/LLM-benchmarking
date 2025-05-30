@@ -1,0 +1,47 @@
+To answer the question of how many pseudogenes are on the X chromosome, we can utilize the `gffutils` library to query the database for features of type `gene` and filter them based on their attributes. Specifically, we will check if the `gene_biotype` attribute indicates that the gene is a pseudogene.
+
+Here's a Python script that accomplishes this task:
+
+```python
+import gffutils
+
+# Connect to the existing GFF/GTF database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# Initialize a dictionary to count pseudogene subtypes and a total counter
+pseudogene_counts = {}
+total_pseudogenes = 0
+
+# Iterate over all gene features in the database
+for feature in db.features_of_type('gene'):
+    # Check if the feature is on the X chromosome
+    if feature.seqid == 'X':
+        # Get the gene biotype from the attributes
+        gene_biotype = feature.attributes.get('gene_biotype', [''])[0]
+        # Check if the gene biotype indicates a pseudogene
+        if gene_biotype.endswith('_pseudogene'):
+            # Count the pseudogene subtype
+            pseudogene_counts[gene_biotype] = pseudogene_counts.get(gene_biotype, 0) + 1
+            total_pseudogenes += 1
+
+# Print the results
+print("Pseudogene subtypes on the X chromosome:")
+for pseudogene_type in sorted(pseudogene_counts.keys()):
+    count = pseudogene_counts[pseudogene_type]
+    print(f"{pseudogene_type}: {count}")
+
+print(f"\nTotal number of pseudogenes on the X chromosome: {total_pseudogenes}")
+```
+
+### Explanation of the Code:
+1. **Database Connection**: We connect to the GFF/GTF database using `gffutils.FeatureDB()`. Make sure to replace `'path_to_your_database.db'` with the actual path to your database file.
+
+2. **Initialization**: We create a dictionary `pseudogene_counts` to store counts of different pseudogene subtypes and a counter `total_pseudogenes` to keep track of the total number of pseudogenes.
+
+3. **Feature Iteration**: We loop through all features of type `gene` in the database. For each gene, we check if it is located on the X chromosome.
+
+4. **Attribute Filtering**: We retrieve the `gene_biotype` attribute and check if it ends with `_pseudogene`. If it does, we update our counts accordingly.
+
+5. **Output**: Finally, we print the counts of each pseudogene subtype and the total number of pseudogenes found on the X chromosome.
+
+This script will provide you with a detailed count of pseudogenes on the X chromosome, including their subtypes.

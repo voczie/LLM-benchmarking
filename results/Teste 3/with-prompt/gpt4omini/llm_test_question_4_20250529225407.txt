@@ -1,0 +1,28 @@
+To answer the question of how many genes for miRNA exist on chromosome 10, we can utilize the `gffutils` library to query the database. The approach involves filtering the features of type 'gene' based on the chromosome ID and the gene biotype attribute.
+
+Here's a Python script that accomplishes this:
+
+```python
+import gffutils
+
+# Connect to the existing GFF/GTF database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# Count the number of miRNA genes on chromosome 10
+miRNA_count = sum(1 for feature in db.features_of_type('gene')
+                  if feature.seqid == '10' and feature.attributes.get('gene_biotype', [''])[0] == 'miRNA')
+
+# Print the result
+print(f"Number of miRNA genes on chromosome 10: {miRNA_count}")
+```
+
+### Explanation of the Code:
+1. **Import the gffutils library**: This is necessary to interact with the GFF/GTF database.
+2. **Connect to the database**: Replace `'path_to_your_database.db'` with the actual path to your GFF/GTF database file.
+3. **Count miRNA genes**:
+   - We use a generator expression to iterate over all features of type 'gene'.
+   - For each feature, we check if the `seqid` (chromosome ID) is '10' and if the `gene_biotype` attribute is 'miRNA'.
+   - The `sum()` function counts how many times these conditions are met.
+4. **Print the result**: Finally, we output the count of miRNA genes found on chromosome 10.
+
+Make sure to have the `gffutils` library installed and the database created from your GFF/GTF file before running this script.

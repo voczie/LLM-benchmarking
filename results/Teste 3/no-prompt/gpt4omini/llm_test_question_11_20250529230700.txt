@@ -1,0 +1,48 @@
+To find out which chromosomes the genes NFKB1, NFKB2, REL, RELA, and RELB are located on, you can use the following Python code snippet. This code assumes you have a SQLite3 database connection established and that you are using a library like `gffutils` to interact with the database.
+
+Here's a step-by-step guide along with the code:
+
+1. **Connect to the SQLite3 database**: Make sure you have a connection to your SQLite3 database where the GFF/GTF data is stored.
+
+2. **Define the target genes**: Create a list of the gene names you are interested in.
+
+3. **Query the database**: Loop through the features of type 'gene' and check if the gene name matches any of the target genes. If it does, print the chromosome (seqid) where the gene is located.
+
+Here’s the complete code:
+
+```python
+import gffutils
+
+# Connect to the SQLite3 database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# Define the target genes
+target_genes = ['NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB']
+
+# Loop through the features of type 'gene'
+for feature in db.features_of_type('gene'):
+    # Extract the gene name from the attributes
+    gene_name = feature.attributes.get('gene_name', [''])[0]
+    
+    # Check if the gene name is in the target genes list
+    if gene_name in target_genes:
+        # Print the gene name and its corresponding chromosome
+        print(f"{gene_name}: chromosome {feature.seqid}")
+```
+
+### Explanation of the Code:
+- **Importing gffutils**: This library is used to interact with the GFF/GTF data stored in the SQLite database.
+- **Connecting to the database**: Replace `'path_to_your_database.db'` with the actual path to your SQLite database file.
+- **Defining target genes**: A list of gene names you want to search for.
+- **Looping through gene features**: The `db.features_of_type('gene')` method retrieves all features of type 'gene'.
+- **Extracting gene names**: The gene name is extracted from the `attributes` dictionary of each feature.
+- **Checking for matches**: If the gene name is in the `target_genes` list, it prints the gene name along with its chromosome ID (`seqid`).
+
+### Running the Code:
+Make sure you have the `gffutils` library installed. You can install it using pip if you haven't done so already:
+
+```bash
+pip install gffutils
+```
+
+After setting up your database and running the code, you should see the output indicating the chromosomes where each of the specified genes is located.

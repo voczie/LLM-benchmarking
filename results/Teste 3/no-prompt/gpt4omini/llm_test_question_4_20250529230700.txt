@@ -1,0 +1,54 @@
+To determine how many genes for miRNA exist on chromosome 10 using the SQLite3 database that contains your genome annotation, you can follow these steps:
+
+1. **Connect to the SQLite3 Database**: First, ensure you have a connection to your SQLite3 database where the GFF/GTF data is stored.
+
+2. **Query the Database**: You will need to query the `features` table to count the number of entries where the `featuretype` is 'gene', the `seqid` is '10', and the `attributes` field contains the information indicating that the gene is of type 'miRNA'.
+
+3. **Count the Results**: You can sum the results that match the criteria.
+
+Here’s a Python code snippet that demonstrates how to perform this task:
+
+```python
+import sqlite3
+import json
+
+# Connect to the SQLite database
+db = sqlite3.connect('your_database_name.db')
+
+# Create a cursor object
+cursor = db.cursor()
+
+# Query to count miRNA genes on chromosome 10
+query = """
+SELECT COUNT(*) 
+FROM features 
+WHERE featuretype = 'gene' 
+AND seqid = '10' 
+AND attributes LIKE '%gene_biotype=miRNA%'
+"""
+
+# Execute the query
+cursor.execute(query)
+
+# Fetch the result
+miRNA_count = cursor.fetchone()[0]
+
+# Print the result
+print(f"Number of miRNA genes on chromosome 10: {miRNA_count}")
+
+# Close the database connection
+db.close()
+```
+
+### Explanation of the Code:
+- **Connection**: The code connects to the SQLite database using `sqlite3.connect()`.
+- **Cursor**: A cursor object is created to execute SQL commands.
+- **SQL Query**: The SQL query counts the number of rows in the `features` table where:
+  - `featuretype` is 'gene'
+  - `seqid` is '10'
+  - The `attributes` field contains 'gene_biotype=miRNA' (using `LIKE` to match the string).
+- **Fetch Result**: The result of the count is fetched using `fetchone()`.
+- **Output**: Finally, it prints the count of miRNA genes on chromosome 10.
+- **Close Connection**: The database connection is closed after the operation.
+
+Make sure to replace `'your_database_name.db'` with the actual name of your SQLite database file.

@@ -1,0 +1,51 @@
+To find the biotype of the specified genes (XIST, MALAT1, BRCA1, NFKB1, NFKB2, REL, RELA, RELB, and COL1A2) from your SQLite3 database containing genome annotations, you can use the following Python code snippet. This code assumes you have a database connection established and are using a library like `gffutils` to interact with the database.
+
+Here's a step-by-step guide along with the code:
+
+1. **Connect to the SQLite3 database**: Make sure you have a connection to your SQLite3 database where the GFF/GTF data is stored.
+
+2. **Query the database for the genes**: Loop through the list of gene names and retrieve their biotypes from the database.
+
+3. **Print the results**: Output the gene names along with their corresponding biotypes.
+
+Here’s the code that accomplishes this:
+
+```python
+import gffutils
+
+# Connect to the SQLite3 database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# List of genes to query
+gene_names = ['XIST', 'MALAT1', 'BRCA1', 'NFKB1', 'NFKB2', 'REL', 'RELA', 'RELB', 'COL1A2']
+
+# Iterate through the gene names and retrieve their biotypes
+for gene_name in gene_names:
+    # Find the gene in the database
+    genes = db.features_of_type('gene')
+    gene = next((g for g in genes if g.attributes.get('gene_name', [None])[0] == gene_name), None)
+    
+    if gene is not None:
+        # Get the biotype from the attributes
+        biotype = gene.attributes.get('gene_biotype', ['Unknown'])[0]
+        print(f"{gene_name}: {biotype}")
+    else:
+        print(f"{gene_name}: Gene not found in the database.")
+```
+
+### Explanation of the Code:
+- **Importing gffutils**: This library is used to interact with GFF/GTF databases.
+- **Connecting to the Database**: Replace `'path_to_your_database.db'` with the actual path to your SQLite3 database file.
+- **Gene List**: The list `gene_names` contains the genes you are interested in.
+- **Finding Genes**: The code loops through each gene name, retrieves the corresponding gene feature from the database, and checks if it exists.
+- **Retrieving Biotype**: If the gene is found, it retrieves the biotype from the attributes. If not found, it prints a message indicating that the gene is not in the database.
+
+### Note:
+- Ensure that the attribute names used in the code (like `'gene_name'` and `'gene_biotype'`) match the actual attribute names in your database schema.
+- You may need to install the `gffutils` library if you haven't done so already. You can install it using pip:
+
+```bash
+pip install gffutils
+```
+
+This code will give you the biotype of each specified gene, or indicate if a gene is not found in the database.

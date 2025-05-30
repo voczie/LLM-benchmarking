@@ -1,0 +1,54 @@
+To determine how many exons the XIST gene has using the SQLite3 database containing the genome annotation, you can follow these steps:
+
+1. **Identify the XIST Gene**: First, you need to find the ID of the XIST gene in the database. This is typically done by querying the `features` table for the gene type.
+
+2. **Find Exons Associated with the XIST Gene**: Once you have the gene ID for XIST, you can then look for exons that are related to this gene by checking the `relations` table.
+
+3. **Count the Unique Exons**: Finally, you will count the unique exons associated with the XIST gene.
+
+Here’s how you can implement this in Python using the SQLite3 database:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+db = sqlite3.connect('your_database.db')
+
+# Create a cursor object
+cursor = db.cursor()
+
+# Step 1: Find the ID of the XIST gene
+cursor.execute("SELECT id FROM features WHERE featuretype = 'gene' AND attributes LIKE '%XIST%'")
+xist_gene = cursor.fetchone()
+
+if xist_gene:
+    xist_gene_id = xist_gene[0]
+
+    # Step 2: Find all exons associated with the XIST gene
+    cursor.execute("""
+        SELECT child FROM relations 
+        WHERE parent = ? AND level = 2
+    """, (xist_gene_id,))
+    
+    exons = cursor.fetchall()
+
+    # Step 3: Count unique exons
+    unique_exons = set(exon[0] for exon in exons)
+    exon_count = len(unique_exons)
+
+    print(f"The XIST gene has {exon_count} exons.")
+else:
+    print("XIST gene not found in the database.")
+
+# Close the database connection
+db.close()
+```
+
+### Explanation of the Code:
+- **Database Connection**: The code connects to the SQLite database where your genome annotation is stored.
+- **Query for XIST Gene**: It queries the `features` table to find the ID of the XIST gene.
+- **Query for Exons**: It then queries the `relations` table to find all children (exons) of the XIST gene, where the level is 2 (indicating that these are exons).
+- **Count Unique Exons**: It collects the exon IDs into a set to ensure uniqueness and counts them.
+- **Output**: Finally, it prints the number of unique exons associated with the XIST gene.
+
+Make sure to replace `'your_database.db'` with the actual path to your SQLite database file.

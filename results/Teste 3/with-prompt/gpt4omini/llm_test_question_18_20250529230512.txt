@@ -1,0 +1,70 @@
+To generate a stacked barplot chart representing the proportions of protein-coding, lncRNA, and miRNA genes on each chromosome separately, we can follow these steps:
+
+1. **Connect to the GFFUtils database** to access the genomic features.
+2. **Iterate through the genes** to count the occurrences of each gene type (protein-coding, lncRNA, and miRNA) for each chromosome.
+3. **Prepare the data** for plotting.
+4. **Use Matplotlib** to create a stacked barplot.
+
+Here's the complete Python script to achieve this:
+
+```python
+import gffutils
+import matplotlib.pyplot as plt
+
+# Connect to the GFFUtils database
+db = gffutils.FeatureDB('your_database.db', keep_order=True)
+
+# Initialize a dictionary to hold counts of gene types per chromosome
+chromosome_data = {}
+
+# Iterate through all gene features in the database
+for feature in db.features_of_type('gene'):
+    seqid = feature.seqid  # Get the chromosome ID
+    gene_biotype = feature.attributes.get('gene_biotype', [''])[0]  # Get the gene biotype
+
+    # Initialize the dictionary for the chromosome if not already present
+    if seqid not in chromosome_data:
+        chromosome_data[seqid] = {'protein_coding': 0, 'lncRNA': 0, 'miRNA': 0}
+
+    # Count the gene types
+    if gene_biotype == 'protein_coding':
+        chromosome_data[seqid]['protein_coding'] += 1
+    elif gene_biotype == 'lncRNA':
+        chromosome_data[seqid]['lncRNA'] += 1
+    elif gene_biotype == 'miRNA':
+        chromosome_data[seqid]['miRNA'] += 1
+
+# Prepare data for plotting
+chromosomes = list(chromosome_data.keys())
+protein_coding_counts = [chromosome_data[chrom]['protein_coding'] for chrom in chromosomes]
+lncRNA_counts = [chromosome_data[chrom]['lncRNA'] for chrom in chromosomes]
+miRNA_counts = [chromosome_data[chrom]['miRNA'] for chrom in chromosomes]
+
+# Create a stacked bar plot
+plt.figure(figsize=(10, 6))
+plt.bar(chromosomes, protein_coding_counts, label='Protein-coding', color='blue')
+plt.bar(chromosomes, lncRNA_counts, bottom=protein_coding_counts, label='lncRNA', color='orange')
+plt.bar(chromosomes, miRNA_counts, bottom=[i+j for i,j in zip(protein_coding_counts, lncRNA_counts)], label='miRNA', color='green')
+
+# Add labels and title
+plt.xlabel('Chromosome')
+plt.ylabel('Gene Count')
+plt.title('Proportions of Gene Types on Each Chromosome')
+plt.legend()
+plt.xticks(rotation=45)  # Rotate x-axis labels for better visibility
+plt.tight_layout()  # Adjust layout to prevent clipping of labels
+plt.show()
+```
+
+### Explanation of the Code:
+- **Database Connection**: We connect to the GFFUtils database using `gffutils.FeatureDB()`.
+- **Data Collection**: We loop through each gene feature, checking its biotype and counting occurrences for each chromosome.
+- **Data Preparation**: We create lists for each gene type's counts, which will be used for plotting.
+- **Plotting**: We use Matplotlib to create a stacked bar plot, where each bar represents a chromosome, and the segments represent the counts of different gene types.
+
+### Note:
+- Replace `'your_database.db'` with the actual path to your GFFUtils database file.
+- Ensure you have the required libraries installed (`gffutils` and `matplotlib`). You can install them using pip if necessary:
+  ```bash
+  pip install gffutils matplotlib
+  ```

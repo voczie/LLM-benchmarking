@@ -1,0 +1,86 @@
+To generate a stacked barplot chart representing the proportions of protein-coding, lncRNA, and miRNA genes on each chromosome separately, you can follow these steps:
+
+1. **Query the Database**: First, you need to extract the relevant data from your SQLite3 database. You will want to count the number of each type of gene (protein-coding, lncRNA, and miRNA) for each chromosome.
+
+2. **Prepare the Data**: Organize the data into a format suitable for plotting, such as a dictionary or a DataFrame.
+
+3. **Plot the Data**: Use a plotting library like Matplotlib to create the stacked barplot.
+
+Here’s a complete example in Python that incorporates these steps:
+
+```python
+import sqlite3
+import matplotlib.pyplot as plt
+import pandas as pd
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')
+cursor = conn.cursor()
+
+# Query to get counts of each gene type per chromosome
+query = """
+SELECT seqid, 
+       SUM(CASE WHEN attributes LIKE '%gene_biotype=protein_coding%' THEN 1 ELSE 0 END) AS protein_coding,
+       SUM(CASE WHEN attributes LIKE '%gene_biotype=lncRNA%' THEN 1 ELSE 0 END) AS lncRNA,
+       SUM(CASE WHEN attributes LIKE '%gene_biotype=miRNA%' THEN 1 ELSE 0 END) AS miRNA
+FROM features
+WHERE featuretype = 'gene'
+GROUP BY seqid;
+"""
+
+# Execute the query and fetch the results
+cursor.execute(query)
+results = cursor.fetchall()
+
+# Close the database connection
+conn.close()
+
+# Prepare the data for plotting
+data = {
+    'Chromosome': [],
+    'Protein-coding': [],
+    'lncRNA': [],
+    'miRNA': []
+}
+
+for row in results:
+    data['Chromosome'].append(row[0])
+    data['Protein-coding'].append(row[1])
+    data['lncRNA'].append(row[2])
+    data['miRNA'].append(row[3])
+
+# Create a DataFrame
+df = pd.DataFrame(data)
+
+# Set the index to Chromosome for easier plotting
+df.set_index('Chromosome', inplace=True)
+
+# Plotting
+ax = df.plot(kind='bar', stacked=True, figsize=(10, 6))
+plt.title('Proportions of Gene Types on Each Chromosome')
+plt.xlabel('Chromosome')
+plt.ylabel('Gene Count')
+plt.legend(title='Gene Type')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+```
+
+### Explanation of the Code:
+
+1. **Database Connection**: The code connects to the SQLite database where your GFF/GTF data is stored.
+
+2. **SQL Query**: The SQL query counts the number of protein-coding, lncRNA, and miRNA genes for each chromosome. It uses conditional aggregation to sum counts based on the `attributes` field.
+
+3. **Data Preparation**: The results from the query are organized into a dictionary, which is then converted into a Pandas DataFrame.
+
+4. **Plotting**: The DataFrame is plotted as a stacked bar chart using Matplotlib. Each bar represents a chromosome, and the segments of the bar represent the counts of each gene type.
+
+### Note:
+- Make sure to replace `'your_database.db'` with the actual path to your SQLite database.
+- The `attributes` field is assumed to contain the gene biotype information in a specific format. Adjust the SQL query if your format differs.
+- Ensure you have the necessary libraries installed (`sqlite3`, `matplotlib`, `pandas`). You can install them using pip if needed:
+
+```bash
+pip install matplotlib pandas
+```

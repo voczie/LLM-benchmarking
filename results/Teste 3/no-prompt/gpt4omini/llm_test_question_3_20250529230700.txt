@@ -1,0 +1,46 @@
+To determine how many pseudogenes are on the X chromosome using the SQLite3 database that contains your genome annotation, you can follow these steps:
+
+1. **Connect to the SQLite3 Database**: First, you need to establish a connection to your SQLite3 database where the GFF/GTF data is stored.
+
+2. **Query the Features Table**: You will need to query the `features` table to find all entries that correspond to pseudogenes on the X chromosome.
+
+3. **Count the Pseudogenes**: You can filter the results based on the `featuretype` and the `seqid` fields.
+
+Here’s a Python code snippet that accomplishes this:
+
+```python
+import sqlite3
+
+# Connect to the SQLite3 database
+db_path = 'path_to_your_database.db'  # Replace with your database path
+conn = sqlite3.connect(db_path)
+cursor = conn.cursor()
+
+# Query to count pseudogenes on the X chromosome
+query = """
+SELECT COUNT(*) 
+FROM features 
+WHERE seqid = 'X' AND featuretype = 'pseudogene';
+"""
+
+# Execute the query
+cursor.execute(query)
+
+# Fetch the result
+total_pseudogenes = cursor.fetchone()[0]
+
+# Print the result
+print(f"Total number of pseudogenes on the X chromosome: {total_pseudogenes}")
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation of the Code:
+- **Database Connection**: The code connects to the SQLite database using `sqlite3.connect()`.
+- **SQL Query**: The SQL query counts the number of records in the `features` table where `seqid` is 'X' and `featuretype` is 'pseudogene'.
+- **Execute and Fetch**: The query is executed, and the result is fetched using `fetchone()`, which returns a tuple. The count is accessed using `[0]`.
+- **Output**: Finally, it prints the total number of pseudogenes found on the X chromosome.
+- **Close Connection**: The database connection is closed to free up resources.
+
+Make sure to replace `'path_to_your_database.db'` with the actual path to your SQLite database file. This code will give you the count of pseudogenes on the X chromosome as requested.

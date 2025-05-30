@@ -1,0 +1,69 @@
+To find the genes located between the HOXC11 and HOXC12 genes on both the + and - strands, you can follow these steps using Python and the SQLite3 database. Below is a detailed walkthrough along with the code to achieve this.
+
+### Step-by-Step Walkthrough
+
+1. **Retrieve HOXC11 and HOXC12 Genes**: First, you need to find the features corresponding to the HOXC11 and HOXC12 genes in the database.
+
+2. **Determine the Region**: Once you have the start and end coordinates of both genes, you can determine the region between them.
+
+3. **Query for Genes in the Region**: You will then query the database for genes that are located within the start and end coordinates of the region determined in the previous step.
+
+4. **Filter by Strand**: Finally, you will filter the results based on the strand of the genes.
+
+### Python Code Example
+
+Here’s how you can implement the above steps in Python:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+db_connection = sqlite3.connect('your_database.db')
+cursor = db_connection.cursor()
+
+# Step 1: Retrieve HOXC11 and HOXC12 genes
+cursor.execute("SELECT * FROM features WHERE featuretype='gene' AND attributes LIKE '%gene_name=HOXC11%'")
+hoxc11 = cursor.fetchone()
+
+cursor.execute("SELECT * FROM features WHERE featuretype='gene' AND attributes LIKE '%gene_name=HOXC12%'")
+hoxc12 = cursor.fetchone()
+
+# Step 2: Determine the region between HOXC11 and HOXC12
+start = min(hoxc11[4], hoxc12[4])  # Assuming start is at index 4
+end = max(hoxc11[5], hoxc12[5])    # Assuming end is at index 5
+chromosome = hoxc11[1]             # Assuming seqid is at index 1
+
+# Step 3: Query for genes in the region
+cursor.execute("""
+    SELECT * FROM features 
+    WHERE featuretype='gene' 
+    AND seqid=? 
+    AND start > ? 
+    AND end < ? 
+    AND id NOT IN (?, ?)
+""", (chromosome, start, end, hoxc11[0], hoxc12[0]))
+
+genes_between = cursor.fetchall()
+
+# Step 4: Print results for both strands
+print("Genes between HOXC11 and HOXC12:")
+for gene in genes_between:
+    gene_id = gene[0]  # Assuming id is at index 0
+    gene_name = gene[9]  # Assuming attributes is at index 9
+    gene_strand = gene[7]  # Assuming strand is at index 7
+    print(f"Gene ID: {gene_id}, Gene Name: {gene_name}, Strand: {gene_strand}")
+
+# Close the database connection
+db_connection.close()
+```
+
+### Explanation of the Code
+
+- **Database Connection**: The code connects to the SQLite database where the GFF/GTF data is stored.
+- **Gene Retrieval**: It retrieves the records for HOXC11 and HOXC12 using SQL queries that filter based on the `featuretype` and `attributes`.
+- **Region Calculation**: It calculates the start and end coordinates for the region between the two genes.
+- **Gene Query**: It queries the database for genes that are located within the specified region and are not HOXC11 or HOXC12.
+- **Output**: Finally, it prints the IDs, names, and strands of the genes found in the specified region.
+
+### Note
+Make sure to replace `'your_database.db'` with the actual path to your SQLite database file. Adjust the index values in the code if the structure of your database differs from the assumed structure.

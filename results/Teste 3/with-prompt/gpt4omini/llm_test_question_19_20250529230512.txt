@@ -1,0 +1,63 @@
+To generate a boxplot that compares the sizes of transcripts for protein-coding genes, lncRNAs, and miRNAs, we will follow these steps:
+
+1. **Connect to the GFF/GTF database** using `gffutils`.
+2. **Fetch transcript features** and filter them based on their biotype.
+3. **Calculate the sizes of the transcripts** by summing the sizes of their exons.
+4. **Prepare the data** for visualization.
+5. **Create a boxplot** using `matplotlib` and `seaborn`.
+
+Here's the complete Python script to achieve this:
+
+```python
+import gffutils
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Step 1: Connect to the GFF/GTF database
+db = gffutils.FeatureDB('your_database.db', keep_order=True)
+
+# Step 2: Initialize a list to hold transcript sizes and their types
+data = []
+
+# Step 3: Fetch all transcripts and calculate their sizes
+for transcript in db.features_of_type('transcript'):
+    # Get the transcript biotype
+    transcript_biotype = transcript.attributes.get('transcript_biotype', [''])[0]
+    
+    # Calculate the size of the transcript by summing the sizes of its exons
+    exon_sizes = [exon.end - exon.start + 1 for exon in db.children(transcript.id, featuretype='exon')]
+    transcript_size = sum(exon_sizes)
+    
+    # Append the size and type to the data list if it's one of the desired biotypes
+    if transcript_biotype in ['protein_coding', 'lncRNA', 'miRNA']:
+        data.append((transcript_size, transcript_biotype))
+
+# Step 4: Create a DataFrame from the collected data
+df = pd.DataFrame(data, columns=['Size', 'Transcript Type'])
+
+# Step 5: Generate the boxplot
+plt.figure(figsize=(10, 6))
+sns.boxplot(x='Transcript Type', y='Size', data=df)
+plt.title('Comparison of Transcript Sizes for Different Biotypes')
+plt.xlabel('Transcript Type')
+plt.ylabel('Transcript Size (bp)')
+plt.grid(True)
+plt.show()
+```
+
+### Explanation of the Code:
+- **Database Connection**: We connect to the GFF/GTF database using `gffutils.FeatureDB()`.
+- **Data Collection**: We iterate over all transcripts, calculate their sizes by summing the sizes of their associated exons, and filter based on the transcript biotype.
+- **DataFrame Creation**: We create a pandas DataFrame to organize the data for plotting.
+- **Boxplot Generation**: We use `seaborn` to create a boxplot that visually compares the sizes of transcripts across the specified biotypes.
+
+### Note:
+- Make sure to replace `'your_database.db'` with the actual path to your GFF/GTF database file.
+- Ensure that you have the necessary libraries installed (`gffutils`, `pandas`, `matplotlib`, and `seaborn`). You can install them using pip if needed:
+
+```bash
+pip install gffutils pandas matplotlib seaborn
+``` 
+
+This script will provide a clear visual representation of the differences in transcript sizes among protein-coding genes, lncRNAs, and miRNAs.
