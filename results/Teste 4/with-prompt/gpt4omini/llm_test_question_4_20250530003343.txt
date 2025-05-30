@@ -1,0 +1,48 @@
+To find the gene that lies directly downstream of the gene COL1A2 on the same strand, we can follow these steps:
+
+1. Retrieve the COL1A2 gene from the database.
+2. Get the chromosome and strand information for COL1A2.
+3. Search for genes on the same chromosome and strand that start after the end of COL1A2.
+4. Sort these genes by their start position and select the first one, which will be the gene immediately downstream.
+
+Here's a Python script that implements this logic using the `gffutils` library:
+
+```python
+import gffutils
+
+# Connect to the GFF/GTF database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# Step 1: Find the COL1A2 gene
+col1a2 = next(filter(lambda x: x.attributes.get('gene_name', [''])[0] == 'COL1A2',
+                     db.features_of_type('gene')))
+
+# Step 2: Get the chromosome and strand of COL1A2
+chromosome = col1a2.seqid
+strand = col1a2.strand
+
+# Step 3: Find genes immediately downstream of COL1A2
+downstream_genes = sorted(
+    (gene for gene in db.features_of_type('gene')
+     if gene.seqid == chromosome and gene.start > col1a2.end and gene.strand == strand),
+    key=lambda x: x.start
+)
+
+# Step 4: Get the first gene downstream
+if downstream_genes:
+    downstream_gene = downstream_genes[0]
+    downstream_gene_id = downstream_gene.attributes.get('gene_id', ['Unknown'])[0]
+    downstream_gene_name = downstream_gene.attributes.get('gene_name', ['Unknown'])[0]
+    print(f"The gene directly downstream of COL1A2 is: {downstream_gene_name} (ID: {downstream_gene_id})")
+else:
+    print("No gene found downstream of COL1A2 on the same strand.")
+```
+
+### Explanation of the Code:
+- **Database Connection:** We connect to the GFF/GTF database using `gffutils.FeatureDB()`.
+- **Finding COL1A2:** We filter through the genes to find the one with the name COL1A2.
+- **Chromosome and Strand:** We extract the chromosome and strand information from the COL1A2 gene.
+- **Finding Downstream Genes:** We create a list of genes that are on the same chromosome and strand, and whose start position is greater than the end position of COL1A2. We sort these genes by their start position.
+- **Output:** If there are any downstream genes, we print the name and ID of the first one; otherwise, we indicate that no gene was found.
+
+Make sure to replace `'path_to_your_database.db'` with the actual path to your GFF/GTF database file.

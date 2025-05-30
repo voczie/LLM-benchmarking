@@ -1,0 +1,57 @@
+To create a table showing the number of transcripts per gene for BRCA1, MALAT1, and XIST using the SQLite3 database that contains your genome annotation, you can follow these steps:
+
+1. **Connect to the SQLite Database**: Use the `sqlite3` library to connect to your database.
+2. **Query the Database**: Write a SQL query to count the number of transcripts for each of the specified genes.
+3. **Fetch and Display the Results**: Retrieve the results and display them in a table format.
+
+Here's a Python code snippet that accomplishes this:
+
+```python
+import sqlite3
+import pandas as pd
+
+# Connect to the SQLite database
+db_path = 'path_to_your_database.db'  # Replace with your database path
+conn = sqlite3.connect(db_path)
+
+# Define the gene names we are interested in
+gene_names = ['BRCA1', 'MALAT1', 'XIST']
+
+# Create a SQL query to count the number of transcripts for each gene
+query = """
+SELECT g.id AS gene_id, g.attributes AS gene_attributes, COUNT(t.id) AS transcript_count
+FROM features AS g
+LEFT JOIN relations AS r ON g.id = r.parent
+LEFT JOIN features AS t ON r.child = t.id AND t.featuretype = 'transcript'
+WHERE g.featuretype = 'gene' AND g.attributes LIKE ?
+GROUP BY g.id
+"""
+
+# Execute the query for each gene and collect results
+results = []
+for gene_name in gene_names:
+    # Use a parameterized query to prevent SQL injection
+    cursor = conn.execute(query, (f'%gene_name={gene_name}%',))
+    results.extend(cursor.fetchall())
+
+# Create a DataFrame to display the results
+df = pd.DataFrame(results, columns=['Gene ID', 'Gene Attributes', 'Transcript Count'])
+
+# Close the database connection
+conn.close()
+
+# Display the DataFrame
+print(df)
+```
+
+### Explanation of the Code:
+
+1. **Database Connection**: The code connects to the SQLite database using the `sqlite3.connect()` method.
+2. **SQL Query**: The SQL query counts the number of transcripts associated with each gene. It uses a `LEFT JOIN` to connect the `features` table (for genes) with the `relations` table (to find transcripts) and then counts the transcripts.
+3. **Parameterized Query**: The `LIKE` clause is used to filter genes based on their attributes, specifically looking for the gene names. This is done in a safe manner using parameterized queries.
+4. **DataFrame Creation**: The results are stored in a Pandas DataFrame for easy manipulation and display.
+5. **Output**: Finally, the DataFrame is printed, showing the gene ID, attributes, and the count of transcripts.
+
+### Note:
+- Make sure to replace `'path_to_your_database.db'` with the actual path to your SQLite database.
+- The `attributes` field is assumed to contain the gene name in a format like `gene_name=BRCA1`. Adjust the `LIKE` clause as necessary based on your actual data format.

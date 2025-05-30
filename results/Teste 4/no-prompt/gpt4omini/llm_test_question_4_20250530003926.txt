@@ -1,0 +1,60 @@
+To find the gene that lies directly downstream of `COL1A2` on the same strand, you can follow these steps using Python and the SQLite3 database containing your genome annotation data. Below is a walkthrough along with the code you can use.
+
+### Step-by-Step Walkthrough
+
+1. **Retrieve the `COL1A2` Gene**: First, you need to find the `COL1A2` gene in the database to get its coordinates and strand information.
+
+2. **Determine the Search Criteria**: Based on the strand of `COL1A2`, you will look for genes that are located immediately after `COL1A2` on the same chromosome.
+
+3. **Query for Downstream Gene**: Depending on the strand, you will query for the next gene that starts after the end of `COL1A2`.
+
+### Python Code Example
+
+Here’s how you can implement this:
+
+```python
+# Assuming you have a database connection `db` already established
+
+# Step 1: Find the COL1A2 gene
+col1a2 = next(filter(lambda x: x.attributes.get('gene_name', [''])[0] == 'COL1A2',
+                     db.features_of_type('gene')))
+
+# Step 2: Get the chromosome and strand of COL1A2
+chromosome = col1a2.seqid
+strand = col1a2.strand
+
+# Step 3: Find the gene immediately downstream of COL1A2
+if strand == '+':
+    # For '+' strand, look for the next gene that starts after COL1A2 ends
+    downstream_gene = next(filter(lambda x: x.seqid == chromosome and x.start > col1a2.end,
+                                   sorted(db.features_of_type('gene'), key=lambda x: x.start)), None)
+elif strand == '-':
+    # For '-' strand, look for the previous gene that ends before COL1A2 starts
+    downstream_gene = next(filter(lambda x: x.seqid == chromosome and x.end < col1a2.start,
+                                   sorted(db.features_of_type('gene'), key=lambda x: -x.end)), None)
+else:
+    downstream_gene = None
+
+# Function to get gene info
+def get_gene_info(gene):
+    if gene:
+        gene_id = gene.attributes.get('gene_id', ['Unknown'])[0]
+        gene_name = gene.attributes.get('gene_name', ['Unknown'])[0]
+        return f"{gene_name} (ID: {gene_id})"
+    else:
+        return "No downstream gene found."
+
+# Print the result
+print(f"COL1A2 Gene: {get_gene_info(col1a2)}")
+print(f"Downstream Gene: {get_gene_info(downstream_gene)}")
+```
+
+### Explanation of the Code
+
+- **Finding `COL1A2`**: The code uses a filter to find the `COL1A2` gene based on its name.
+- **Strand Check**: It checks the strand of `COL1A2`. If it's on the `+` strand, it looks for the next gene that starts after `COL1A2` ends. If it's on the `-` strand, it looks for the previous gene that ends before `COL1A2` starts.
+- **Sorting**: The genes are sorted by their start or end positions to ensure that you find the correct downstream gene.
+- **Output**: Finally, it prints the information of `COL1A2` and the downstream gene.
+
+### Note
+Make sure that your database connection (`db`) is properly set up and that you have the necessary libraries imported (like `gffutils` if you're using it). Adjust the attribute keys in the `get_gene_info` function based on your actual data structure if necessary.

@@ -1,0 +1,54 @@
+To retrieve the Ensembl gene IDs and biotypes for the genes XIST, MALAT1, BRCA1, and COL1A2 from your SQLite3 database, you can use the following Python code snippet. This code assumes you have a database connection established and that you are using a library like `gffutils` to interact with the GFF/GTF data stored in the SQLite database.
+
+Here's a step-by-step guide and the corresponding code:
+
+1. **Connect to the SQLite Database**: Make sure you have a connection to your SQLite database where the GFF/GTF data is stored.
+
+2. **Query for Genes**: Loop through the specified gene names and retrieve their Ensembl IDs and biotypes.
+
+3. **Print the Results**: Output the results in a readable format.
+
+Here’s the code that accomplishes this:
+
+```python
+import gffutils
+
+# Connect to the SQLite database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# List of gene names to query
+gene_names = ['XIST', 'MALAT1', 'BRCA1', 'COL1A2']
+
+# Initialize a list to store results
+results = []
+
+# Loop through each gene name
+for gene_name in gene_names:
+    # Find the gene feature
+    genes = list(db.features_of_type('gene'))
+    gene = next((g for g in genes if gene_name in g.attributes.get('gene_name', [])), None)
+
+    if gene is not None:
+        # Get the Ensembl ID and biotype
+        ensembl_id = gene.id  # Assuming the id field contains the Ensembl gene ID
+        biotype = gene.attributes.get('gene_biotype', ['Unknown'])[0]  # Get the biotype
+        results.append((gene_name, ensembl_id, biotype))
+    else:
+        results.append((gene_name, 'Not found', 'Not found'))
+
+# Print the results
+for gene_name, ensembl_id, biotype in results:
+    print(f"Gene: {gene_name}, Ensembl ID: {ensembl_id}, Biotype: {biotype}")
+```
+
+### Explanation of the Code:
+- **Database Connection**: Replace `'path_to_your_database.db'` with the actual path to your SQLite database.
+- **Gene Query**: The code loops through the list of gene names, retrieves the corresponding gene feature from the database, and extracts the Ensembl ID and biotype.
+- **Output**: The results are printed in a formatted manner, showing the gene name, its Ensembl ID, and its biotype.
+
+### Note:
+- Ensure that the `gffutils` library is installed in your Python environment. You can install it using pip if you haven't done so:
+  ```bash
+  pip install gffutils
+  ```
+- The attribute names like `'gene_name'` and `'gene_biotype'` should match the actual attribute names used in your GFF/GTF data. Adjust them if necessary based on your data schema.

@@ -1,0 +1,53 @@
+To determine how many protein-coding transcripts are present on chromosome 1 using the SQLite3 database that contains your genome annotation, you can follow a similar approach to the code examples provided. 
+
+Here's a step-by-step guide along with the code you can use:
+
+1. **Connect to the SQLite3 Database**: First, you need to establish a connection to your SQLite3 database.
+
+2. **Query for Transcripts**: You will filter the features to find those that are of type 'transcript' and are located on chromosome 1. Additionally, you will check if the attribute for the transcript indicates that it is protein-coding.
+
+3. **Count the Transcripts**: Finally, you will count the number of transcripts that meet the criteria.
+
+Here’s how you can implement this in Python:
+
+```python
+import sqlite3
+
+# Connect to the SQLite3 database
+db_path = 'path_to_your_database.db'  # Replace with your database path
+conn = sqlite3.connect(db_path)
+cursor = conn.cursor()
+
+# Query to count protein-coding transcripts on chromosome 1
+chromosome = '1'
+feature_type = 'transcript'
+gene_biotype = 'protein_coding'
+
+# Execute the query
+query = """
+SELECT COUNT(*)
+FROM features
+WHERE featuretype = ? AND seqid = ? AND attributes LIKE ?
+"""
+cursor.execute(query, (feature_type, chromosome, f'%gene_biotype={gene_biotype}%'))
+
+# Fetch the result
+protein_coding_transcript_count = cursor.fetchone()[0]
+
+# Print the result
+print(f"Number of protein-coding transcripts on chromosome {chromosome}: {protein_coding_transcript_count}")
+
+# Close the connection
+conn.close()
+```
+
+### Explanation of the Code:
+- **Database Connection**: The code connects to the SQLite database using the `sqlite3` library.
+- **SQL Query**: The SQL query counts the number of rows in the `features` table where:
+  - `featuretype` is 'transcript'
+  - `seqid` is '1' (indicating chromosome 1)
+  - The `attributes` field contains the string `gene_biotype=protein_coding`, which indicates that the transcript is protein-coding.
+- **Fetching the Result**: The result of the count is fetched and printed.
+- **Closing the Connection**: Finally, the database connection is closed.
+
+Make sure to replace `'path_to_your_database.db'` with the actual path to your SQLite database file. This code will give you the count of protein-coding transcripts on chromosome 1.

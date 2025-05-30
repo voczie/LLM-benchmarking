@@ -1,0 +1,77 @@
+To generate a scatterplot showing the relationship between gene length and the number of exons on chromosome X, you will need to follow these steps:
+
+1. **Query the database to get the gene lengths for genes on chromosome X.**
+2. **Count the number of exons for each gene on chromosome X.**
+3. **Create a scatterplot using the gene lengths and the number of exons.**
+
+Here's how you can implement this in Python using SQLite and Matplotlib:
+
+### Step 1: Query the Database
+
+You will need to extract the gene lengths and the number of exons for each gene on chromosome X. You can do this using SQL queries.
+
+### Step 2: Code Implementation
+
+Here’s a complete code example that accomplishes the task:
+
+```python
+import sqlite3
+import matplotlib.pyplot as plt
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')  # Replace with your database file
+cursor = conn.cursor()
+
+# Step 1: Get gene lengths for genes on chromosome X
+cursor.execute("""
+    SELECT id, start, end 
+    FROM features 
+    WHERE featuretype = 'gene' AND seqid = 'X'
+""")
+genes = cursor.fetchall()
+
+gene_lengths = {gene[0]: gene[2] - gene[1] + 1 for gene in genes}  # id: length
+
+# Step 2: Count the number of exons for each gene on chromosome X
+cursor.execute("""
+    SELECT parent, COUNT(child) 
+    FROM relations 
+    WHERE child IN (SELECT id FROM features WHERE featuretype = 'exon') 
+    AND parent IN (SELECT id FROM features WHERE featuretype = 'gene' AND seqid = 'X') 
+    GROUP BY parent
+""")
+exon_counts = cursor.fetchall()
+
+# Create a mapping of gene ID to number of exons
+gene_exon_counts = {exon[0]: exon[1] for exon in exon_counts}  # parent: exon count
+
+# Step 3: Prepare data for scatterplot
+x = []
+y = []
+
+for gene_id, length in gene_lengths.items():
+    if gene_id in gene_exon_counts:
+        x.append(length)  # Gene length
+        y.append(gene_exon_counts[gene_id])  # Number of exons
+
+# Step 4: Generate the scatterplot
+plt.scatter(x, y)
+plt.xlabel('Gene Length (bp)')
+plt.ylabel('Number of Exons')
+plt.title('Gene Length vs Number of Exons on Chromosome X')
+plt.grid()
+plt.show()
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation of the Code:
+
+1. **Database Connection**: Connect to your SQLite database.
+2. **Query for Gene Lengths**: Retrieve the start and end positions of genes on chromosome X and calculate their lengths.
+3. **Query for Exon Counts**: Count the number of exons for each gene on chromosome X using a join between the `relations` and `features` tables.
+4. **Prepare Data for Plotting**: Create two lists, `x` for gene lengths and `y` for the corresponding number of exons.
+5. **Scatterplot**: Use Matplotlib to create and display the scatterplot.
+
+Make sure to replace `'your_database.db'` with the actual path to your SQLite database file. This code will visualize the relationship between gene lengths and the number of exons for genes located on chromosome X.

@@ -1,0 +1,58 @@
+To create a table showing the number of transcripts per gene for BRCA1, MALAT1, and XIST, we can use the `gffutils` library to query the database. The following Python script will accomplish this task by fetching the relevant genes and counting their associated transcripts.
+
+Here's the structured script:
+
+```python
+import gffutils
+import pandas as pd
+
+# Connect to the GFF/GTF database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# List of genes to analyze
+gene_names = ['BRCA1', 'MALAT1', 'XIST']
+
+# Initialize a list to store the results
+transcript_counts = []
+
+# Iterate over each gene name
+for gene_name in gene_names:
+    # Fetch the gene feature
+    genes = list(db.features_of_type('gene'))
+    gene = next((g for g in genes if g.attributes.get('gene_name', [''])[0] == gene_name), None)
+
+    if gene is None:
+        print(f"Gene {gene_name} not found in the database.")
+        continue
+
+    # Count the number of transcripts for this gene
+    transcripts = list(db.children(gene, featuretype='transcript'))
+    transcript_count = len(transcripts)
+
+    # Append the result to the list
+    transcript_counts.append({
+        'Gene Name': gene_name,
+        'Number of Transcripts': transcript_count
+    })
+
+# Create a DataFrame from the results
+transcript_counts_df = pd.DataFrame(transcript_counts)
+
+# Display the DataFrame
+print(transcript_counts_df)
+```
+
+### Explanation of the Code:
+1. **Import Libraries**: We import `gffutils` for database interaction and `pandas` for data manipulation.
+2. **Connect to Database**: We connect to the GFF/GTF database using `gffutils.FeatureDB()`. Make sure to replace `'path_to_your_database.db'` with the actual path to your database file.
+3. **Define Gene Names**: We create a list of gene names we want to analyze.
+4. **Initialize Results List**: We prepare an empty list to store the results.
+5. **Iterate Over Genes**: For each gene name:
+   - We fetch the gene feature from the database.
+   - If the gene is found, we retrieve its associated transcripts using `db.children()`.
+   - We count the number of transcripts and store the result in the list.
+6. **Create DataFrame**: We convert the results list into a pandas DataFrame for easy viewing and manipulation.
+7. **Display Results**: Finally, we print the DataFrame to show the number of transcripts per gene.
+
+### Output:
+The output will be a table with two columns: "Gene Name" and "Number of Transcripts", showing the count of transcripts for BRCA1, MALAT1, and XIST.

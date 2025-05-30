@@ -1,0 +1,73 @@
+To find the BRCA1 transcript with the smallest average exon size, you'll need to follow these steps:
+
+1. **Retrieve all transcripts associated with the BRCA1 gene**.
+2. **For each transcript, retrieve its associated exons**.
+3. **Calculate the average exon size for each transcript**.
+4. **Determine which transcript has the smallest average exon size**.
+
+Here's how you can implement this in Python using the SQLite3 database:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+conn = sqlite3.connect('your_database.db')
+cursor = conn.cursor()
+
+# Step 1: Get all transcript IDs for BRCA1
+brca1_transcripts_query = """
+SELECT f.id 
+FROM features f 
+WHERE f.featuretype = 'transcript' 
+AND f.attributes LIKE '%gene_name BRCA1%'
+"""
+cursor.execute(brca1_transcripts_query)
+brca1_transcripts = cursor.fetchall()
+
+# Initialize a dictionary to hold average exon sizes
+average_exon_sizes = {}
+
+# Step 2: For each transcript, get its associated exons
+for transcript in brca1_transcripts:
+    transcript_id = transcript[0]
+    
+    # Get all exons for the current transcript
+    exons_query = f"""
+    SELECT f.start, f.end 
+    FROM features f 
+    JOIN relations r ON f.id = r.child 
+    WHERE r.parent = '{transcript_id}' 
+    AND f.featuretype = 'exon'
+    """
+    cursor.execute(exons_query)
+    exons = cursor.fetchall()
+    
+    # Step 3: Calculate average exon size
+    if exons:
+        total_exon_size = sum(end - start + 1 for start, end in exons)
+        num_exons = len(exons)
+        average_exon_size = total_exon_size / num_exons
+        average_exon_sizes[transcript_id] = average_exon_size
+
+# Step 4: Find the transcript with the smallest average exon size
+if average_exon_sizes:
+    smallest_avg_exon_transcript = min(average_exon_sizes, key=average_exon_sizes.get)
+    smallest_avg_exon_size = average_exon_sizes[smallest_avg_exon_transcript]
+    
+    print(f"The BRCA1 transcript with the smallest average exon size is {smallest_avg_exon_transcript} with an average size of {smallest_avg_exon_size:.2f} bp.")
+else:
+    print("No transcripts found for BRCA1.")
+
+# Close the database connection
+conn.close()
+```
+
+### Explanation of the Code:
+- **Database Connection**: Connect to the SQLite database where your GFF/GTF data is stored.
+- **Query for Transcripts**: Retrieve all transcript IDs associated with the BRCA1 gene.
+- **Retrieve Exons**: For each transcript, retrieve its associated exons using a JOIN on the `relations` table.
+- **Calculate Average Exon Size**: For each transcript, calculate the total exon size and the average size.
+- **Find Minimum**: Use the `min` function to find the transcript with the smallest average exon size.
+- **Output**: Print the result.
+
+Make sure to replace `'your_database.db'` with the actual path to your SQLite database file.

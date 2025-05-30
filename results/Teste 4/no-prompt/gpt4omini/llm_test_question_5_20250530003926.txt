@@ -1,0 +1,56 @@
+To find the gene that precedes `COL1A2` and is on the same strand, you can follow these steps using Python and the SQLite3 database containing your genome annotation data. Below is a walkthrough along with the necessary code.
+
+### Step-by-Step Walkthrough
+
+1. **Retrieve the `COL1A2` Gene**: First, you need to find the `COL1A2` gene in the database to get its details, including its chromosome and strand.
+
+2. **Find Genes on the Same Strand**: Next, you will look for genes that are on the same chromosome and strand as `COL1A2`.
+
+3. **Identify the Preceding Gene**: Finally, you will sort these genes by their end position and find the one that ends just before the start of `COL1A2`.
+
+### Python Code Example
+
+Here’s how you can implement the above steps in Python:
+
+```python
+# Assuming you have a database connection `db` already established
+
+# Step 1: Find the COL1A2 gene
+col1a2 = next(filter(lambda x: x.attributes.get('gene_name', [''])[0] == 'COL1A2',
+                     db.features_of_type('gene')))
+
+# Get the chromosome and strand of COL1A2
+chromosome = col1a2.seqid
+strand = col1a2.strand
+
+# Step 2: Find genes on the same strand and chromosome
+same_strand_genes = [
+    gene for gene in db.features_of_type('gene')
+    if gene.seqid == chromosome and gene.strand == strand and gene.end < col1a2.start
+]
+
+# Step 3: Identify the gene that precedes COL1A2
+if same_strand_genes:
+    preceding_gene = max(same_strand_genes, key=lambda x: x.end)
+    
+    # Function to get gene info
+    def get_gene_info(gene):
+        gene_id = gene.attributes.get('gene_id', ['Unknown'])[0]
+        gene_name = gene.attributes.get('gene_name', ['Unknown'])[0]
+        return f"{gene_name} (ID: {gene_id})"
+    
+    # Print the result
+    print(f"The gene that precedes COL1A2 is: {get_gene_info(preceding_gene)}")
+else:
+    print("No preceding gene found on the same strand as COL1A2.")
+```
+
+### Explanation of the Code
+
+- **Finding `COL1A2`**: The code uses a filter to find the gene with the name `COL1A2`.
+- **Filtering Genes**: It then creates a list of genes that are on the same chromosome and strand as `COL1A2` and that end before `COL1A2` starts.
+- **Finding the Preceding Gene**: The `max` function is used to find the gene with the maximum end position among those that precede `COL1A2`.
+- **Output**: Finally, it prints the name and ID of the preceding gene.
+
+### Note
+Make sure that your database connection (`db`) is properly established and that you have the necessary libraries (like `gffutils` if you're using it) installed in your Python environment.

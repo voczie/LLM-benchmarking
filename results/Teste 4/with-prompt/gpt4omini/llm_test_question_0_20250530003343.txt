@@ -1,0 +1,25 @@
+To answer the question of how many genes and transcripts are present on chromosome Y, we can utilize the `gffutils` library to query the database. Below is a Python script that accomplishes this task. The script connects to the database, counts the number of genes and transcripts on chromosome Y, and prints the results.
+
+```python
+import gffutils
+
+# Connect to the existing GFF/GTF database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# Count the number of genes on chromosome Y
+genes_y = sum(1 for feature in db.features_of_type('gene') if feature.seqid == 'Y')
+print(f"Number of genes on chromosome Y: {genes_y}")
+
+# Count the number of transcripts on chromosome Y
+transcripts_y = sum(1 for feature in db.features_of_type('transcript') if feature.seqid == 'Y')
+print(f"Number of transcripts on chromosome Y: {transcripts_y}")
+```
+
+### Explanation of the Code:
+1. **Import the gffutils library**: This library is essential for interacting with GFF/GTF databases.
+2. **Connect to the database**: Replace `'path_to_your_database.db'` with the actual path to your GFF/GTF database file.
+3. **Count genes**: We use a generator expression to iterate over all features of type 'gene' and check if their `seqid` (chromosome ID) is 'Y'. We sum up the counts to get the total number of genes.
+4. **Count transcripts**: Similarly, we count the number of features of type 'transcript' on chromosome Y.
+5. **Print results**: Finally, the script prints the counts of genes and transcripts.
+
+Make sure to have the `gffutils` library installed and the database created from your GFF/GTF file before running this script.

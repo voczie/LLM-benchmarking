@@ -81,6 +81,17 @@ questions = [
     """Generate a boxplot to represent the comparison of protein_coding, lncRNA, and miRNA transcript sizes"""
 ]
 
+questions_2 = [
+    """How many genes and transcripts are there on chromosome Y?""",  #1 Gene Count and Distribution by Chromosome
+    """How many protein-coding transcripts are present on chromosome 1?""",        #2 Gene Count and Distribution by Chromosome
+    """What are the Ensembl gene IDs and biotypes of XIST, MALAT1, BRCA1, and COL1A2?""",    #3 Specific Gene Characteristics
+    """Which BRCA1 transcript has the smallest average exon size?""",              #4 Specific Gene Characteristics
+    """Which gene lies directly downstream of COL1A2 on the same strand?""",           #5 Chromosomal Location
+    """Which gene precedes COL1A2 and is on the same strand?""",       #6 Chromosomal Location
+    """Create a table showing the number of transcripts per gene for BRCA1, MALAT1, and XIST.""",      #7 Gene and Isoform Features
+    """Generate a scatterplot showing the relationship between gene length and number of exons on chromosome X."""        #8 Gene and Isoform Features                                                                                       
+]
+
 models = [
     "gemma2:9b",
     "qwen2.5:14b",

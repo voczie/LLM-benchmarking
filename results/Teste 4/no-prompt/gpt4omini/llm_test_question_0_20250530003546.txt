@@ -1,0 +1,71 @@
+To determine how many genes and transcripts are present on chromosome Y using the SQLite3 database that contains your genome annotation, you can follow a similar approach to the code examples you provided. Below is a step-by-step guide along with the corresponding Python code.
+
+### Step 1: Connect to the SQLite3 Database
+First, ensure you have a connection to your SQLite3 database. You can use the `sqlite3` module in Python to do this.
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+db_connection = sqlite3.connect('path_to_your_database.db')
+db = db_connection.cursor()
+```
+
+### Step 2: Query for Genes on Chromosome Y
+You will need to count the number of features of type 'gene' that are located on chromosome Y.
+
+```python
+# Count genes on chromosome Y
+genes_y_query = "SELECT COUNT(*) FROM features WHERE featuretype = 'gene' AND seqid = 'Y'"
+db.execute(genes_y_query)
+genes_y_count = db.fetchone()[0]
+print(f"Number of genes on chromosome Y: {genes_y_count}")
+```
+
+### Step 3: Query for Transcripts on Chromosome Y
+Next, you will count the number of features of type 'transcript' that are located on chromosome Y.
+
+```python
+# Count transcripts on chromosome Y
+transcripts_y_query = "SELECT COUNT(*) FROM features WHERE featuretype = 'transcript' AND seqid = 'Y'"
+db.execute(transcripts_y_query)
+transcripts_y_count = db.fetchone()[0]
+print(f"Number of transcripts on chromosome Y: {transcripts_y_count}")
+```
+
+### Step 4: Close the Database Connection
+After you have executed your queries and obtained the counts, make sure to close the database connection.
+
+```python
+# Close the database connection
+db_connection.close()
+```
+
+### Complete Code Example
+Here’s the complete code that combines all the steps:
+
+```python
+import sqlite3
+
+# Connect to the SQLite database
+db_connection = sqlite3.connect('path_to_your_database.db')
+db = db_connection.cursor()
+
+# Count genes on chromosome Y
+genes_y_query = "SELECT COUNT(*) FROM features WHERE featuretype = 'gene' AND seqid = 'Y'"
+db.execute(genes_y_query)
+genes_y_count = db.fetchone()[0]
+print(f"Number of genes on chromosome Y: {genes_y_count}")
+
+# Count transcripts on chromosome Y
+transcripts_y_query = "SELECT COUNT(*) FROM features WHERE featuretype = 'transcript' AND seqid = 'Y'"
+db.execute(transcripts_y_query)
+transcripts_y_count = db.fetchone()[0]
+print(f"Number of transcripts on chromosome Y: {transcripts_y_count}")
+
+# Close the database connection
+db_connection.close()
+```
+
+### Summary
+This code will provide you with the number of genes and transcripts located on chromosome Y by querying the `features` table in your SQLite3 database. Make sure to replace `'path_to_your_database.db'` with the actual path to your database file.

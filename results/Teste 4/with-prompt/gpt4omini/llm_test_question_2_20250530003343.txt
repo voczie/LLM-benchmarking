@@ -1,0 +1,44 @@
+To retrieve the Ensembl gene IDs and biotypes for the genes XIST, MALAT1, BRCA1, and COL1A2, we can use the `gffutils` library to query the database. The following Python script demonstrates how to accomplish this task:
+
+```python
+import gffutils
+
+# Connect to the existing GFF/GTF database
+db = gffutils.FeatureDB('path_to_your_database.db', keep_order=True)
+
+# List of gene names to query
+gene_names = ['XIST', 'MALAT1', 'BRCA1', 'COL1A2']
+
+# Iterate through the gene names and retrieve their Ensembl gene IDs and biotypes
+for gene_name in gene_names:
+    # Fetch all genes of type 'gene'
+    genes = db.features_of_type('gene')
+    
+    # Find the gene matching the current gene name
+    gene = next((g for g in genes if gene_name in g.attributes.get('gene_name', [])), None)
+    
+    if gene is not None:
+        # Retrieve the Ensembl gene ID and biotype
+        ensembl_id = gene.attributes.get('gene_id', [''])[0]
+        biotype = gene.attributes.get('gene_biotype', [''])[0]
+        
+        # Print the results
+        print(f"Gene: {gene_name}, Ensembl ID: {ensembl_id}, Biotype: {biotype}")
+    else:
+        print(f"Gene {gene_name} not found in the database.")
+```
+
+### Explanation of the Code:
+1. **Import the gffutils Library**: This library is essential for interacting with the GFF/GTF database.
+2. **Connect to the Database**: Replace `'path_to_your_database.db'` with the actual path to your GFF/GTF database file.
+3. **Define Gene Names**: A list of gene names (XIST, MALAT1, BRCA1, COL1A2) is created for querying.
+4. **Iterate Through Gene Names**: For each gene name, the script fetches all features of type 'gene'.
+5. **Find the Matching Gene**: It uses a generator expression to find the gene that matches the current gene name.
+6. **Retrieve Attributes**: If the gene is found, it retrieves the Ensembl gene ID and biotype from the attributes.
+7. **Print Results**: The results are printed in a readable format. If a gene is not found, a message is displayed.
+
+### Usage:
+- Ensure that you have the `gffutils` library installed and that your database is correctly set up.
+- Run the script in a Python environment where you can access the database.
+
+This script will provide you with the Ensembl gene IDs and biotypes for the specified genes.
